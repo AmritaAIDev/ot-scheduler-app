@@ -371,7 +371,105 @@ class UserUpdateView(generics.RetrieveUpdateAPIView):
         return response
 
 
+## data analytics API's
 
+from .serializers import SurgeryDateSerializer
+
+# different ot used
+class OTNumberCountAPI(APIView):
+    def get(self, request):
+        # Deserialize input data
+        serializer = SurgeryDateSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        surgery_date = serializer.validated_data.get('surgery_date')
+
+        if surgery_date:
+            queryset = Scheduled_Surgeries.objects.filter(surgery_date=surgery_date)
+            if queryset.exists():
+                count = queryset.values('ot_number').distinct().count()
+                message = f"Count of unique OT numbers on {surgery_date.strftime('%m/%d/%Y')}: {count}"
+            else:
+                message = f"No scheduled surgeries found on {surgery_date.strftime('%m/%d/%Y')}."
+        else:
+            count = Scheduled_Surgeries.objects.values('ot_number').distinct().count()
+            message = f"Count of unique OT numbers across all dates: {count}"
+
+        return Response({'message': message})
+    
+
+## number of surgeries performed in each ot
+from django.db.models import Count
+class OTSurgeriesCountAPI(APIView):
+    def get(self, request):
+        # Deserialize input data
+        serializer = SurgeryDateSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        surgery_date = serializer.validated_data.get('surgery_date')
+
+        # Construct the base query
+        if surgery_date:
+            surgeries = Scheduled_Surgeries.objects.filter(surgery_date=surgery_date)
+        else:
+            surgeries = Scheduled_Surgeries.objects.all()
+
+        # Aggregate the counts of surgeries per OT number
+        ot_counts = surgeries.values('ot_number').annotate(count=Count('ot_number')).order_by('ot_number')
+
+        # Format the response data
+        if ot_counts:
+            data = [{'ot_number': ot['ot_number'], 'count': ot['count']} for ot in ot_counts]
+            message = f"Count of surgeries per OT on {'all dates' if not surgery_date else surgery_date.strftime('%m/%d/%Y')}: {data}"
+        else:
+            message = f"No surgeries found for {'all dates' if not surgery_date else surgery_date.strftime('%m/%d/%Y')}."
+
+        return Response({'message': message})
+    
+## heat map of the slots
+from django.db.models import Count, Q
+from datetime import time, datetime
+
+class OTTimeSlotUsageAPI(APIView):
+    def get(self, request):
+        # Deserialize input data for the date
+        serializer = SurgeryDateSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        surgery_date = serializer.validated_data.get('surgery_date')
+
+        # Define the time slots
+        time_slots = [
+            (time(8, 0), time(9, 59)),
+            (time(10, 0), time(11, 59)),
+            (time(12, 0), time(13, 59)),
+            (time(14, 0), time(15, 59)),
+            (time(16, 0), time(17, 59)),
+        ]
+
+        # Prepare the response data structure
+        ot_time_slot_usage = {
+            'time_slots': [f"{start.strftime('%H:%M')} - {end.strftime('%H:%M')}" for start, end in time_slots],
+            'ot_usage': {}
+        }
+
+        # Filter by date if provided
+        base_query = Scheduled_Surgeries.objects.all()
+        if surgery_date:
+            base_query = base_query.filter(surgery_date=surgery_date)
+
+        # Fetch the OT numbers available
+        ot_numbers = base_query.values_list('ot_number', flat=True).distinct()
+
+        # Count the surgeries for each OT and time slot
+        for ot_number in ot_numbers:
+            ot_time_slot_usage['ot_usage'][ot_number] = []
+            for start_time, end_time in time_slots:
+                surgery_count = base_query.filter(
+                    ot_number=ot_number,
+                    surgery_start_time__gte=start_time,
+                    surgery_end_time__lte=end_time
+                ).count()
+                ot_time_slot_usage['ot_usage'][ot_number].append(surgery_count)
+
+        return Response(ot_time_slot_usage)
 
 
 

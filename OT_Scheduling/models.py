@@ -94,10 +94,10 @@ class Scheduled_Surgeries(models.Model):
 
 class Monitoring(models.Model):
     surgery_date = models.DateField(null=True, blank=True)
-    scheduled_surgery_id = models.ForeignKey(Scheduled_Surgeries,on_delete=models.CASCADE)
+    scheduled_surgery_id = models.ForeignKey(Scheduled_Surgeries,on_delete=models.CASCADE,null=True,blank=True)
     #ot_id = models.ForeignKey(OTs,on_delete=models.CASCADE)
     ot_number = models.CharField(max_length=1000, blank=True, null=True)
-    user_id = models.ForeignKey(CustomUser,on_delete=models.CASCADE)
+    user_id = models.ForeignKey(CustomUser,on_delete=models.CASCADE, null=True,blank=True)
     patient_received_in_pre_op_time = models.TimeField(null=True,blank=True)
     antibiotic_prophylaxis_time = models.TimeField(null=True,blank=True)
     patient_wheel_in_OT = models.TimeField(null=True,blank=True)
@@ -110,6 +110,12 @@ class Monitoring(models.Model):
     extubation_time_in_OT = models.TimeField(null=True,blank=True)
     wheeled_out_time_to_Post_op_ICU = models.TimeField(null=True,blank=True)
     wheeled_out_from_Post_OP = models.TimeField(null=True,blank=True)
+    
+    # new entries
+    procedure_name = models.TextField(null=True, blank=True)
+    estimated_duration = models.FloatField(null=True, blank=True)
+
+
 
     
 

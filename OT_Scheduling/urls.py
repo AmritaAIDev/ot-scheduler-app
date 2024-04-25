@@ -2,7 +2,7 @@ from django.urls import path
 from .views import UserCreate, LoginView
 from rest_framework_simplejwt.views import TokenRefreshView
 from . import views
-from .views import UserCreate, UserUpdateView, LoginView, DoctorListCreateView,OTListCreateView, PatientListCreateView, ProcedureListCreateView, ScheduleListCreateView, MonitorListCreateView
+from .views import UserCreate, UserUpdateView, LoginView, DoctorListCreateView,OTListCreateView, PatientListCreateView, ProcedureListCreateView, ScheduleListCreateView, MonitorListCreateView, OTNumberCountAPI, OTSurgeriesCountAPI, OTTimeSlotUsageAPI
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework.routers import DefaultRouter
 #from django.contrib.auth.views import PasswordResetView, PasswordResetConfirmView, PasswordResetCompleteView
@@ -21,6 +21,9 @@ urlpatterns = [
     path('register/', UserCreate.as_view(), name='register'),
     path('login/', LoginView.as_view(), name='login'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('ot-count/', OTNumberCountAPI.as_view(), name = 'ot_count'),
+    path('ot-surgery-count/',OTSurgeriesCountAPI.as_view(), name = 'ot_surgery_count'),
+    path('ot-time-slot-usage/', OTTimeSlotUsageAPI.as_view(), name='ot-time-slot-usage'),
     #path('forgot-password/', ForgotPasswordView.as_view(), name='forgot-password'),
     #path('token-valid/', TokenValidView.as_view(), name='token-valid'),
     #path('reset-password/', ResetPasswordView.as_view(), name='reset-password'),

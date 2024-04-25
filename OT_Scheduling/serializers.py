@@ -51,3 +51,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['name', 'role','password']
+
+
+class SurgeryDateSerializer(serializers.Serializer):
+    surgery_date = serializers.DateField(required=False)
