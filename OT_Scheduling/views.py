@@ -373,42 +373,65 @@ class UserUpdateView(generics.RetrieveUpdateAPIView):
 
 ## data analytics API's
 
-from .serializers import SurgeryDateSerializer
+from .serializers import DateRangeSerializer
 
 # different ot used
 class OTNumberCountAPI(APIView):
     def get(self, request):
         # Deserialize input data
-        serializer = SurgeryDateSerializer(data=request.query_params)
+        serializer = DateRangeSerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
-        surgery_date = serializer.validated_data.get('surgery_date')
+        start_date = serializer.validated_data.get('start_date')
+        end_date = serializer.validated_data.get('end_date')
 
-        if surgery_date:
-            queryset = Scheduled_Surgeries.objects.filter(surgery_date=surgery_date)
-            if queryset.exists():
-                count = queryset.values('ot_number').distinct().count()
-                message = f"Count of unique OT numbers on {surgery_date.strftime('%m/%d/%Y')}: {count}"
-            else:
-                message = f"No scheduled surgeries found on {surgery_date.strftime('%m/%d/%Y')}."
+        # Base queryset
+        queryset = Scheduled_Surgeries.objects
+
+        # Filter queryset based on the provided date range
+        if start_date and end_date:
+            queryset = queryset.filter(surgery_date__range=(start_date, end_date))
+            if not queryset.exists():
+                message = f"No scheduled surgeries found between {start_date.strftime('%m/%d/%Y')} and {end_date.strftime('%m/%d/%Y')}."
+                return Response({'message': message})
+            count_message = f"Count of unique OT numbers between {start_date.strftime('%m/%d/%Y')} and {end_date.strftime('%m/%d/%Y')}: "
+        elif start_date:  # Only the start_date is provided
+            queryset = queryset.filter(surgery_date__gte=start_date)
+            if not queryset.exists():
+                message = f"No scheduled surgeries found starting from {start_date.strftime('%m/%d/%Y')}."
+                return Response({'message': message})
+            count_message = f"Count of unique OT numbers from {start_date.strftime('%m/%d/%Y')} onwards: "
+        elif end_date:  # Only the end_date is provided
+            queryset = queryset.filter(surgery_date__lte=end_date)
+            if not queryset.exists():
+                message = f"No scheduled surgeries found up to {end_date.strftime('%m/%d/%Y')}."
+                return Response({'message': message})
+            count_message = f"Count of unique OT numbers up to {end_date.strftime('%m/%d/%Y')}: "
         else:
-            count = Scheduled_Surgeries.objects.values('ot_number').distinct().count()
-            message = f"Count of unique OT numbers across all dates: {count}"
+            count_message = "Count of unique OT numbers across all dates: "
 
-        return Response({'message': message})
-    
+        # Calculate the count
+        count = queryset.values('ot_number').distinct().count()
+
+        return Response({'message': count_message + str(count)})    
 
 ## number of surgeries performed in each ot
 from django.db.models import Count
+
 class OTSurgeriesCountAPI(APIView):
     def get(self, request):
         # Deserialize input data
-        serializer = SurgeryDateSerializer(data=request.query_params)
+        serializer = DateRangeSerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
-        surgery_date = serializer.validated_data.get('surgery_date')
+        start_date = serializer.validated_data.get('start_date')
+        end_date = serializer.validated_data.get('end_date')
 
         # Construct the base query
-        if surgery_date:
-            surgeries = Scheduled_Surgeries.objects.filter(surgery_date=surgery_date)
+        if start_date and end_date:
+            surgeries = Scheduled_Surgeries.objects.filter(surgery_date__range=(start_date, end_date))
+        elif start_date:
+            surgeries = Scheduled_Surgeries.objects.filter(surgery_date__gte=start_date)
+        elif end_date:
+            surgeries = Scheduled_Surgeries.objects.filter(surgery_date__lte=end_date)
         else:
             surgeries = Scheduled_Surgeries.objects.all()
 
@@ -418,22 +441,29 @@ class OTSurgeriesCountAPI(APIView):
         # Format the response data
         if ot_counts:
             data = [{'ot_number': ot['ot_number'], 'count': ot['count']} for ot in ot_counts]
-            message = f"Count of surgeries per OT on {'all dates' if not surgery_date else surgery_date.strftime('%m/%d/%Y')}: {data}"
+            if start_date and end_date:
+                message = f"Count of surgeries per OT from {start_date.strftime('%m/%d/%Y')} to {end_date.strftime('%m/%d/%Y')}: {data}"
+            elif start_date:
+                message = f"Count of surgeries per OT from {start_date.strftime('%m/%d/%Y')} onwards: {data}"
+            elif end_date:
+                message = f"Count of surgeries per OT up to {end_date.strftime('%m/%d/%Y')}: {data}"
+            else:
+                message = "Count of surgeries per OT on all dates: {data}"
         else:
-            message = f"No surgeries found for {'all dates' if not surgery_date else surgery_date.strftime('%m/%d/%Y')}."
+            message = "No surgeries found for the specified dates."
 
-        return Response({'message': message})
-    
-## heat map of the slots
-from django.db.models import Count, Q
-from datetime import time, datetime
+        return Response({'message': message})  
 
+      
+## heat map of the OT slots
+from datetime import time
 class OTTimeSlotUsageAPI(APIView):
     def get(self, request):
-        # Deserialize input data for the date
-        serializer = SurgeryDateSerializer(data=request.query_params)
+        # Deserialize input data
+        serializer = DateRangeSerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
-        surgery_date = serializer.validated_data.get('surgery_date')
+        start_date = serializer.validated_data.get('start_date')
+        end_date = serializer.validated_data.get('end_date')
 
         # Define the time slots
         time_slots = [
@@ -450,10 +480,14 @@ class OTTimeSlotUsageAPI(APIView):
             'ot_usage': {}
         }
 
-        # Filter by date if provided
-        base_query = Scheduled_Surgeries.objects.all()
-        if surgery_date:
-            base_query = base_query.filter(surgery_date=surgery_date)
+        # Start with the base queryset, possibly filtered by date range
+        base_query = Scheduled_Surgeries.objects
+        if start_date and end_date:
+            base_query = base_query.filter(surgery_date__range=(start_date, end_date))
+        elif start_date:
+            base_query = base_query.filter(surgery_date__gte=start_date)
+        elif end_date:
+            base_query = base_query.filter(surgery_date__lte=end_date)
 
         # Fetch the OT numbers available
         ot_numbers = base_query.values_list('ot_number', flat=True).distinct()
@@ -470,8 +504,340 @@ class OTTimeSlotUsageAPI(APIView):
                 ot_time_slot_usage['ot_usage'][ot_number].append(surgery_count)
 
         return Response(ot_time_slot_usage)
+    
+## Average of all the steps of a procedure per OT
 
+from django.db.models import Avg, ExpressionWrapper, F, fields, Sum
 
+class AvgMonitoringStepsAPIView(APIView):
+    def get(self, request):
+        # Deserialize input data
+        serializer = DateRangeSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        start_date = serializer.validated_data.get('start_date')
+        end_date = serializer.validated_data.get('end_date')
+
+        # Create a base query for Monitoring
+        base_query = Monitoring.objects.all()
+
+        # Apply filters based on provided dates
+        if start_date and end_date:
+            base_query = base_query.filter(surgery_date__range=[start_date, end_date])
+        elif start_date:
+            base_query = base_query.filter(surgery_date__gte=start_date)
+        elif end_date:
+            base_query = base_query.filter(surgery_date__lte=end_date)
+
+        # Calculate durations and average them
+        surgeries = base_query.annotate(
+            induction_duration=ExpressionWrapper(
+                F('induction_end_time') - F('induction_start_time'),
+                output_field=fields.DurationField()
+            ),
+            painting_and_draping_duration=ExpressionWrapper(
+                F('painting_and_draping_end_time') - F('painting_and_draping_start_time'),
+                output_field=fields.DurationField()
+            ),
+            incision_duration=ExpressionWrapper(
+                F('incision_close_time') - F('incision_in_time'),
+                output_field=fields.DurationField()
+            )
+        ).values('ot_number').annotate(
+            avg_induction_duration=Avg('induction_duration'),
+            avg_painting_and_draping_duration=Avg('painting_and_draping_duration'),
+            avg_incision_duration=Avg('incision_duration')
+        ).order_by('ot_number')
+
+        return Response(surgeries)
+
+### OT Percent Utilization
+class OTUtilizationAPIView(APIView):
+    def get(self, request):
+        # Deserialize input data
+        serializer = DateRangeSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        start_date = serializer.validated_data.get('start_date')
+        end_date = serializer.validated_data.get('end_date')
+
+        # Create a base query for Monitoring
+        base_query = Monitoring.objects.all()
+
+        # If dates are provided, apply date range filtering
+        if start_date and end_date:
+            base_query = base_query.filter(surgery_date__range=[start_date, end_date])
+            total_days = (end_date - start_date).days + 1  # Including both start and end date
+        
+        elif start_date:
+            return Response({"message": "please enter the end date."})
+        
+        elif end_date:
+            return Response({"message": "Please enter the start date."})
+
+        else:
+            # Calculate the range from the earliest to the latest surgery_date in the database
+            earliest_date = Monitoring.objects.earliest('surgery_date').surgery_date
+            latest_date = Monitoring.objects.latest('surgery_date').surgery_date
+            total_days = (latest_date - earliest_date).days + 1 if earliest_date and latest_date else 0
+
+        total_possible_hours_per_ot = total_days * 10  # 10 hours per day
+
+        # Fetch OT utilization data
+        base_query = base_query.annotate(
+            utilization_time=ExpressionWrapper(
+                F('wheeled_out_from_Post_OP') - F('patient_received_in_pre_op_time'),
+                output_field=fields.DurationField()
+            )
+        ).values('ot_number').annotate(
+            total_utilization=Sum('utilization_time')
+        )
+
+        # Calculate utilization percentage for each OT
+        ot_utilization_percentages = {}
+        if total_days > 0:
+            for entry in base_query:
+                ot_number = entry['ot_number']
+                total_utilization_seconds = entry['total_utilization'].total_seconds() if entry['total_utilization'] else 0
+                total_possible_seconds = total_possible_hours_per_ot * 3600
+                utilization_percentage = (total_utilization_seconds / total_possible_seconds) * 100
+                ot_utilization_percentages[ot_number] = round(utilization_percentage, 2)
+        
+        if not ot_utilization_percentages:
+            return Response({"message": "No surgeries found in the specified range."})
+
+        return Response(ot_utilization_percentages)
+
+'''### For Doctors Analytics
+
+class DoctorNumberCountAPI(APIView):
+    def get(self, request):
+        # Deserialize input data
+        serializer = SurgeryDateSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        surgery_date = serializer.validated_data.get('surgery_date')
+
+        if surgery_date:
+            queryset = Scheduled_Surgeries.objects.filter(surgery_date=surgery_date)
+            if queryset.exists():
+                count = queryset.values('doctor_name').distinct().count()
+                message = f"Count of unique doctors on {surgery_date.strftime('%m/%d/%Y')}: {count}"
+            else:
+                message = f"No scheduled doctors found on {surgery_date.strftime('%m/%d/%Y')}."
+        else:
+            count = Scheduled_Surgeries.objects.values('doctor_name').distinct().count()
+            message = f"Count of unique doctors across all dates: {count}"
+
+        return Response({'message': message})
+    
+
+## number of surgeries performed by each doctor
+from django.db.models import Count
+class DoctorSurgeriesCountAPI(APIView):
+    def get(self, request):
+        # Deserialize input data
+        serializer = SurgeryDateSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        surgery_date = serializer.validated_data.get('surgery_date')
+
+        # Construct the base query
+        if surgery_date:
+            surgeries = Scheduled_Surgeries.objects.filter(surgery_date=surgery_date)
+        else:
+            surgeries = Scheduled_Surgeries.objects.all()
+
+        # Aggregate the counts of surgeries per OT number
+        doctor_counts = surgeries.values('doctor_name').annotate(count=Count('doctor_name')).order_by('doctor_name')
+
+        # Format the response data
+        if doctor_counts:
+            data = [{'doctor_name': doctor['doctor_name'], 'count': doctor['count']} for doctor in doctor_counts]
+            message = f"Count of surgeries per doctor on {'all dates' if not surgery_date else surgery_date.strftime('%m/%d/%Y')}: {data}"
+        else:
+            message = f"No surgeries found for {'all dates' if not surgery_date else surgery_date.strftime('%m/%d/%Y')}."
+
+        return Response({'message': message})
+    
+
+## heat map of the Doctors slots
+from django.db.models import Count, Q
+from datetime import time, datetime
+
+class DoctorTimeSlotUsageAPI(APIView):
+    def get(self, request):
+        # Deserialize input data for the date
+        serializer = SurgeryDateSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        surgery_date = serializer.validated_data.get('surgery_date')
+
+        # Define the time slots
+        time_slots = [
+            (time(8, 0), time(9, 59)),
+            (time(10, 0), time(11, 59)),
+            (time(12, 0), time(13, 59)),
+            (time(14, 0), time(15, 59)),
+            (time(16, 0), time(17, 59)),
+        ]
+
+        # Prepare the response data structure
+        doctor_time_slot_usage = {
+            'time_slots': [f"{start.strftime('%H:%M')} - {end.strftime('%H:%M')}" for start, end in time_slots],
+            'doctor_usage': {}
+        }
+
+        # Filter by date if provided
+        base_query = Scheduled_Surgeries.objects.all()
+        if surgery_date:
+            base_query = base_query.filter(surgery_date=surgery_date)
+
+        # Fetch the OT numbers available
+        doctor_names = base_query.values_list('doctor_name', flat=True).distinct()
+
+        # Count the surgeries for each OT and time slot
+        for doctor_name in doctor_names:
+            doctor_time_slot_usage['doctor_usage'][doctor_name] = []
+            for start_time, end_time in time_slots:
+                surgery_count = base_query.filter(
+                    doctor_name=doctor_name,
+                    surgery_start_time__gte=start_time,
+                    surgery_end_time__lte=end_time
+                ).count()
+                doctor_time_slot_usage['doctor_usage'][doctor_name].append(surgery_count)
+
+        return Response(doctor_time_slot_usage)
+    
+
+## average duration of each doctor
+
+from django.db.models import Avg, ExpressionWrapper, F, fields
+from django.db.models.functions import Coalesce
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from django.db.models import Avg, ExpressionWrapper, F, fields
+from .models import Scheduled_Surgeries
+from .serializers import SurgeryDateSerializer
+from datetime import timedelta
+
+class DoctorAverageSurgeryDurationAPI(APIView):
+    def get(self, request):
+        # Deserialize the input data for the date
+        serializer = SurgeryDateSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        surgery_date = serializer.validated_data.get('surgery_date')
+
+        # Start with the base queryset
+        surgeries = Scheduled_Surgeries.objects.all()
+
+        # If a surgery_date is provided, filter by that date
+        if surgery_date:
+            surgeries = surgeries.filter(surgery_date=surgery_date)
+
+        # Calculate surgery duration
+        surgeries = surgeries.annotate(
+            duration=ExpressionWrapper(
+                F('surgery_end_time') - F('surgery_start_time'),
+                output_field=fields.DurationField()
+            )
+        )
+
+        # Filter out surgeries with no end time or start time
+        surgeries = surgeries.exclude(surgery_end_time=None).exclude(surgery_start_time=None)
+
+        # Calculate average duration for each doctor
+        average_durations = surgeries.values('doctor_name').annotate(
+            average_duration=Avg('duration')
+        ).order_by('doctor_name')
+
+        # Convert average duration to a readable format
+        response_data = {
+            doctor['doctor_name']: str(timedelta(seconds=doctor['average_duration'].total_seconds())) if doctor['average_duration'] else '00:00:00' for doctor in average_durations
+        }
+
+        return Response(response_data)
+
+## Department Analytics
+# Count of Departments
+
+class DepartmentNumberCountAPI(APIView):
+    def get(self, request):
+        # Deserialize input data
+        serializer = SurgeryDateSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        surgery_date = serializer.validated_data.get('surgery_date')
+
+        if surgery_date:
+            queryset = Scheduled_Surgeries.objects.filter(surgery_date=surgery_date)
+            if queryset.exists():
+                count = queryset.values('department').distinct().count()
+                message = f"Count of departments on {surgery_date.strftime('%m/%d/%Y')}: {count}"
+            else:
+                message = f"No departments found on {surgery_date.strftime('%m/%d/%Y')}."
+        else:
+            count = Scheduled_Surgeries.objects.values('department').distinct().count()
+            message = f"Count of department across all dates: {count}"
+
+        return Response({'message': message})
+    
+
+## Doctors in each department
+class DepartmentDoctorCountAPI(APIView):
+    def get(self, request):
+        # Deserialize the input data for the date
+        serializer = SurgeryDateSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        surgery_date = serializer.validated_data.get('surgery_date')
+
+        if surgery_date:
+            # Filter surgeries by date
+            surgeries_on_date = Scheduled_Surgeries.objects.filter(surgery_date=surgery_date)
+
+            # Check if there are any surgeries on the given date
+            if not surgeries_on_date.exists():
+                return Response({"message": "No data for the given date"})
+
+            # Proceed to count the number of doctors per department for the given date
+            department_doctor_counts = surgeries_on_date.values('department') \
+                .annotate(doctor_count=Count('doctor_name', distinct=True)) \
+                .order_by('department')
+        else:
+            # If no date is provided, count the number of doctors for all departments in the database
+            department_doctor_counts = Scheduled_Surgeries.objects.values('department') \
+                .annotate(doctor_count=Count('doctor_name', distinct=True)) \
+                .order_by('department')
+
+        # Format the result into a dictionary
+        department_counts = {entry['department']: entry['doctor_count'] for entry in department_doctor_counts}
+
+        return Response(department_counts)
+    
+## Surgeries in each department
+class DepartmentSurgeryCountAPI(APIView):
+    def get(self, request):
+        # Deserialize the input data for the date
+        serializer = SurgeryDateSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        surgery_date = serializer.validated_data.get('surgery_date')
+
+        if surgery_date:
+            # Filter surgeries by date
+            surgeries_on_date = Scheduled_Surgeries.objects.filter(surgery_date=surgery_date)
+
+            # Check if there are any surgeries on the given date
+            if not surgeries_on_date.exists():
+                return Response({"message": "No data for the given date"})
+
+            # Proceed to count the number of doctors per department for the given date
+            department_doctor_counts = surgeries_on_date.values('department') \
+                .annotate(surgery_count=Count('procedure_name', distinct=True)) \
+                .order_by('department')
+        else:
+            # If no date is provided, count the number of doctors for all departments in the database
+            department_doctor_counts = Scheduled_Surgeries.objects.values('department') \
+                .annotate(surgery_count=Count('procedure_name', distinct=True)) \
+                .order_by('department')
+
+        # Format the result into a dictionary
+        department_counts = {entry['department']: entry['surgery_count'] for entry in department_doctor_counts}
+
+        return Response(department_counts)'''
 
 
 

@@ -53,5 +53,6 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         fields = ['name', 'role','password']
 
 
-class SurgeryDateSerializer(serializers.Serializer):
-    surgery_date = serializers.DateField(required=False)
+class DateRangeSerializer(serializers.Serializer):
+    start_date = serializers.DateField(required=False, allow_null=True)
+    end_date = serializers.DateField(required=False, allow_null=True)
