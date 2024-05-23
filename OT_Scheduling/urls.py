@@ -2,7 +2,7 @@ from django.urls import path
 from .views import UserCreate, LoginView
 from rest_framework_simplejwt.views import TokenRefreshView
 from . import views
-from .views import UserCreate, UserUpdateView, LoginView, DoctorListCreateView,OTListCreateView, PatientListCreateView, ProcedureListCreateView, ScheduleListCreateView, MonitorListCreateView, OTNumberCountAPI, OTSurgeriesCountAPI, OTTimeSlotUsageAPI, AvgMonitoringStepsAPIView, OTUtilizationAPIView#, DoctorNumberCountAPI,DoctorSurgeriesCountAPI, DoctorTimeSlotUsageAPI, DoctorAverageSurgeryDurationAPI, DepartmentNumberCountAPI, DepartmentDoctorCountAPI, DepartmentSurgeryCountAPI
+from .views import UserCreate, UserUpdateView, LoginView, DoctorListCreateView,OTListCreateView, PatientListCreateView, ProcedureListCreateView, ScheduleListCreateView, MonitorListCreateView, OTSchedulerView, OTNumberCountAPI, OTSurgeriesCountAPI, OTTimeSlotUsageAPI, AvgMonitoringStepsAPIView, OTUtilizationAPIView, DoctorNumberCountAPI,DoctorSurgeriesCountAPI, DoctorTimeSlotUsageAPI, DoctorAverageSurgeryDurationAPI, DepartmentNumberCountAPI, DepartmentSurgeryCountAPI, ProcedureCountAPI, ProcedureTimeComparisonAPI, SurgeryTypePercentageAPI, SurgeryTimingPercentageAPI, PatientCountAPI, GenderDistributionAPI, AgeDistributionAPI, SurgeryDateAPI, AvgTimeDifferenceAPIView, UniqueDepartmentSurgeryCountAPI, EmergencySchedulerView
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework.routers import DefaultRouter
 #from django.contrib.auth.views import PasswordResetView, PasswordResetConfirmView, PasswordResetCompleteView
@@ -26,13 +26,25 @@ urlpatterns = [
     path('ot-time-slot-usage/', OTTimeSlotUsageAPI.as_view(), name='ot-time-slot-usage'),
     path('monitoring-steps-avg/',AvgMonitoringStepsAPIView.as_view()),
     path('percent-ot-utilization/',OTUtilizationAPIView.as_view()),
-    #path('doctor-count/',DoctorNumberCountAPI.as_view(), name='doctor_count'),
-    #path('doctor-surgery-count/',DoctorSurgeriesCountAPI.as_view(), name='doctor-surgery-count'),
-    #path('doctor-time-slot-usage/',DoctorTimeSlotUsageAPI.as_view(), name = 'doctor-time-slot'),
-    #path('doctor-average-time/',DoctorAverageSurgeryDurationAPI.as_view()),
-    #path('department-count/',DepartmentNumberCountAPI.as_view()),
-    #path('department-doctor-count/',DepartmentDoctorCountAPI.as_view()),
-    #path('surgery-department-count/',DepartmentSurgeryCountAPI.as_view()),
+    path('api/avg-time-difference/', AvgTimeDifferenceAPIView.as_view(), name='avg-time-difference'),
+    path('doctor-count/',DoctorNumberCountAPI.as_view(), name='doctor_count'),
+    path('doctor-surgery-count/',DoctorSurgeriesCountAPI.as_view(), name='doctor-surgery-count'),
+    path('doctor-time-slot-usage/',DoctorTimeSlotUsageAPI.as_view(), name = 'doctor-time-slot'),
+    path('doctor-average-time/',DoctorAverageSurgeryDurationAPI.as_view()),
+    path('department-count/',DepartmentNumberCountAPI.as_view()),
+    path('surgery-department-count/',DepartmentSurgeryCountAPI.as_view()),
+    path('unique-department-surgery-count/',UniqueDepartmentSurgeryCountAPI.as_view()),
+    path('procedure-count/', ProcedureCountAPI.as_view()),
+    path('procedure-time-comparison/', ProcedureTimeComparisonAPI.as_view(), name='procedure-time-comparison'),
+    path('surgery-type-percentage/', SurgeryTypePercentageAPI.as_view()),
+    path('surgery-timing-percentage/', SurgeryTimingPercentageAPI.as_view()),
+    path('patient-count/', PatientCountAPI.as_view(), name='patient-count'),
+    path('gender-distribution/', GenderDistributionAPI.as_view(), name='gender-distribution'),
+    path('age-distribution/', AgeDistributionAPI.as_view(), name='age-distribution'),
+    path('date-range/',SurgeryDateAPI.as_view()),
+    path('ot-schedule/',OTSchedulerView.as_view()),
+    #path('previous-end-times/', get_previous_end_times),
+    path('emergency-schedule',EmergencySchedulerView.as_view()),
     #path('forgot-password/', ForgotPasswordView.as_view(), name='forgot-password'),
     #path('token-valid/', TokenValidView.as_view(), name='token-valid'),
     #path('reset-password/', ResetPasswordView.as_view(), name='reset-password'),

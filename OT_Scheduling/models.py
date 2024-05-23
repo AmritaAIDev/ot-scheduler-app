@@ -65,12 +65,21 @@ class Patients(models.Model):
     age = models.IntegerField(null=True, blank=True)
     mrd = models.IntegerField(null=True, blank=True)
     gender = models.CharField(max_length=50)
+    registration_date = models.DateField(null=True, blank=True)
 
 class Procedures(models.Model):
     procedure_id = models.AutoField(primary_key=True)
     procedure_name = models.TextField(null=True, blank=True)
     department = models.CharField(max_length=50)
     estimated_duration = models.FloatField(null=True, blank=True)
+
+## For OT Staff
+
+class OTstaff(models.Model):
+    ot_staff_id = models.AutoField(primary_key=True)
+    ot_staff_name = models.CharField(max_length=1000,null=True,blank=True)
+    ot_staff_department = models.CharField(max_length=1000,null=True,blank=True)
+    ot_staff_designation = models.CharField(max_length=1000,null=True,blank=True)
 
 class Scheduled_Surgeries(models.Model):
     scheduled_surgery_id = models.AutoField(primary_key=True)
@@ -91,6 +100,10 @@ class Scheduled_Surgeries(models.Model):
     surgery_start_time = models.TimeField(null=True, blank=True)
     surgery_end_time = models.TimeField(null=True, blank=True)
     status = models.CharField(max_length=50,null=True, blank=True)
+    # for emergency, add on, or preplanned
+    surgery_type = models.CharField(max_length=1000, null=True,blank=True, default='Pre-planned')
+    # For OT Staff
+    ot_staff_id = models.ForeignKey(OTstaff,on_delete=models.CASCADE,null=True, blank=True)
 
 class Monitoring(models.Model):
     surgery_date = models.DateField(null=True, blank=True)
@@ -114,6 +127,8 @@ class Monitoring(models.Model):
     # new entries
     procedure_name = models.TextField(null=True, blank=True)
     estimated_duration = models.FloatField(null=True, blank=True)
+    doctor_name = models.CharField(max_length=500, null=True, blank=True)
+
 
 
 
