@@ -2,7 +2,7 @@ from django.urls import path
 from .views import UserCreate, LoginView
 from rest_framework_simplejwt.views import TokenRefreshView
 from . import views
-from .views import UserCreate, UserUpdateView, LoginView, DoctorListCreateView,OTListCreateView, PatientListCreateView, ProcedureListCreateView, ScheduleListCreateView, MonitorListCreateView, OTSchedulerView, OTNumberCountAPI, OTSurgeriesCountAPI, OTTimeSlotUsageAPI, AvgMonitoringStepsAPIView, OTUtilizationAPIView, DoctorNumberCountAPI,DoctorSurgeriesCountAPI, DoctorTimeSlotUsageAPI, DoctorAverageSurgeryDurationAPI, DepartmentNumberCountAPI, DepartmentSurgeryCountAPI, ProcedureCountAPI, ProcedureTimeComparisonAPI, SurgeryTypePercentageAPI, SurgeryTimingPercentageAPI, PatientCountAPI, GenderDistributionAPI, AgeDistributionAPI, SurgeryDateAPI, AvgTimeDifferenceAPIView, UniqueDepartmentSurgeryCountAPI, EmergencySchedulerView
+from .views import UserCreate, UserUpdateView, LoginView, DoctorListCreateView,OTListCreateView, PatientListCreateView, ProcedureListCreateView, ScheduleListCreateView, MonitorListCreateView, OTstaffListCreateView, OTSchedulerView, OTNumberCountAPI, OTSurgeriesCountAPI, OTTimeSlotUsageAPI, AvgMonitoringStepsAPIView, OTUtilizationAPIView, DoctorNumberCountAPI,DoctorSurgeriesCountAPI, DoctorTimeSlotUsageAPI, DoctorAverageSurgeryDurationAPI, DepartmentNumberCountAPI, DepartmentSurgeryCountAPI, ProcedureCountAPI, ProcedureTimeComparisonAPI, SurgeryTypePercentageAPI, SurgeryTimingPercentageAPI, PatientCountAPI, GenderDistributionAPI, AgeDistributionAPI, SurgeryDateAPI, AvgTimeDifferenceAPIView, UniqueDepartmentSurgeryCountAPI, OTstaffNumberCountAPI,OTstaffSurgeriesCountAPI, OTstaffAverageSurgeryDurationAPI
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework.routers import DefaultRouter
 #from django.contrib.auth.views import PasswordResetView, PasswordResetConfirmView, PasswordResetCompleteView
@@ -15,6 +15,7 @@ router.register(r'patient', PatientListCreateView, basename='patient-list-create
 router.register(r'procedure', ProcedureListCreateView, basename='procedure-list-create')
 router.register(r'schedule', ScheduleListCreateView, basename='schedule-list-create')
 router.register(r'monitor', MonitorListCreateView, basename='monitor-list-create')
+router.register(r'otstaff', OTstaffListCreateView, basename='ot-staff-list-create')
 
 
 urlpatterns = [
@@ -43,8 +44,11 @@ urlpatterns = [
     path('age-distribution/', AgeDistributionAPI.as_view(), name='age-distribution'),
     path('date-range/',SurgeryDateAPI.as_view()),
     path('ot-schedule/',OTSchedulerView.as_view()),
+    path('ot_staff_count/',OTstaffNumberCountAPI.as_view()),
+    path('otstaff-surgery-count/',OTstaffSurgeriesCountAPI.as_view()),
+    path('otstaff-avg-time/',OTstaffAverageSurgeryDurationAPI.as_view()),
     #path('previous-end-times/', get_previous_end_times),
-    path('emergency-schedule',EmergencySchedulerView.as_view()),
+    #path('emergency-schedule',EmergencySchedulerView.as_view()),
     #path('forgot-password/', ForgotPasswordView.as_view(), name='forgot-password'),
     #path('token-valid/', TokenValidView.as_view(), name='token-valid'),
     #path('reset-password/', ResetPasswordView.as_view(), name='reset-password'),

@@ -5,8 +5,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import UserSerializer
-from .serializers import UserSerializer, UserUpdateSerializer, DoctorSerializer, OTSerializer, PatientSerializer, ProcedureSerializer, ScheduleSerializer, MonitorSerializer
-from .models import CustomUser, Doctors, OTs, Patients, Procedures, Scheduled_Surgeries, Monitoring
+from .serializers import UserSerializer, UserUpdateSerializer, DoctorSerializer, OTSerializer, PatientSerializer, ProcedureSerializer, ScheduleSerializer, MonitorSerializer, OTstaffSerializer
+from .models import CustomUser, Doctors, OTs, Patients, Procedures, Scheduled_Surgeries, Monitoring, OTstaff
 from rest_framework import generics, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -140,6 +140,28 @@ class OTListCreateView(viewsets.ModelViewSet):
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+    
+class OTstaffListCreateView(viewsets.ModelViewSet):
+    #permission_classes = [IsAuthenticated]
+    queryset = OTstaff.objects.all()
+    serializer_class = OTstaffSerializer
+    
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        # Check if the entry already exists in the database
+        ot_staff_name = serializer.validated_data.get('ot_staff_name')
+        ot_staff_department = serializer.validated_data.get('ot_staff_department')
+        ot_staff_designation = serializer.validated_data.get('ot_staff_designation')
+
+        if OTstaff.objects.filter(ot_staff_name=ot_staff_name, ot_staff_department=ot_staff_department,ot_staff_designation=ot_staff_designation ).exists():
+            return Response({'detail': 'OT staff with this department and designation already exists.'}, status=status.HTTP_409_CONFLICT)
+        
+        # If not exists, save the new entry
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 
@@ -158,7 +180,7 @@ class PatientListCreateView(viewsets.ModelViewSet):
             queryset = queryset.filter(mrd=mrd)
         return queryset
     
-    '''def create(self, request, *args, **kwargs):
+    def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -170,7 +192,21 @@ class PatientListCreateView(viewsets.ModelViewSet):
         # If not exists, save the new entry
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)'''
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+    
+    @action(methods=['delete'], detail=False, url_path='delete-all-on-date')
+    def delete_all_on_date(self, request):
+        registration_date = request.query_params.get('registration_date')
+        if not registration_date:
+            return Response({"message": "Date parameter is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Filter the queryset for the specified date
+        queryset = self.get_queryset().filter(registration_date=registration_date)
+        if queryset.exists():
+            deleted_count = queryset.delete()[0]  # delete() returns a tuple (num_deleted, details)
+            return Response({"message": f"{deleted_count} entries deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response({"message": "No entries found for the specified date."}, status=status.HTTP_404_NOT_FOUND)
 
 
 class ProcedureListCreateView(viewsets.ModelViewSet):
@@ -226,6 +262,9 @@ class ScheduleListCreateView(viewsets.ModelViewSet):
         status = self.request.query_params.get('status')
         surgery_date = self.request.query_params.get('surgery_date')
         mrd = self.request.query_params.get('mrd')
+        ot_staff_id = self.request.query_params.get('ot_staff_id')
+        if ot_staff_id:
+            queryset = queryset.filter(ot_staff_id=ot_staff_id)
         if scheduled_surgery_id:
             queryset = queryset.filter(scheduled_surgery_id=scheduled_surgery_id)
         if patient_name:
@@ -443,13 +482,13 @@ class OTSurgeriesCountAPI(APIView):
             #data = [{'ot_number': ot['ot_number'], 'count': ot['count']} for ot in ot_counts]
             data = [{ot['ot_number']:ot['count']} for ot in ot_counts]
             if start_date and end_date:
-                message = f"Count of surgeries per OT from {start_date.strftime('%m/%d/%Y')} to {end_date.strftime('%m/%d/%Y')}"
+                message = f"Count of surgeries per OT from {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}"
                 result = {message:data}
             elif start_date:
-                message = f"Count of surgeries per OT from {start_date.strftime('%m/%d/%Y')} onwards"
+                message = f"Count of surgeries per OT from {start_date.strftime('%Y-%m-%d')} onwards"
                 result = {message:data}
             elif end_date:
-                message = f"Count of surgeries per OT up to {end_date.strftime('%m/%d/%Y')}"
+                message = f"Count of surgeries per OT up to {end_date.strftime('%Y-%m-%d')}"
                 result = {message:data}
             else:
                 message = f"Count of surgeries per OT on all dates"
@@ -741,11 +780,11 @@ class DoctorSurgeriesCountAPI(APIView):
         if doctor_counts:
             data = [{doctor['doctor_name']: doctor['count']} for doctor in doctor_counts]
             if start_date and end_date:
-                message = {f"Count of surgeries per doctor from {start_date.strftime('%m/%d/%Y')} to {end_date.strftime('%m/%d/%Y')}": data}
+                message = {f"Count of surgeries per doctor from {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}": data}
             elif start_date:
-                message = {f"Count of surgeries per doctor from {start_date.strftime('%m/%d/%Y')} onwards": data}
+                message = {f"Count of surgeries per doctor from {start_date.strftime('%Y-%m-%d')} onwards": data}
             elif end_date:
-                message = {f"Count of surgeries per doctor up to {end_date.strftime('%m/%d/%Y')}": data}
+                message = {f"Count of surgeries per doctor up to {end_date.strftime('%Y-%m-%d')}": data}
             else:
                 message = {f"Count of surgeries per doctor across all dates": data}
         else:
@@ -814,7 +853,7 @@ class DoctorAverageSurgeryDurationAPI(APIView):
         end_date = serializer.validated_data.get('end_date')
 
         # Start with the base queryset for Scheduled Surgeries
-        surgeries = Scheduled_Surgeries.objects
+        surgeries = Monitoring.objects
 
         # Apply filters based on the provided date range
         if start_date and end_date:
@@ -827,13 +866,13 @@ class DoctorAverageSurgeryDurationAPI(APIView):
         # Calculate surgery duration
         surgeries = surgeries.annotate(
             duration=ExpressionWrapper(
-                F('surgery_end_time') - F('surgery_start_time'),
+                F('wheeled_out_time_to_Post_op_ICU') - F('patient_wheel_in_OT'),
                 output_field=fields.DurationField()
             )
         )
 
         # Filter out surgeries with no end time or start time
-        surgeries = surgeries.exclude(surgery_end_time=None).exclude(surgery_start_time=None)
+        surgeries = surgeries.exclude(wheeled_out_time_to_Post_op_ICU=None).exclude(patient_wheel_in_OT=None)
 
         # Calculate average duration for each doctor
         average_durations = surgeries.values('doctor_name').annotate(
@@ -886,7 +925,7 @@ class DepartmentNumberCountAPI(APIView):
             elif end_date:
                 message = f"Count of departments up to {end_date.strftime('%Y-%m-%d')}: {count}"
             else:
-                message = "Count of departments across all dates: {count}"
+                message = f"Count of departments across all dates: {count}"
         else:
             message = "No departments found in the specified range."
 
@@ -950,7 +989,7 @@ class DepartmentSurgeryCountAPI(APIView):
 
         # Count the number of surgeries per department
         department_surgery_counts = base_query.values('department') \
-            .annotate(surgery_count=Count('procedure_name', distinct=True)) \
+            .annotate(surgery_count=Count('procedure_name')) \
             .order_by('department')
 
         # Format the result into a dictionary
@@ -1066,7 +1105,7 @@ class ProcedureTimeComparisonAPI(APIView):
         # Calculate surgery duration
         base_query = base_query.annotate(
             duration=ExpressionWrapper(
-                F('wheeled_out_from_Post_OP') - F('patient_received_in_pre_op_time'),
+                F('wheeled_out_time_to_Post_op_ICU') - F('patient_wheel_in_OT'),
                 output_field=fields.DurationField()
             )
         ).exclude(patient_received_in_pre_op_time=None).exclude(wheeled_out_from_Post_OP=None)
@@ -1082,9 +1121,14 @@ class ProcedureTimeComparisonAPI(APIView):
             proc_name = entry['procedure_name']
             if proc_name not in procedures:
                 procedures[proc_name] = []
+            # Format the average duration upto 2 decimal
+            average_duration = entry['average_duration'].total_seconds()
+            average_duration_timedelta = timedelta(seconds=average_duration)
+            average_duration_str = str(average_duration_timedelta)
             procedures[proc_name].append({
                 'doctor_name': entry['doctor_name'],
-                'average_duration': str(timedelta(seconds=entry['average_duration'].total_seconds()))
+                #'average_duration': str(timedelta(seconds=entry['average_duration'].total_seconds()))
+                'average_duration': average_duration_str
             })
 
         # Prepare final response
@@ -1107,7 +1151,7 @@ class SurgeryTypePercentageAPI(APIView):
         end_date = serializer.validated_data.get('end_date')
 
         # Create the base query for Scheduled Surgeries
-        base_query = Scheduled_Surgeries.objects
+        base_query = Monitoring.objects
         if start_date and end_date:
             base_query = base_query.filter(surgery_date__range=[start_date, end_date])
         elif start_date:
@@ -1320,7 +1364,7 @@ class AgeDistributionAPI(APIView):
 
         # Convert counts to percentages
         age_distribution = [
-            {group['age_group']: {'count': group['count'], 'percentage': (group['count'] / total_count * 100) if total_count > 0 else 0}}
+            {'age_group': group['age_group'] ,'count': group['count'], 'percentage': (group['count'] / total_count * 100) if total_count > 0 else 0}
             for group in age_groups
         ]
 
@@ -1596,5 +1640,229 @@ class OTSchedulerView(APIView):
         #print(result)
 
         return Response(result.to_dict(), status=200, headers=headers)
+    
+## OT Staff analytics
+## Count in the dashboard
+
+class OTstaffNumberCountAPI(APIView):
+    def get(self, request):
+        # Deserialize input data
+        serializer = DateRangeSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        start_date = serializer.validated_data.get('start_date')
+        end_date = serializer.validated_data.get('end_date')
+
+        # Base queryset
+        queryset = Scheduled_Surgeries.objects
+
+        # Filter queryset based on the provided date range
+        if start_date and end_date:
+            queryset = queryset.filter(surgery_date__range=(start_date, end_date))
+            if not queryset.exists():
+                message = f"No OT Staff found between {start_date.strftime('%m/%d/%Y')} and {end_date.strftime('%m/%d/%Y')}."
+                return Response({'message': message})
+            count_message = f"Count of OT Staff between {start_date.strftime('%m/%d/%Y')} and {end_date.strftime('%m/%d/%Y')}: "
+        elif start_date:  # Only the start_date is provided
+            queryset = queryset.filter(surgery_date__gte=start_date)
+            if not queryset.exists():
+                message = f"No OT Staff found between starting from {start_date.strftime('%m/%d/%Y')}."
+                return Response({'message': message})
+            count_message = f"Count of OT Staff from {start_date.strftime('%m/%d/%Y')} onwards: "
+        elif end_date:  # Only the end_date is provided
+            queryset = queryset.filter(surgery_date__lte=end_date)
+            if not queryset.exists():
+                message = f"No OT Staff found up to {end_date.strftime('%m/%d/%Y')}."
+                return Response({'message': message})
+            count_message = f"Count of OT Staff up to {end_date.strftime('%m/%d/%Y')}: "
+        else:
+            count_message = "Count of OT Staff across all dates: "
+
+        # Calculate the count
+        count = queryset.values('technician_tl').distinct().count()
+
+        return Response({'message': count_message + str(count)})
+    
+# Surgery count for each OT Staff
+class OTstaffSurgeriesCountAPI(APIView):
+    def get(self, request):
+        # Deserialize input data
+        serializer = DateRangeSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        start_date = serializer.validated_data.get('start_date')
+        end_date = serializer.validated_data.get('end_date')
+
+        # Create the base query for Scheduled Surgeries
+        base_query = Monitoring.objects
+
+        # Apply date filters based on the provided date range
+        if start_date and end_date:
+            base_query = base_query.filter(surgery_date__range=[start_date, end_date])
+        elif start_date:
+            base_query = base_query.filter(surgery_date__gte=start_date)
+        elif end_date:
+            base_query = base_query.filter(surgery_date__lte=end_date)
+
+        # Exclude null values for the technician_tl field
+        base_query = base_query.exclude(technician_tl__isnull=True)
+
+        # Aggregate the counts of surgeries per technician
+        staff_counts = base_query.values('technician_tl').annotate(count=Count('technician_tl')).order_by('technician_tl')
+
+        # Format the response data
+        if staff_counts:
+            data = [{'staff_name':staff['technician_tl'],'count': staff['count']} for staff in staff_counts]
+            if start_date and end_date:
+                message = {f"Count of surgeries per staff from {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}": data}
+            elif start_date:
+                message = {f"Count of surgeries per staff from {start_date.strftime('%Y-%m-%d')} onwards": data}
+            elif end_date:
+                message = {f"Count of surgeries per staff up to {end_date.strftime('%Y-%m-%d')}": data}
+            else:
+                message = {f"Count of surgeries per staff across all dates": data}
+        else:
+            message = {"No surgeries found for the specified dates.":0}
+
+        return Response(message)
+    '''def get(self, request):
+        # Deserialize input data
+        serializer = DateRangeSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        start_date = serializer.validated_data.get('start_date')
+        end_date = serializer.validated_data.get('end_date')
+
+        # Construct the base query
+        if start_date and end_date:
+            surgeries = Scheduled_Surgeries.objects.filter(surgery_date__range=(start_date, end_date))
+        elif start_date:
+            surgeries = Scheduled_Surgeries.objects.filter(surgery_date__gte=start_date)
+        elif end_date:
+            surgeries = Scheduled_Surgeries.objects.filter(surgery_date__lte=end_date)
+        else:
+            surgeries = Scheduled_Surgeries.objects.all()
+
+        # Aggregate the counts of surgeries per OT number
+        otstaff_counts = surgeries.values('ot_staff_id').annotate(count=Count('ot_staff_id')).order_by('ot_staff_id')
+
+        # Fetch OT staff names and format the response data
+        data = []
+        for otstaff_count in otstaff_counts:
+            ot_staff_id = otstaff_count['ot_staff_id']
+            ot_staff_name = OTstaff.objects.get(ot_staff_id=ot_staff_id).name
+            data.append({ot_staff_name: otstaff_count['count']})
+
+        # Format the response data
+        if otstaff_counts:
+            #data = [{'ot_number': ot['ot_number'], 'count': ot['count']} for ot in ot_counts]
+            data = [{ot['ot_number']:ot['count']} for ot in otstaff_counts]
+            if start_date and end_date:
+                message = f"Count of surgeries per OT Staff from {start_date.strftime('%m/%d/%Y')} to {end_date.strftime('%m/%d/%Y')}"
+                result = {message:data}
+            elif start_date:
+                message = f"Count of surgeries per OT Staff from {start_date.strftime('%m/%d/%Y')} onwards"
+                result = {message:data}
+            elif end_date:
+                message = f"Count of surgeries per OT Staff up to {end_date.strftime('%m/%d/%Y')}"
+                result = {message:data}
+            else:
+                message = f"Count of surgeries per OT Staff on all dates"
+                result = {message:data}
+        else:
+            result = "No surgeries found for the specified dates."
+
+        #return Response({'message': message}) 
+        return Response(result) '''
+
+# Average duration of each Staff
+class OTstaffAverageSurgeryDurationAPI(APIView):
+    def get(self, request):
+        # Deserialize input data
+        serializer = DateRangeSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        start_date = serializer.validated_data.get('start_date')
+        end_date = serializer.validated_data.get('end_date')
+
+        # Start with the base queryset for Scheduled Surgeries
+        surgeries = Monitoring.objects
+
+        # Apply filters based on the provided date range
+        if start_date and end_date:
+            surgeries = surgeries.filter(surgery_date__range=[start_date, end_date])
+        elif start_date:
+            surgeries = surgeries.filter(surgery_date__gte=start_date)
+        elif end_date:
+            surgeries = surgeries.filter(surgery_date__lte=end_date)
+
+        # Calculate surgery duration
+        surgeries = surgeries.annotate(
+            duration=ExpressionWrapper(
+                F('wheeled_out_time_to_Post_op_ICU') - F('patient_wheel_in_OT'),
+                output_field=fields.DurationField()
+            )
+        )
+
+        # Filter out surgeries with no end time or start time
+        surgeries = surgeries.exclude(wheeled_out_time_to_Post_op_ICU=None).exclude(patient_wheel_in_OT=None).exclude(technician_tl__isnull=True)
+
+        # Calculate average duration for each doctor
+        average_durations = surgeries.values('technician_tl').annotate(
+            average_duration=Avg('duration')
+        ).order_by('technician_tl')
+
+        # Convert average duration to a readable format
+        response_data = {
+            staff['technician_tl']: str(timedelta(seconds=staff['average_duration'].total_seconds())) if staff['average_duration'] else '00:00:00' for staff in average_durations
+        }
+        result = []
+        for k,v in response_data.items():
+            result.append({'staff_name':k,'duration':v})
+
+        return Response({'message':result})
+    
+    '''def get(self, request):
+        # Deserialize input data
+        serializer = DateRangeSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        start_date = serializer.validated_data.get('start_date')
+        end_date = serializer.validated_data.get('end_date')
+
+        # Start with the base queryset for Scheduled Surgeries
+        surgeries = Monitoring.objects
+
+        # Apply filters based on the provided date range
+        if start_date and end_date:
+            surgeries = surgeries.filter(surgery_date__range=[start_date, end_date])
+        elif start_date:
+            surgeries = surgeries.filter(surgery_date__gte=start_date)
+        elif end_date:
+            surgeries = surgeries.filter(surgery_date__lte=end_date)
+
+        # Calculate surgery duration
+        surgeries = surgeries.annotate(
+            duration=ExpressionWrapper(
+                F('wheeled_out_time_to_Post_op_ICU') - F('patient_wheel_in_OT'),
+                output_field=fields.DurationField()
+            )
+        )
+
+        # Filter out surgeries with no end time or start time
+        surgeries = surgeries.exclude(wheeled_out_time_to_Post_op_ICU=None).exclude(patient_wheel_in_OT=None)
+
+        # Calculate average duration for each doctor
+        average_durations = surgeries.values('ot_staff_id').annotate(
+            average_duration=Avg('duration')
+        ).order_by('ot_staff_id')
+
+        # Fetch OT staff names and format the response data
+        data = []
+        for average_duration in average_durations:
+            ot_staff_id = average_duration['ot_staff_id']
+            ot_staff_name = OTstaff.objects.get(ot_staff_id=ot_staff_id).name
+            duration = average_duration['average_duration']
+            duration_str = str(timedelta(seconds=duration.total_seconds())) if duration else '00:00:00'
+            data.append({ot_staff_name: duration_str})
+
+        # Construct the response
+        result = {"Average Surgery Duration per OT Staff": data} if data else "No data found for the specified dates."
+        return Response(result)'''
     
     

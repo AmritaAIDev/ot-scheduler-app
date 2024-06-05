@@ -89,23 +89,23 @@ WSGI_APPLICATION = 'OT.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-'''DATABASES = {
+DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
-}'''
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'ot_scheduling',
-        'USER': 'root',
-        'PASSWORD': 'amma1008',
-        'HOST': 'localhost',  # Replace with your MySQL server's hostname if needed
-        'PORT': '3306',           # Replace with your MySQL server's port if needed
-    }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'ot_scheduling',
+#         'USER': 'root',
+#         'PASSWORD': 'amma1008',
+#         'HOST': 'localhost',  # Replace with your MySQL server's hostname if needed
+#         'PORT': '3306',           # Replace with your MySQL server's port if needed
+#     }
+# }
 
 
 AUTH_USER_MODEL = 'OT_Scheduling.CustomUser'  # Replace with your app name

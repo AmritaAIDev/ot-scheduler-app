@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from .models import CustomUser, Doctors, OTs, Patients, Procedures, Scheduled_Surgeries, Monitoring
+from .models import CustomUser, Doctors, OTs, Patients, Procedures, Scheduled_Surgeries, Monitoring, OTstaff
 from rest_framework import serializers
 from django.contrib.auth.hashers import make_password
 
@@ -25,6 +25,7 @@ class OTSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class PatientSerializer(serializers.ModelSerializer):
+    registration_date = serializers.DateField(format='%m/%d/%Y', input_formats=['%m/%d/%Y'])
     class Meta:
         model = Patients
         fields = '__all__'
@@ -56,3 +57,8 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 class DateRangeSerializer(serializers.Serializer):
     start_date = serializers.DateField(required=False, allow_null=True)
     end_date = serializers.DateField(required=False, allow_null=True)
+
+class OTstaffSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OTstaff
+        fields = '__all__'

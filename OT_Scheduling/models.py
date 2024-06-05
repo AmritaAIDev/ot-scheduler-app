@@ -77,6 +77,7 @@ class Procedures(models.Model):
 
 class OTstaff(models.Model):
     ot_staff_id = models.AutoField(primary_key=True)
+    ot_staff_employee_id = models.CharField(max_length=1000,null=True,blank=True)
     ot_staff_name = models.CharField(max_length=1000,null=True,blank=True)
     ot_staff_department = models.CharField(max_length=1000,null=True,blank=True)
     ot_staff_designation = models.CharField(max_length=1000,null=True,blank=True)
@@ -90,10 +91,10 @@ class Scheduled_Surgeries(models.Model):
     ot_number = models.CharField(max_length=1000, null=True, blank=True)
     procedure_name = models.CharField(max_length=1000, null=True, blank=True)
 
-    #patient_id = models.ForeignKey(Patients,on_delete = models.CASCADE)
-    #doctor_id = models.ForeignKey(Doctors,on_delete=models.CASCADE)
-    #ot_id = models.ForeignKey(OTs,on_delete=models.CASCADE)
-    #procedure_id = models.ForeignKey(Procedures,on_delete=models.CASCADE)
+    patient_id = models.ForeignKey(Patients,on_delete = models.CASCADE,null=True, blank=True)
+    doctor_id = models.ForeignKey(Doctors,on_delete=models.CASCADE,null=True, blank=True)
+    ot_id = models.ForeignKey(OTs,on_delete=models.CASCADE,null=True, blank=True)
+    procedure_id = models.ForeignKey(Procedures,on_delete=models.CASCADE,null=True, blank=True)
 
     user_id = models.ForeignKey(CustomUser,on_delete=models.CASCADE,null=True, blank=True)
     surgery_date = models.DateField(null=True, blank=True)
@@ -101,9 +102,14 @@ class Scheduled_Surgeries(models.Model):
     surgery_end_time = models.TimeField(null=True, blank=True)
     status = models.CharField(max_length=50,null=True, blank=True)
     # for emergency, add on, or preplanned
-    surgery_type = models.CharField(max_length=1000, null=True,blank=True, default='Pre-planned')
+    #surgery_type = models.CharField(max_length=1000, null=True,blank=True, default='Pre-planned')
     # For OT Staff
     ot_staff_id = models.ForeignKey(OTstaff,on_delete=models.CASCADE,null=True, blank=True)
+    technician_tl = models.CharField(max_length=1000,null=True,blank=True)
+    nurse_tl = models.CharField(max_length=1000,null=True,blank=True)
+
+    #for spececial equipment
+    special_equipment = models.CharField(max_length=1000,null=True,blank=True)
 
 class Monitoring(models.Model):
     surgery_date = models.DateField(null=True, blank=True)
@@ -128,6 +134,15 @@ class Monitoring(models.Model):
     procedure_name = models.TextField(null=True, blank=True)
     estimated_duration = models.FloatField(null=True, blank=True)
     doctor_name = models.CharField(max_length=500, null=True, blank=True)
+
+    ot_staff_id = models.ForeignKey(OTstaff,on_delete=models.CASCADE,null=True, blank=True)
+    technician_tl = models.CharField(max_length=1000,null=True,blank=True)
+    nurse_tl = models.CharField(max_length=1000,null=True,blank=True)
+
+    #for spececial equipment
+    special_equipment = models.CharField(max_length=1000,null=True,blank=True)
+    # for emergency surgries 
+    surgery_type = models.CharField(max_length=1000, null=True,blank=True, default='Pre-planned')
 
 
 
