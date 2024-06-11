@@ -27,7 +27,7 @@ urlpatterns = [
     path('ot-time-slot-usage/', OTTimeSlotUsageAPI.as_view(), name='ot-time-slot-usage'),
     path('monitoring-steps-avg/',AvgMonitoringStepsAPIView.as_view()),
     path('percent-ot-utilization/',OTUtilizationAPIView.as_view()),
-    path('api/avg-time-difference/', AvgTimeDifferenceAPIView.as_view(), name='avg-time-difference'),
+    path('avg-time-difference/', AvgTimeDifferenceAPIView.as_view(), name='avg-time-difference'),
     path('doctor-count/',DoctorNumberCountAPI.as_view(), name='doctor_count'),
     path('doctor-surgery-count/',DoctorSurgeriesCountAPI.as_view(), name='doctor-surgery-count'),
     path('doctor-time-slot-usage/',DoctorTimeSlotUsageAPI.as_view(), name = 'doctor-time-slot'),

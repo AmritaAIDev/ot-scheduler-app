@@ -665,7 +665,8 @@ class OTUtilizationAPIView(APIView):
                 total_utilization_seconds = entry['total_utilization'].total_seconds() if entry['total_utilization'] else 0
                 total_possible_seconds = total_possible_hours_per_ot * 3600
                 utilization_percentage = (total_utilization_seconds / total_possible_seconds) * 100
-                ot_utilization_percentages[ot_number] = round(utilization_percentage, 2)
+                #ot_utilization_percentages[ot_number] = round(utilization_percentage, 2)
+                ot_utilization_percentages[ot_number] = utilization_percentage
         
         if not ot_utilization_percentages:
             return Response({"message": "No surgeries found in the specified range."})
@@ -677,7 +678,9 @@ class OTUtilizationAPIView(APIView):
         return Response(result)
     
 ### Average difference time between two surgeries
-
+from django.db.models import ExpressionWrapper, fields, Avg, Subquery, OuterRef
+from django.db.models.functions import Coalesce
+from rest_framework import status
 class AvgTimeDifferenceAPIView(APIView):
     def get(self, request):
         # Deserialize input data
@@ -704,7 +707,7 @@ class AvgTimeDifferenceAPIView(APIView):
         if not queryset.exists():
             return Response({'message': 'No data found for the specified date range.'}, status=status.HTTP_404_NOT_FOUND)
 
-        # Calculate the average time difference
+        '''# Calculate the average time difference
         queryset = queryset.annotate(
             time_difference=ExpressionWrapper(
                 F('wheeled_out_from_Post_OP') - F('patient_received_in_pre_op_time'),
@@ -713,6 +716,32 @@ class AvgTimeDifferenceAPIView(APIView):
         ).values('ot_number').annotate(
             avg_time_difference=Avg('time_difference')
         ).order_by('ot_number')
+
+        return Response(queryset)'''
+
+        # Define a subquery to fetch the next consecutive surgery for each surgery
+        next_surgery_subquery = Monitoring.objects.filter(
+        ot_number=OuterRef('ot_number'),
+        surgery_date__gt=OuterRef('surgery_date')
+        ).order_by('surgery_date').values('surgery_date')[:1]
+
+        # Annotate the queryset with the next consecutive surgery's data
+        queryset = queryset.annotate(
+        next_patient_received_in_pre_op_time=Coalesce(Subquery(next_surgery_subquery, output_field=fields.DateTimeField()), Value('9999-12-31 00:00:00'))
+    )
+
+        # Calculate the time difference between wheeled_out_from_Post_OP and the next surgery's patient_received_in_pre_op_time
+        queryset = queryset.annotate(
+        time_difference=ExpressionWrapper(
+            F('next_patient_received_in_pre_op_time') - F('wheeled_out_from_Post_OP'),
+            output_field=fields.DurationField()
+        )
+        ).filter(time_difference__isnull=False)  # Filter out null values
+
+        # Calculate the average time difference per OT
+        queryset = queryset.values('ot_number').annotate(
+        avg_time_difference=Avg('time_difference')
+        )
 
         return Response(queryset)
     
