@@ -290,7 +290,7 @@ class ScheduleListCreateView(viewsets.ModelViewSet):
         instance = self.get_object()
         fields_to_update = request.data  # Data provided by the user
 
-        # Exclude User_id field from the update
+        '''# Exclude User_id field from the update
         scheduled_surgery_id = 'scheduled_surgery_id'
         patient_name = 'patient_name'
         doctor_name = 'doctor_name'
@@ -340,7 +340,7 @@ class ScheduleListCreateView(viewsets.ModelViewSet):
         
         if mrd in fields_to_update:
             return Response({'error': f"{mrd} cannot be updated"},
-                        status=status.HTTP_400_BAD_REQUEST)
+                        status=status.HTTP_400_BAD_REQUEST)'''
 
 
         # Iterate through the provided data to update instance fields
@@ -378,6 +378,7 @@ class MonitorListCreateView(viewsets.ModelViewSet):
         ot_number = self.request.query_params.get('ot_number')
         user_id = self.request.query_params.get('user_id')
         surgery_date = self.request.query_params.get('surgery_date')
+        technician_tl = self.request.query_params.get('technician_tl')
         if scheduled_surgery_id:
             queryset = queryset.filter(scheduled_surgery_id=scheduled_surgery_id)
         if ot_number:
@@ -386,6 +387,8 @@ class MonitorListCreateView(viewsets.ModelViewSet):
             queryset = queryset.filter(user_id=user_id)
         if surgery_date:
             queryset = queryset.filter(surgery_date=surgery_date)
+        if technician_tl:
+            queryset = queryset.filter(technician_tl=technician_tl)
         
         return queryset
     
@@ -1892,6 +1895,5 @@ class OTstaffAverageSurgeryDurationAPI(APIView):
 
         # Construct the response
         result = {"Average Surgery Duration per OT Staff": data} if data else "No data found for the specified dates."
-        return Response(result)'''
-    
+        return Response(result)''' 
     
