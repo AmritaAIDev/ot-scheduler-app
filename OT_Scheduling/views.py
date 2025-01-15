@@ -173,11 +173,14 @@ class PatientListCreateView(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = super().get_queryset()
         patient_id = self.request.query_params.get('patient_id')
+        registration_date = self.request.query_params.get('registration_date')
         mrd = self.request.query_params.get('mrd')
         if patient_id:
             queryset = queryset.filter(patient_id=patient_id)
         if mrd:
             queryset = queryset.filter(mrd=mrd)
+        if registration_date:
+            queryset = queryset.filter(registration_date=registration_date)
         return queryset
     
     def create(self, request, *args, **kwargs):
@@ -427,7 +430,7 @@ class OTNumberCountAPI(APIView):
         end_date = serializer.validated_data.get('end_date')
 
         # Base queryset
-        queryset = Scheduled_Surgeries.objects
+        queryset = Monitoring.objects
 
         # Filter queryset based on the provided date range
         if start_date and end_date:
@@ -469,13 +472,13 @@ class OTSurgeriesCountAPI(APIView):
 
         # Construct the base query
         if start_date and end_date:
-            surgeries = Scheduled_Surgeries.objects.filter(surgery_date__range=(start_date, end_date))
+            surgeries = Monitoring.objects.filter(surgery_date__range=(start_date, end_date))
         elif start_date:
-            surgeries = Scheduled_Surgeries.objects.filter(surgery_date__gte=start_date)
+            surgeries = Monitoring.objects.filter(surgery_date__gte=start_date)
         elif end_date:
-            surgeries = Scheduled_Surgeries.objects.filter(surgery_date__lte=end_date)
+            surgeries = Monitoring.objects.filter(surgery_date__lte=end_date)
         else:
-            surgeries = Scheduled_Surgeries.objects.all()
+            surgeries = Monitoring.objects.all()
 
         # Aggregate the counts of surgeries per OT number
         ot_counts = surgeries.values('ot_number').annotate(count=Count('ot_number')).order_by('ot_number')
@@ -744,6 +747,7 @@ class AvgTimeDifferenceAPIView(APIView):
         # Calculate the average time difference per OT
         queryset = queryset.values('ot_number').annotate(
         avg_time_difference=Avg('time_difference')
+        #avg_time_difference=ExpressionWrapper(Avg('time_difference')*Value(),output_field=fields.FloatField())
         )
 
         return Response(queryset)
@@ -795,7 +799,7 @@ class DoctorSurgeriesCountAPI(APIView):
         end_date = serializer.validated_data.get('end_date')
 
         # Create the base query for Scheduled Surgeries
-        base_query = Scheduled_Surgeries.objects
+        base_query = Monitoring.objects
 
         # Apply date filters based on the provided date range
         if start_date and end_date:
@@ -1406,8 +1410,8 @@ class AgeDistributionAPI(APIView):
 class SurgeryDateAPI(APIView):
     def get(self, request):
         # Querying the earliest and latest surgery dates
-        earliest_surgery = Scheduled_Surgeries.objects.filter(surgery_date__isnull=False).order_by('surgery_date').first()
-        latest_surgery = Scheduled_Surgeries.objects.filter(surgery_date__isnull=False).order_by('-surgery_date').first()
+        earliest_surgery = Monitoring.objects.filter(surgery_date__isnull=False).order_by('surgery_date').first()
+        latest_surgery = Monitoring.objects.filter(surgery_date__isnull=False).order_by('-surgery_date').first()
         
         # Fetching the dates, handling cases where there might be no surgeries
         earliest_date = earliest_surgery.surgery_date if earliest_surgery else None
