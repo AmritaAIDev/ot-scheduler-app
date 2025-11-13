@@ -28,7 +28,7 @@ class _DepartmentDashboardState extends State<DepartmentDashboard> {
   List<UniqueSurgeryData> chartData2 = [];
   // List<AverageSurgeryDuration> avgSurgeryDurationData = [];
 
-  String baseUrl = 'http://127.0.0.1:8000/api';
+  String baseUrl = 'http://10.125.11.203:8091/api';
 
   List<String> specialityList = [];
   //Map<String, List<String>> surgeryMap = {};

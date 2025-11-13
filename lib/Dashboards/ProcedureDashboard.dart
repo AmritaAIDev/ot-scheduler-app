@@ -88,7 +88,7 @@ class _ProcedureDashboardState extends State<ProcedureDashboard> {
 
   // List<AverageSurgeryDuration> avgSurgeryDurationData = [];
 
-  String baseUrl = 'http://127.0.0.1:8000/api';
+  String baseUrl = 'http://10.125.11.203:8091/api';
 
   @override
   void initState() {
@@ -461,7 +461,7 @@ class _ProcedureDashboardState extends State<ProcedureDashboard> {
                         ),
                       ),
               ),
-              /*Divider(
+              Divider(
                 color: Colors.black,
                 thickness: 2,
               ),
@@ -543,7 +543,7 @@ class _ProcedureDashboardState extends State<ProcedureDashboard> {
                 color: Colors.black,
                 thickness: 2,
               ),
-              SizedBox(height: 20),*/
+              SizedBox(height: 20),
 
               // Row(
               //   mainAxisAlignment: MainAxisAlignment.center,

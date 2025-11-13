@@ -26,7 +26,7 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
   List<SurgeryData> chartData = [];
   List<AverageSurgeryDuration> avgSurgeryDurationData = [];
 
-  String baseUrl = 'http://127.0.0.1:8000/api';
+  String baseUrl = 'http://10.125.11.203:8091/api';
 
   @override
   void initState() {
@@ -426,7 +426,7 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
                   //SizedBox(width: 30)
                 ],
               ),
-              /*SizedBox(height:20),
+              SizedBox(height:20),
               Divider(
                 color: Colors.black,
                 thickness: 2,
@@ -451,7 +451,7 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
                   child: _buildBarChart(avgSurgeryDurationData, 'Doctor',
                       'Average Surgery Time (Min)'),
                 ),
-              ]),*/
+              ]),
             ],
           )),
         ));
@@ -562,7 +562,8 @@ class AverageSurgeryDuration {
 
       if (hours != null && minutes != null && seconds!=null) {
         //double totalHours = hours + (minutes / 100);
-        double totalMinutes = minutes + (seconds / 100);
+        //double totalMinutes = minutes + (seconds / 10);
+        double totalMinutes = minutes + (seconds);
         return double.parse(totalMinutes.toStringAsFixed(2));
       } else {
         throw FormatException("Invalid duration format-2");

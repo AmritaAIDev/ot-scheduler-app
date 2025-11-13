@@ -14,13 +14,13 @@ class Constants {
   static const List<String> surgeryTypes = ['Emergency',
     'Add-on'];
 
-  static const List<String> departmentList = ['Gastrointestinal Surgery',
+  static const List<String> departmentList = [
+    'Gastrointestinal Surgery',
     'General Surgery',
     'Cardiology -Angiography',
     'Cardiology -Angioplasty',
     'Cardiology -EPS Lab',
     'Cardiology -Pacemaker and ICD',
-    //'Cardiology Procedure -Pacemaker and ICD',
     'Cardiology - Valve Replacement/Implantation',
     'Cardiology - Other Cath Procedure',
     'Cardiology - Paediatric',
@@ -349,9 +349,7 @@ class Constants {
     'CAEP00055 - Wound Exploration',
     'CAEP00056 - Pulse Generator(PG) Replacement',
   ];
-  //var otherCardiologyProcedures = [
 
-  //];
   static const List<String> cardiologyValveProcedures = [
     'CAIC00056 - Percutaneous Aortic Valve Replacement - Core Valve',
     'CAIC00057 - Percutaneous Aortic Valve Replacement - TAVR',
@@ -1113,8 +1111,7 @@ class Constants {
     'CTVA00718 - Venoplasty For Failing AV Fistula',
     'CTVA00719 - Venous Thrombectomy'
   ];
-  // var ENTSurgeryPackage = [
-  // ];
+
   static const List<String> entSurgeries = ['ENES00330 - Cochlear Implantation - Unilateral [Package]',
     'ENES00332 - Cochlear Implantation - Bilateral [Package]'
         'ENEP00001 - AVT',

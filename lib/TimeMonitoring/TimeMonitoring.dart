@@ -68,7 +68,7 @@ class _TimeMonitoringState extends State<TimeMonitoring> {
   bool wheeledOutFromTimeEnabled = false;
   bool submitButtonEnabled = false;
 
-  String baseUrl = 'http://127.0.0.1:8000/api';
+  String baseUrl = 'http://10.125.11.203:8091/api';
 
   @override
   void initState() {
@@ -99,7 +99,7 @@ class _TimeMonitoringState extends State<TimeMonitoring> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Operation Theatre #${widget.otNumber}', style: TextStyle (fontSize: 25, fontWeight: FontWeight.bold),),
-            Text('Patient: ${widget.patientName}', style: Theme.of(context).textTheme.subtitle1),
+            //Text('Patient: ${widget.patientName}', style: Theme.of(context).textTheme.subtitle1),
             Divider(color: Colors.blueGrey[50], thickness: 2, endIndent: 1000),
             SizedBox(height: 15),
             //Text('Surgical Steps', style: Theme.of(context).textTheme.headline6),

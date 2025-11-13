@@ -47,7 +47,7 @@ class _SchedulerOutputState extends State<SchedulerOutput> {
   static const Color headerTextColor = Colors.black87;
   static const double headerTextSize = 16.0;
   static const InputDecoration rowDecoration = InputDecoration(border: InputBorder.none,);
-  String baseUrl = 'http://127.0.0.1:8000/api';
+  String baseUrl = 'http://10.125.11.203:8091/api';
   bool isDownloadEnabled = false;
 
   String displayText1 = 'Scheduled Surgeries';
@@ -246,11 +246,14 @@ class _SchedulerOutputState extends State<SchedulerOutput> {
       bool entriesExist = await _checkEntriesExist(_surgeryDate);
       if (entriesExist) {
         // Delete existing entries
+        print("inside entriesExist");
         await _deleteEntriesFromSchedule(_surgeryDate);
         await _deleteEntriesFromPatients(_surgeryDate);
       }
 
+      print("sortedOTEntries.length= ${sortedOTEntries.length}");
       for (int index = 0; index < sortedOTEntries.length; index++) {
+        print(index);
         final String otNumber = otNumberControllers[index].text;
         final String surgeon = surgeonControllers[index].text;
         final String department = departmentControllers[index].text;
@@ -263,7 +266,7 @@ class _SchedulerOutputState extends State<SchedulerOutput> {
         final String specialEquipment = specialEquipmentControllers[index].text;
         final String technicalLead = technicalLeadsControllers[index].text;
         final String nursingLead = nursingLeadsControllers[index].text;
-
+print('Variables initialized');
         // Assuming you have a common date for all entries, otherwise adjust accordingly.
         final date = _surgeryDate; // replace with your actual date
 
@@ -271,19 +274,26 @@ class _SchedulerOutputState extends State<SchedulerOutput> {
         Future.delayed(Duration(milliseconds: 500));
 
         sendDoctorList(surgeon, department);
+        print('Functions 1 called');
         Future.delayed(Duration(milliseconds: 500));
         sendScheduledOT(otNumber, department);
+        print('Functions 2 called');
         Future.delayed(Duration(milliseconds: 500));
         var duration = calculateDuration(endTime, startTime);
         sendProcedureList(procedure, department, duration);
+        print('Functions 3 called');
         Future.delayed(Duration(milliseconds: 500));
+        print('Age Sex: $ageSex');
         sendPatientList(patient, ageSex.split('/')[0], ageSex.split('/')[1], int.parse(mrd),inputDate);
+        print('Functions 4 called');
         Future.delayed(Duration(milliseconds: 500));
         sendOtStafffList(nursingLead, department, 'Nursing T/L');
+        print('Functions 5 called');
         Future.delayed(Duration(milliseconds: 500));
         sendOtStafffList(technicalLead, department, 'Technical T/L');
+        print('Functions 6 called');
         Future.delayed(Duration(milliseconds: 500));
-
+print('All Functions called');
         sendScheduleSurgery(
           procedure,
           department,
@@ -304,7 +314,7 @@ class _SchedulerOutputState extends State<SchedulerOutput> {
 
 
     } catch(e) {
-      print("Error:$e");
+      print("myError--:$e");
     }
 
   }
@@ -355,6 +365,7 @@ class _SchedulerOutputState extends State<SchedulerOutput> {
 
     if(response.statusCode == 200){
       List<dynamic> data = jsonDecode(response.body);
+      print("_checkEntriesExist()-$data");
       return data.isNotEmpty;
     }
     else{
@@ -693,7 +704,7 @@ class _SchedulerOutputState extends State<SchedulerOutput> {
         label: Container(
           padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
           //color: Colors.blueAccent,
-          child: Text('OT Number', style: TextStyle(color: headerTextColor,fontSize: headerTextSize,fontWeight: FontWeight.bold)),
+          child: Text('OT', style: TextStyle(color: headerTextColor,fontSize: headerTextSize,fontWeight: FontWeight.bold)),
         ),
       ),
       DataColumn(

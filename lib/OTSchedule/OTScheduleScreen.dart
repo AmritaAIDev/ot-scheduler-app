@@ -24,7 +24,7 @@ class _OTScheduleScreenState extends State<OTScheduleScreen> {
   Uint8List? _webFile;
   String _notificationMessage = '';
   //TextEditingController fromDateController = TextEditingController();
-  String baseUrl = 'http://127.0.0.1:8000/api';
+  String baseUrl = 'http://10.125.11.203:8091/api';
   //String baseUrl = 'https://9c79-2409-40d0-b5-dafe-c4cf-904e-59b2-3fd4.ngrok-free.app/api';
   Map<String, dynamic> scheduledOTList = {};
   Map<String, dynamic> doctorList = {};

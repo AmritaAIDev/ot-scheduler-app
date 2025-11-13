@@ -34,12 +34,13 @@ class _SchedulerInputState extends State<SchedulerInput> {
   String displayText3 = "Please upload a Excel file. The file should contain all the necessary information for the operation,"
       " including patient, doctor, and equipment details.";
   String uploadFileText = 'Upload your file here';
+  //String baseUrl = 'http://127.0.0.1:8000/api';
 
   File? _file;
   Uint8List? _webFile;
   String _notificationMessage = '';
   String _uploadedDate ='';
-  String baseUrl = 'http://127.0.0.1:8000/api';
+  String baseUrl = 'http://10.125.11.203:8091/api';
   List<dynamic> previousScheduledData = [];
 
   var uploadButton;
@@ -60,7 +61,8 @@ class _SchedulerInputState extends State<SchedulerInput> {
                     style: TextStyle(fontSize: 16, color: Colors.grey[600])),
                 Divider(color: Colors.blueGrey[50], thickness: 2),
               ],
-            )),
+            )
+            ),
             //SizedBox(height: 1),
 
             SizedBox(height: 15),
@@ -113,7 +115,7 @@ class _SchedulerInputState extends State<SchedulerInput> {
         TableCalendar(
           focusedDay: selectedDate,
           firstDay: DateTime(2024),
-          lastDay: DateTime(2025),
+          lastDay: DateTime(2026),
           selectedDayPredicate: (day) => isSameDay(day, selectedDate),
           onDaySelected: (selectedDay, focusedDay) {
             setState(() {
@@ -333,6 +335,8 @@ class _SchedulerInputState extends State<SchedulerInput> {
       // String apiUrl =
       //     'https://us-central1-amrita-body-scan.cloudfunctions.net/OT_Scheduler';
       String apiUrl = 'https://us-central1-amrita-body-scan.cloudfunctions.net/OTSchedulerv2';
+      //ot-schedule/
+      //String apiUrl = '$baseUrl/ot-schedule/';
       Map<String, dynamic> requestBody = {'doc': base64File};
       String requestBodyJson = jsonEncode(requestBody);
 

@@ -26,7 +26,7 @@ class _OTStaffDashboardState extends State<OTStaffDashboard> {
   late DateTime selectedFromDate;
   late DateTime selectedToDate;
 
-  String baseUrl = 'http://127.0.0.1:8000/api';
+  String baseUrl = 'http://10.125.11.203:8091/api';
 
   @override
   void initState() {
@@ -381,7 +381,7 @@ class _OTStaffDashboardState extends State<OTStaffDashboard> {
                 ],
               ),
               SizedBox(height:20),
-              /*Divider(
+              Divider(
                 color: Colors.black,
                 thickness: 2,
               ),
@@ -393,7 +393,7 @@ class _OTStaffDashboardState extends State<OTStaffDashboard> {
                     width: 400,
                     height: 50,
                     child:
-                    Text("Average Surgery DurationAPI",
+                    Text("Average Surgery Duration",
                         textAlign: TextAlign.center,
                         style: TextStyle(fontSize: 25, color: Colors.blueAccent)),
                   ),
@@ -410,7 +410,7 @@ class _OTStaffDashboardState extends State<OTStaffDashboard> {
               Divider(
                 color: Colors.black,
                 thickness: 2,
-              ),*/
+              ),
 
               //SizedBox(height: 20),
               // Row(

@@ -43,7 +43,7 @@ class _OTDashboardState extends State<OTDashboard2> {
   String displayText2 = 'Comprehensive Overview of OT Metrics';
   String calenderHintText = 'Select the Date';
 
-  String baseUrl = 'http://127.0.0.1:8000/api';
+  String baseUrl = 'http://10.125.11.203:8091/api';
 
   @override
   void initState() {
@@ -71,6 +71,8 @@ class _OTDashboardState extends State<OTDashboard2> {
   }
 
   void _getSurgeryCount() async {
+
+    chartData.clear();
     String apiUrl = '$baseUrl/ot-surgery-count/';
 
     print('selectedFromDate:$selectedFromDate');
@@ -468,8 +470,8 @@ class _OTDashboardState extends State<OTDashboard2> {
                   data.surgeryCount); // Use surgeryCount for SurgeryData
             } else if (data is UtilisationData) {
               print('else-f ${data.utilisationPercentage.toDouble()}');
-              return data
-                  .utilisationPercentage; // Convert to double for UtilisationData
+              return (data
+                  .utilisationPercentage); // Convert to double for UtilisationData
             } else if (data is AvgTimeDifferenceData) {
               return double.tryParse(data.timeDifference);
             } else if (data is AuxiliaryClass) {
@@ -750,7 +752,7 @@ class _OTDashboardState extends State<OTDashboard2> {
               //SizedBox(height: 1),
               // Text(displayText2,
               //     style: TextStyle(fontSize: 16, color: Colors.grey[600])),
-              Text(displayText2, style: Theme.of(context).textTheme.subtitle1),
+              //Text(displayText2, style: Theme.of(context).textTheme.subtitle1),
               Divider(
                 color: Colors.blueGrey[50],
                 thickness: 2,
@@ -955,7 +957,7 @@ class _OTDashboardState extends State<OTDashboard2> {
                       ],
                     ),
                   ),
-                  /*SizedBox(height: 75),
+                  SizedBox(height: 75),
                   Container(
                     // width: 400,
                     // height: 50,
@@ -1057,7 +1059,7 @@ class _OTDashboardState extends State<OTDashboard2> {
                         ),
                       ],
                     ),
-                  ),*/
+                  ),
                 ],
               ),
 

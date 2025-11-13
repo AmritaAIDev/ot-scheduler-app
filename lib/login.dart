@@ -35,7 +35,7 @@ class _LoginState extends State<Login> {
   int patientCount = 0;
   int otstaffCount = 0;
   Map<String, String> dateRangeMap = {};
-  String baseUrl = 'http://127.0.0.1:8000/api';
+  String baseUrl = 'http://10.125.11.203:8091/api';
 
   bool _passwordVisible = false;
 
@@ -122,21 +122,6 @@ class _LoginState extends State<Login> {
                 ),
               ),
             ),
-            // Container(
-            //   padding: const EdgeInsets.fromLTRB(150, 10, 150, 10),
-            //   child: TextButton(
-            //     onPressed: () {
-            //       //forgot password screen
-            //     },
-            //     child: const Text('Forgot Password',
-            //       style: TextStyle(
-            //         fontSize: 18,
-            //         decoration: TextDecoration.underline,
-            //       ),
-            //     ),
-            //   ),
-            // ),
-
             SizedBox(height:25),
             Container(
                 height: 50,
