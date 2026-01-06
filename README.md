@@ -214,6 +214,8 @@ On any computer within your office network, open a web browser and navigate to y
     
    ```
 
+---
+
 ### Re-Deployment Process
 
 1. **Build the Updated Web App**
@@ -233,8 +235,8 @@ scp -r build/web/* souvik@10.125.11.203:/usr/share/nginx/html/ot-scheduler/
 C:\windows\System32\OpenSSH\scp.exe: dest open "/usr/share/nginx/html/ot-scheduler/assets/AssetManifest.bin.json": Permission denied
 ```
 
-* **Solution**
-  * Temporarily change ownership
+**Solution**
+* Temporarily change ownership
 ```bash
 # SSH into server
 ssh souvik@10.125.11.203
@@ -245,14 +247,14 @@ sudo chown -R souvik:souvik /usr/share/nginx/html/ot-scheduler/
 # Exit SSH
 exit
 ```
-   * Now copy your files:
-   ```bash
+* Now copy your files:
+```bash
 # Copy all files from your local machine
 scp -r build/web/* souvik@10.125.11.203:/usr/share/nginx/html/ot-scheduler/
 ```
 
-   * After copying, fix permissions back:
-   ```bash
+* After copying, fix permissions back:
+```bash
 # SSH back and fix permissions
 ssh souvik@10.125.11.203
 
@@ -265,14 +267,14 @@ sudo chmod -R 755 /usr/share/nginx/html/ot-scheduler/
 # Exit
 exit
 ```
-   * Verify the deployment
-   ```bash
+* Verify the deployment
+```bash
 # you can see that files have updated date
 ssh souvik@10.125.11.203 "ls -la /usr/share/nginx/html/ot-scheduler/"   
 ```
-   * Clear Browser Cache
-        Since it's a Flutter web app, users might need to clear their browser cache to see the updated version:
-         * Chrome/Firefox/Edge: Ctrl+Shift+R (or Ctrl+F5) for hard refresh 
-         * You can also ask users to clear cache manually
+* Clear Browser Cache
+Since it's a Flutter web app, users might need to clear their browser cache to see the updated version:
+  * Chrome/Firefox/Edge: Ctrl+Shift+R (or Ctrl+F5) for hard refresh 
+  * You can also ask users to clear cache manually
 ---
 
