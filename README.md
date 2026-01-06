@@ -36,6 +36,7 @@ samples, guidance on mobile development, and a full API reference.
 * demomanager@gmail.com 
 * password- admin
 
+
 ---
 
 ## Deployment to Amrita Server
@@ -213,5 +214,65 @@ On any computer within your office network, open a web browser and navigate to y
     
    ```
 
+### Re-Deployment Process
+
+1. **Build the Updated Web App**
+```bash
+   # In your Flutter project root directory
+flutter build web --release
+```
+
+2. **Copy Updated Files to Server**
+```bash
+# Copy all updated files to the server
+scp -r build/web/* souvik@10.125.11.203:/usr/share/nginx/html/ot-scheduler/
+```
+3. **Resolve Errors(if any)**
+```
+# User may not have write permissions
+C:\windows\System32\OpenSSH\scp.exe: dest open "/usr/share/nginx/html/ot-scheduler/assets/AssetManifest.bin.json": Permission denied
+```
+
+* **Solution**
+  * Temporarily change ownership
+```bash
+# SSH into server
+ssh souvik@10.125.11.203
+
+# Change ownership to souvik temporarily
+sudo chown -R souvik:souvik /usr/share/nginx/html/ot-scheduler/
+
+# Exit SSH
+exit
+```
+   * Now copy your files:
+   ```bash
+# Copy all files from your local machine
+scp -r build/web/* souvik@10.125.11.203:/usr/share/nginx/html/ot-scheduler/
+```
+
+   * After copying, fix permissions back:
+   ```bash
+# SSH back and fix permissions
+ssh souvik@10.125.11.203
+
+# Change ownership back to www-data for Nginx
+sudo chown -R www-data:www-data /usr/share/nginx/html/ot-scheduler/
+
+# Set correct permissions
+sudo chmod -R 755 /usr/share/nginx/html/ot-scheduler/
+
+# Exit
+exit
+```
+   * Verify the deployment
+   ```bash
+# you can see that files have updated date
+ssh souvik@10.125.11.203 "ls -la /usr/share/nginx/html/ot-scheduler/"   
+```
+   * Clear Browser Cache
+        Since it's a Flutter web app, users might need to clear their browser cache to see the updated version:
+         * Chrome/Firefox/Edge: Ctrl+Shift+R (or Ctrl+F5) for hard refresh 
+         * You can also ask users to clear cache manually
 ---
 

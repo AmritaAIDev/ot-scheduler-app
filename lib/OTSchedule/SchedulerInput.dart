@@ -115,7 +115,7 @@ class _SchedulerInputState extends State<SchedulerInput> {
         TableCalendar(
           focusedDay: selectedDate,
           firstDay: DateTime(2024),
-          lastDay: DateTime(2026),
+          lastDay: DateTime(2030),
           selectedDayPredicate: (day) => isSameDay(day, selectedDate),
           onDaySelected: (selectedDay, focusedDay) {
             setState(() {
