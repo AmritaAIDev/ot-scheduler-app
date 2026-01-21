@@ -42,14 +42,3 @@
 12. antibiotic prophylaxis - `https://docs.google.com/spreadsheets/d/1DwCPrAZ3zw587BPH1tUmZGGVF_UnMmU5/edit?gid=230173100#gid=230173100`
 13. schedule of charges -surgery list,code  and department - `https://docs.google.com/spreadsheets/d/1dgVDHwIdqy0aRQUWkssuHmWUtkOAvjRa/edit?gid=566040837#gid=566040837`
 
-
-
-
-
-
-
-
-
-
-
-

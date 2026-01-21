@@ -15,6 +15,8 @@ from django_otp.util import random_hex
 import random
 from rest_framework.decorators import action
 from .permissions import IsOwner
+import numpy as np
+import pandas as pd
 
 User = get_user_model()
 
@@ -1467,7 +1469,8 @@ class OTSchedulerView(APIView):
                 q.append(i)
             return q
 
-        df = pd.read_excel('C:/Users/Admin/Downloads/Final Procedures(1).xlsx')
+        #df = pd.read_excel('C:/Users/Admin/Downloads/Final Procedures(1).xlsx')
+        df = pd.read_excel(r'C:\Users\abhis\Workspace\backend\OT-Scheduler\OT_Scheduling\assets\Final Procedures (1).xlsx');
         print('Final Procedures Read')
         inp = pd.read_excel(tmp_path)
         print('Input File Read')
@@ -1654,7 +1657,7 @@ class OTSchedulerView(APIView):
             f'{int(i // 60)}:{str(int(i % 60)).zfill(2)}' for i in final_schedule_surgeries['End_time']
         ]
 
-        #print('Surgeries Scheduled')
+        print('Surgeries Scheduled')
 
         a.drop(['Processed_Procedures', 'Duration', 'Preferred OT', 'Age', 'ot', 'number ots'], axis=1, inplace=True)
         a.columns = [
@@ -1672,8 +1675,10 @@ class OTSchedulerView(APIView):
             'Date of Surgery', 'Age/Sex', 'surgery', 'Surgeon', 'Department',
             'Name of the Patient', 'Special Equipment', 'MRD', 'OT', 'Start_time', 'End_time'
         ]
-        result.fillna('Null', inplace=True)
-        #print(result)
+        #result.fillna('Null', inplace=True)
+        result = result.astype('object')
+        result.fillna('NA', inplace=True)
+        print(result)
 
         return Response(result.to_dict(), status=200, headers=headers)
     
@@ -1898,6 +1903,35 @@ class OTstaffAverageSurgeryDurationAPI(APIView):
             data.append({ot_staff_name: duration_str})
 
         # Construct the response
+        # Construct the response
         result = {"Average Surgery Duration per OT Staff": data} if data else "No data found for the specified dates."
-        return Response(result)''' 
+        return Response(result)'''
+
+class ExcelProcessingView(APIView):
+    permission_classes = (permissions.AllowAny,)
     
+    def process_surgery_name(self, surgery_name):
+        # Placeholder for surgery name processing logic
+        # Example: return surgery_name.upper() if isinstance(surgery_name, str) else surgery_name
+        if isinstance(surgery_name, str):
+             return surgery_name.upper()
+        return surgery_name
+
+    def post(self, request, *args, **kwargs):
+        file = request.FILES.get('file')
+        if not file:
+             return Response({"error": "No file uploaded"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            df = pd.read_excel(file)
+
+            # Process 'SURGERY' column if it exists
+            if 'SURGERY' in df.columns:
+                 df['SURGERY'] = df['SURGERY'].apply(self.process_surgery_name)
+            
+            # Replace NaN with None (which becomes null in JSON) to avoid JSON serialization errors
+            df = df.where(pd.notnull(df), None)
+            data = df.to_dict(orient='records')
+            return Response(data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
