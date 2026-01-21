@@ -272,6 +272,7 @@ exit
 # you can see that files have updated date
 ssh souvik@10.125.11.203 "ls -la /usr/share/nginx/html/ot-scheduler/"   
 ```
+
 * Clear Browser Cache
 Since it's a Flutter web app, users might need to clear their browser cache to see the updated version:
   * Chrome/Firefox/Edge: Ctrl+Shift+R (or Ctrl+F5) for hard refresh 
