@@ -216,7 +216,10 @@ class _SchedulerInputState extends State<SchedulerInput> {
               fileBytes,
               result.files.single.name,
             );
-            _webFile = Uint8List.fromList(outputBytes);
+
+            final backendResponseBytes = await sendExcelToBackend(outputBytes);
+
+            _webFile = Uint8List.fromList(backendResponseBytes);
             setState(() {
               _notificationMessage =
               'File Processed: ${result.files.single.name}';
@@ -1116,11 +1119,116 @@ class _SchedulerInputState extends State<SchedulerInput> {
             .value = TextCellValue(surgery.mrdNumber);
       }
 
-      // Save and return the file bytes
-      return newExcel.save()!;
+      //return newExcel.save()!; Save and return the file bytes
+      return newExcel.encode()!; //not save but only return the file bytes
     } catch (e) {
       print('Error generating Excel: $e');
       throw Exception('Uncaught Error generating Excel: $e');
+    }
+  }
+
+  Future<List<int>> sendExcelToBackend(List<int> inputFileBytes) async {
+    try {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 10),
+                Text('Processing...'),
+              ],
+            ),
+          );
+        },
+      );
+
+      var url = Uri.parse('${baseUrl}/parse-excel/');
+      var request = http.MultipartRequest('POST', url);
+
+      request.files.add(http.MultipartFile.fromBytes(
+        'file',
+        inputFileBytes,
+        filename: 'surgery_schedule.xlsx',
+      ));
+
+      var response = await request.send();
+      var responseData = await response.stream.bytesToString();
+
+      Navigator.pop(context); // Close processing dialog
+
+      if (response.statusCode == 200) {
+        List<dynamic> jsonResponse = jsonDecode(responseData);
+        print('jsonResponse: ${jsonResponse}');
+
+        // Create new Excel file from JSON response
+        var excel = Excel.createExcel();
+        var sheet = excel['Sheet1'];
+        excel.rename('Sheet1', 'Surgery Report');
+        var surgerySheet = excel['Surgery Report'];
+
+        // Define headers matching the JSON keys
+        final headers = [
+          'DATE OF SURGERY',
+          'AGE/SEX',
+          'SURGERY',
+          'SURGEON',
+          'SPECIALITY',
+          'Name of the Patient',
+          'Special Request',
+          'Mrd Number'
+        ];
+
+        // Add header row
+        for (int i = 0; i < headers.length; i++) {
+          surgerySheet
+              .cell(CellIndex.indexByString('${String.fromCharCode(65 + i)}1'))
+              .value = TextCellValue(headers[i]);
+        }
+
+        // Add data rows
+        for (int i = 0; i < jsonResponse.length; i++) {
+          var item = jsonResponse[i];
+          final r = i + 2;
+          
+          surgerySheet.cell(CellIndex.indexByString('A$r')).value = TextCellValue(item['DATE OF SURGERY']?.toString() ?? '');
+          surgerySheet.cell(CellIndex.indexByString('B$r')).value = TextCellValue(item['AGE/SEX']?.toString() ?? '');
+          surgerySheet.cell(CellIndex.indexByString('C$r')).value = TextCellValue(item['SURGERY']?.toString() ?? '');
+          surgerySheet.cell(CellIndex.indexByString('D$r')).value = TextCellValue(item['SURGEON']?.toString() ?? '');
+          surgerySheet.cell(CellIndex.indexByString('E$r')).value = TextCellValue(item['SPECIALITY']?.toString() ?? '');
+          surgerySheet.cell(CellIndex.indexByString('F$r')).value = TextCellValue(item['Name of the Patient']?.toString() ?? '');
+          surgerySheet.cell(CellIndex.indexByString('G$r')).value = TextCellValue(item['Special Request']?.toString() ?? '');
+          surgerySheet.cell(CellIndex.indexByString('H$r')).value = TextCellValue(item['Mrd Number']?.toString() ?? '');
+        }
+
+        var outputBytes = excel.encode();
+        if (outputBytes == null) {
+          throw Exception('Failed to generate Excel from backend response');
+        }
+
+        return outputBytes;
+
+      } else {
+        print('Error processing Excel: ${response.statusCode}');
+        setState(() {
+          _notificationMessage = 'Error: ${response.statusCode}';
+        });
+        throw Exception('Backend returned ${response.statusCode}');
+      }
+    } catch (e) {
+       try {
+        Navigator.pop(context); // Ensure dialog is closed if error occurred before pop
+       } catch(_) {}
+       
+      print('Error in sendExcelToBackend: $e');
+      setState(() {
+        _notificationMessage = 'Error: $e';
+      });
+      rethrow; // Re-throw to let caller handle if needed, or return empty list? Caller expects list.
+               // Rethrowing is better so caller knows it failed.
     }
   }
 }
