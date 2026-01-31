@@ -13,6 +13,7 @@ import 'package:intl/intl.dart';
 import 'package:my_flutter_app/OTSchedule/OTScheduleListScreen.dart';
 import 'package:my_flutter_app/OTSchedule/SchedulerOutput.dart';
 import 'package:my_flutter_app/OTSchedule/pastSurgeries.dart';
+import 'package:my_flutter_app/OTSchedule/ListConfirmation.dart';
 import 'package:my_flutter_app/config/customThemes/MyAppBar.dart';
 import 'package:my_flutter_app/config/customThemes/elevatedButtonTheme.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -38,13 +39,13 @@ class _SchedulerInputState extends State<SchedulerInput> {
       " including patient, doctor, and equipment details.";
   String uploadFileText = 'Upload your file here';
 
-  //String baseUrl = 'http://127.0.0.1:8000/api';
+  String baseUrl = 'http://127.0.0.1:8000/api';
 
   File? _file;
   Uint8List? _webFile;
   String _notificationMessage = '';
   String _uploadedDate = '';
-  String baseUrl = 'http://10.125.11.203:8091/api';
+  //String baseUrl = 'http://10.125.11.203:8091/api';
   List<dynamic> previousScheduledData = [];
 
   var uploadButton;
@@ -216,26 +217,36 @@ class _SchedulerInputState extends State<SchedulerInput> {
               fileBytes,
               result.files.single.name,
             );
+            _webFile = Uint8List.fromList(outputBytes);
 
-            final backendResponseBytes = await sendExcelToBackend(outputBytes);
+            final backendJson = await sendExcelToBackend(outputBytes);
 
-            _webFile = Uint8List.fromList(backendResponseBytes);
             setState(() {
               _notificationMessage =
               'File Processed: ${result.files.single.name}';
               uploadFileText = _notificationMessage;
             });
+
+            await _extractDateFromFile();
+
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ListConfirmation(
+                  fileBytes: outputBytes,
+                  fileName: result.files.single.name,
+                  jsonData: backendJson,
+                ),
+              ),
+            );
+
           } catch (e) {
-            print('Error converting file: $e');
-            // Fallback or error handling
-            _webFile = fileBytes;
+            print('Error processing file: $e');
             setState(() {
               _notificationMessage =
-              'Error processing file, using raw: ${result.files.single.name}';
+              'Error processing file: $e';
             });
           }
-
-          _extractDateFromFile();
         } else {
           _file = File(result.files.single.path!);
           setState(() {
@@ -267,24 +278,45 @@ class _SchedulerInputState extends State<SchedulerInput> {
 
       if (excel.tables.keys.isNotEmpty) {
         var table = excel.tables.values.first; // Assuming only one sheet
-        var dateColumn = table
-            .cell(CellIndex.indexByString('A2'))
-            .value; // Adjust cell index as per your file
+        
+        // Robust search for date
+        dynamic dateValue;
+        
+        // First try A2 (standard for processed file)
+        dateValue = table.cell(CellIndex.indexByString('A2')).value;
+        print('Initial check A2: ${dateValue.toString()}');
+        
+        if (dateValue == null || dateValue.toString().isEmpty || detectDateFormat(dateValue.toString()) == "Unknown") {
+           // Search first few rows for something that looks like a date
+           bool found = false;
+           for(int r = 0; r < 5 && r < table.rows.length; r++) {
+              for(var cell in table.rows[r]) {
+                 if(cell?.value != null) {
+                    String val = cell!.value.toString();
+                    try {
+                       if (detectDateFormat(val) != "Unknown") {
+                          dateValue = val;
+                          found = true;
+                          break;
+                       }
+                    } catch(_) {}
+                 }
+              }
+              if(found) break;
+           }
+        }
 
-        print('dateColumn: ${dateColumn.toString()}');
-
-        String format = detectDateFormat(dateColumn.toString());
-        print(
-            'Detected date format: $format'); //Detected date format: MM/dd/yyyy
-        parsedDate = DateFormat(format).parse(dateColumn.toString());
-        //print('parsedDate:$parsedDate');
-        formattedDate = DateFormat('yyyy-MM-dd').format(parsedDate);
-        //print('formattedDate:$formattedDate');
-        //formattedDate:2024-05-20
-
-        setState(() {
-          _uploadedDate = formattedDate;
-        });
+        if (dateValue != null) {
+          print('Extracted dateValue: ${dateValue.toString()}');
+          String format = detectDateFormat(dateValue.toString());
+          if (format != "Unknown") {
+            parsedDate = DateFormat(format).parse(dateValue.toString());
+            formattedDate = DateFormat('yyyy-MM-dd').format(parsedDate);
+            setState(() {
+              _uploadedDate = formattedDate;
+            });
+          }
+        }
       }
     } catch (e) {
       print('Error reading Excel file: $e');
@@ -318,7 +350,7 @@ class _SchedulerInputState extends State<SchedulerInput> {
       }
     }
 
-    throw FormatException("Unknown date format: $dateString");
+    return "Unknown";
   }
 
   void _handleOTScheduleButtonPress() async {
@@ -925,7 +957,7 @@ class _SchedulerInputState extends State<SchedulerInput> {
   String normalizeAge(String rawAge) {
       if (rawAge.isEmpty) return '';
       rawAge = rawAge.trim().toUpperCase();
-      
+
       // Handle Months
       if (rawAge.contains('M') || rawAge.contains('MONTH')) {
          final numericPart = RegExp(r'(\d+[\.\d]*)').firstMatch(rawAge)?.group(1);
@@ -938,7 +970,7 @@ class _SchedulerInputState extends State<SchedulerInput> {
             return '${yearsStr}Y';
          }
       }
-      
+
       // Handle Years (standardize format)
       if (rawAge.contains('Y') || RegExp(r'^\d+$').hasMatch(rawAge)) {
           final numericPart = RegExp(r'(\d+[\.\d]*)').firstMatch(rawAge)?.group(1);
@@ -946,7 +978,7 @@ class _SchedulerInputState extends State<SchedulerInput> {
               return '${numericPart}Y';
           }
       }
-      
+
       return rawAge; // Return raw if parsing fails
   }
 
@@ -974,11 +1006,11 @@ class _SchedulerInputState extends State<SchedulerInput> {
          surgeryDate = dateMatch.group(1)!;
       } else {
          // Fallback: try to find date in the first few rows?
-         // For now defaulting to today or a placeholder if not found, 
+         // For now defaulting to today or a placeholder if not found,
          // but ideally we should parse it from the file content if possible.
          // Let's try to find a date cell in the first 5 rows/cols
          DateTime now = DateTime.now();
-         surgeryDate = DateFormat('dd-MM-yyyy').format(now); 
+         surgeryDate = DateFormat('dd-MM-yyyy').format(now);
          for(var i=0; i<5; i++) {
             if(i >= sheet.rows.length) break;
             for(var cell in sheet.rows[i]) {
@@ -996,7 +1028,7 @@ class _SchedulerInputState extends State<SchedulerInput> {
       List<SurgeryData> surgeries = [];
 
       // Process each row (skip header rows)
-      // Starting from row 2 (index 2, so 3rd row) based on previous code view, 
+      // Starting from row 2 (index 2, so 3rd row) based on previous code view,
       // but let's be safe and check where data starts.
       // The user says "Raw File inputs", usually headers are on row 1 (index 1) or row 0.
       // Based on previous code, it started at index 2.
@@ -1004,8 +1036,8 @@ class _SchedulerInputState extends State<SchedulerInput> {
         final row = sheet.rows[rowIndex];
 
         // Skip empty rows or rows with insufficient columns
-        if (row.isEmpty || row.length < 10) continue; 
-        
+        if (row.isEmpty || row.length < 10) continue;
+
         // Sr No is usually column 0. If it's empty, might be a separator line.
         final srNo = row[0]?.value?.toString() ?? '';
         if (srNo.isEmpty) continue;
@@ -1020,7 +1052,7 @@ class _SchedulerInputState extends State<SchedulerInput> {
         // 9: Procedure
         // 10: Surgeon
         // 16: Remarks
-        
+
         final uhid = row[2]?.value?.toString() ?? '';
         final patientName = row[3]?.value?.toString() ?? '';
         final rawAge = row[4]?.value?.toString() ?? '';
@@ -1033,7 +1065,7 @@ class _SchedulerInputState extends State<SchedulerInput> {
         if (patientName.toLowerCase().contains('patient') || procedure.toLowerCase().contains('surgery')) continue;
 
         // --- Data Cleaning & Validation ---
-        
+
         // Normalize Age and Sex
         String normalizedAge = normalizeAge(rawAge);
         String normalizedSex = normalizeSex(rawSex);
@@ -1127,7 +1159,7 @@ class _SchedulerInputState extends State<SchedulerInput> {
     }
   }
 
-  Future<List<int>> sendExcelToBackend(List<int> inputFileBytes) async {
+  Future<List<dynamic>> sendExcelToBackend(List<int> inputFileBytes) async {
     try {
       showDialog(
         context: context,
@@ -1156,6 +1188,66 @@ class _SchedulerInputState extends State<SchedulerInput> {
       ));
 
       var response = await request.send();
+
+      /*sample response
+      [
+  {
+    "DATE OF SURGERY": "30-01-2026",
+    "AGE/SEX": "0.5Y/M",
+    "SURGERY": [null],
+    "SURGEON": "Dr.Ashish Katewa",
+    "SPECIALITY": "General Surgery",
+    "Name of the Patient": "Adam Tauseef",
+    "Special Request": null,
+    "Mrd Number": "275467",
+    "duration": [null]
+  },
+  {
+    "DATE OF SURGERY": "30-01-2026",
+    "AGE/SEX": "6Y/F",
+    "SURGERY": ["TOF - DORV Repair Paed(CTCA00267)"],
+    "SURGEON": "Dr.Ashish Katewa",
+    "SPECIALITY": "General Surgery",
+    "Name of the Patient": "Ishaa Raman",
+    "Special Request": null,
+    "Mrd Number": "258246",
+    "duration": ["4.4"]
+  },
+  {
+    "DATE OF SURGERY": "30-01-2026",
+    "AGE/SEX": "31Y/M",
+    "SURGERY": [null, null],
+    "SURGEON": "Dr.Manav Suryavanshi/Dr.Ritesh Goel",
+    "SPECIALITY": "Urology",
+    "Name of the Patient": "Kapil Yadav",
+    "Special Request": "Lap Tower B & C-arm",
+    "Mrd Number": "273424",
+    "duration": [null, null]
+  },
+  {
+    "DATE OF SURGERY": "30-01-2026",
+    "AGE/SEX": "32Y/M",
+    "SURGERY": [null, "Optical Internal Urethrotomy OIU(URUR00092)"],
+    "SURGEON": "Dr.Manav Suryavanshi/Dr.Ritesh Goel",
+    "SPECIALITY": "General Surgery",
+    "Name of the Patient": "Urvesh Kumar",
+    "Special Request": null,
+    "Mrd Number": "265945",
+    "duration": [null, "1.1"]
+  },
+  {
+    "DATE OF SURGERY": "30-01-2026",
+    "AGE/SEX": "66Y/M",
+    "SURGERY": [null, "Clot Evacuation(URUR00197)", null],
+    "SURGEON": "Dr.Manav Suryavanshi/Dr.Ritesh Goel",
+    "SPECIALITY": "General Surgery",
+    "Name of the Patient": "Monja",
+    "Special Request": null,
+    "Mrd Number": "272886",
+    "duration": [null, null, null]
+  }
+]
+       */
       var responseData = await response.stream.bytesToString();
 
       Navigator.pop(context); // Close processing dialog
@@ -1164,52 +1256,7 @@ class _SchedulerInputState extends State<SchedulerInput> {
         List<dynamic> jsonResponse = jsonDecode(responseData);
         print('jsonResponse: ${jsonResponse}');
 
-        // Create new Excel file from JSON response
-        var excel = Excel.createExcel();
-        var sheet = excel['Sheet1'];
-        excel.rename('Sheet1', 'Surgery Report');
-        var surgerySheet = excel['Surgery Report'];
-
-        // Define headers matching the JSON keys
-        final headers = [
-          'DATE OF SURGERY',
-          'AGE/SEX',
-          'SURGERY',
-          'SURGEON',
-          'SPECIALITY',
-          'Name of the Patient',
-          'Special Request',
-          'Mrd Number'
-        ];
-
-        // Add header row
-        for (int i = 0; i < headers.length; i++) {
-          surgerySheet
-              .cell(CellIndex.indexByString('${String.fromCharCode(65 + i)}1'))
-              .value = TextCellValue(headers[i]);
-        }
-
-        // Add data rows
-        for (int i = 0; i < jsonResponse.length; i++) {
-          var item = jsonResponse[i];
-          final r = i + 2;
-          
-          surgerySheet.cell(CellIndex.indexByString('A$r')).value = TextCellValue(item['DATE OF SURGERY']?.toString() ?? '');
-          surgerySheet.cell(CellIndex.indexByString('B$r')).value = TextCellValue(item['AGE/SEX']?.toString() ?? '');
-          surgerySheet.cell(CellIndex.indexByString('C$r')).value = TextCellValue(item['SURGERY']?.toString() ?? '');
-          surgerySheet.cell(CellIndex.indexByString('D$r')).value = TextCellValue(item['SURGEON']?.toString() ?? '');
-          surgerySheet.cell(CellIndex.indexByString('E$r')).value = TextCellValue(item['SPECIALITY']?.toString() ?? '');
-          surgerySheet.cell(CellIndex.indexByString('F$r')).value = TextCellValue(item['Name of the Patient']?.toString() ?? '');
-          surgerySheet.cell(CellIndex.indexByString('G$r')).value = TextCellValue(item['Special Request']?.toString() ?? '');
-          surgerySheet.cell(CellIndex.indexByString('H$r')).value = TextCellValue(item['Mrd Number']?.toString() ?? '');
-        }
-
-        var outputBytes = excel.encode();
-        if (outputBytes == null) {
-          throw Exception('Failed to generate Excel from backend response');
-        }
-
-        return outputBytes;
+        return jsonResponse;
 
       } else {
         print('Error processing Excel: ${response.statusCode}');
