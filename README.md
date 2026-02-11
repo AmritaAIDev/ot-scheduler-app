@@ -221,7 +221,7 @@ On any computer within your office network, open a web browser and navigate to y
 1. **Build the Updated Web App**
 ```bash
    # In your Flutter project root directory
-flutter build web --release
+fvm flutter build web --release
 ```
 
 2. **Copy Updated Files to Server**
@@ -240,11 +240,15 @@ C:\windows\System32\OpenSSH\scp.exe: dest open "/usr/share/nginx/html/ot-schedul
 ```bash
 # SSH into server
 ssh souvik@10.125.11.203
+```
 
 # Change ownership to souvik temporarily
+```bash
 sudo chown -R souvik:souvik /usr/share/nginx/html/ot-scheduler/
+```
 
 # Exit SSH
+```bash
 exit
 ```
 * Now copy your files:

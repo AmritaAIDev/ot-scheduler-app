@@ -94,6 +94,8 @@ class _SchedulerOutputState extends State<SchedulerOutput> {
     specialEquipmentControllers = List.generate(sortedOTEntries.length, (index) =>
         TextEditingController(text: widget.scheduleData['Special Equipment'][sortedOTEntries[index].key])
     );
+    // print('Value type: ${widget.scheduleData['Department'][sortedOTEntries[0].key].runtimeType}');
+    // print('Value: ${widget.scheduleData['Department'][sortedOTEntries[0].key]}');
     departmentControllers = List.generate(sortedOTEntries.length, (index) =>
         TextEditingController(text: widget.scheduleData['Department'][sortedOTEntries[index].key])
     );

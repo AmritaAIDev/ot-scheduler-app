@@ -8,12 +8,14 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:my_flutter_app/OTSchedule/OTScheduleListScreen.dart';
 import 'package:my_flutter_app/OTSchedule/SchedulerOutput.dart';
 import 'package:my_flutter_app/OTSchedule/pastSurgeries.dart';
 import 'package:my_flutter_app/OTSchedule/ListConfirmation.dart';
+import 'package:my_flutter_app/config/constants.dart';
 import 'package:my_flutter_app/config/customThemes/MyAppBar.dart';
 import 'package:my_flutter_app/config/customThemes/elevatedButtonTheme.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -39,16 +41,89 @@ class _SchedulerInputState extends State<SchedulerInput> {
       " including patient, doctor, and equipment details.";
   String uploadFileText = 'Upload your file here';
 
-  String baseUrl = 'http://127.0.0.1:8000/api';
+  //String baseUrl = 'http://127.0.0.1:8000/api';
 
   File? _file;
   Uint8List? _webFile;
   String _notificationMessage = '';
   String _uploadedDate = '';
   //String baseUrl = 'http://10.125.11.203:8091/api';
+  String baseUrl = 'http://10.125.11.203:8091/api';
   List<dynamic> previousScheduledData = [];
 
+  // Doctor Specialty Map
+  Map<String, String> _doctorSpecialtyMap = {};
+  bool _isDoctorMapLoaded = false;
+
   var uploadButton;
+
+  @override
+  void initState() {
+    super.initState();
+    //_loadDoctorSpecialties();
+  }
+
+  Future<void> _loadDoctorSpecialties() async {
+    try {
+      final bytes = await rootBundle.load('assets/docs/DoctorsList-31-01-2026.xlsx');
+      final excel = Excel.decodeBytes(List<int>.from(bytes.buffer.asUint8List()));
+
+      if (excel.tables.keys.isNotEmpty) {
+        final table = excel.tables.values.first; // Use first sheet
+        
+        // Find header row
+        int headerRowIndex = -1;
+        int doctorColIndex = -1;
+        int specialtyColIndex = -1;
+        int departmentColIndex = -1;
+
+        for (int i = 0; i < 20 && i < table.rows.length; i++) {
+          final row = table.rows[i];
+          for (int j = 0; j < row.length; j++) {
+            final cellValue = row[j]?.value?.toString().toLowerCase() ?? '';
+             if (cellValue.contains('doctor') || cellValue.contains('name') || cellValue.contains('surgeon')) {
+               doctorColIndex = j;
+             }
+             if (cellValue.contains('speciality') || cellValue.contains('specialty')) {
+               specialtyColIndex = j;
+             }
+             if (cellValue.contains('department')) {
+               departmentColIndex = j;
+             }
+          }
+          if (doctorColIndex != -1 && (specialtyColIndex != -1 || departmentColIndex != -1)) {
+            headerRowIndex = i;
+            break;
+          }
+        }
+
+        if (headerRowIndex != -1) {
+           int targetDeptCol = specialtyColIndex != -1 ? specialtyColIndex : departmentColIndex;
+           
+           for (int i = headerRowIndex + 1; i < table.rows.length; i++) {
+             final row = table.rows[i];
+             if (row.length > doctorColIndex && row.length > targetDeptCol) {
+               String doctorName = row[doctorColIndex]?.value?.toString().trim() ?? '';
+               String specialty = row[targetDeptCol]?.value?.toString().trim() ?? '';
+               
+               if (doctorName.isNotEmpty && specialty.isNotEmpty) {
+                 // Store normalized name for case-insensitive lookup
+                 _doctorSpecialtyMap[doctorName.toLowerCase()] = specialty;
+               }
+             }
+           }
+           setState(() {
+             _isDoctorMapLoaded = true;
+           });
+           print('Loaded ${_doctorSpecialtyMap.length} doctors from Excel.');
+        } else {
+          print('Could not find headers in Doctors List Excel');
+        }
+      }
+    } catch (e) {
+      print('Error loading Doctors List Excel: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -233,7 +308,7 @@ class _SchedulerInputState extends State<SchedulerInput> {
               context,
               MaterialPageRoute(
                 builder: (context) => ListConfirmation(
-                  fileBytes: outputBytes,
+                  fileBytes: outputBytes,//not needed --this is orginal excel converted
                   fileName: result.files.single.name,
                   jsonData: backendJson,
                 ),
@@ -916,42 +991,39 @@ class _SchedulerInputState extends State<SchedulerInput> {
     }
   }
 
-  String determineSpecialty(String surgeon, String procedure) {
-    print("surgeon:${surgeon}");
-    print("procedure:${procedure}");
-    String lowerSurgeon = surgeon.toLowerCase();
-    String lowerProcedure = procedure.toLowerCase();
+  String determineSpecialty(String surgeon, String surgery) {
 
-    if (lowerSurgeon.contains('ortho') || lowerProcedure.contains('fracture') ||
-        lowerProcedure.contains('acl') || lowerProcedure.contains('tkr') ||
-        lowerProcedure.contains('thr')) return 'Orthopaedics';
-    if (lowerSurgeon.contains('gyn') ||
-        lowerProcedure.contains('hysteroscopy') ||
-        lowerProcedure.contains('lscs')) return 'Gynaecology';
-    if (lowerSurgeon.contains('uro') || lowerProcedure.contains('turp') ||
-        lowerProcedure.contains('rirs') || lowerProcedure.contains('pcnl'))
-      return 'Urology';
-    if (lowerSurgeon.contains('ent') ||
-        lowerProcedure.contains('septoplasty') ||
-        lowerProcedure.contains('tonsil')) return 'ENT';
-    if (lowerSurgeon.contains('eye') || lowerProcedure.contains('phaco') ||
-        lowerProcedure.contains('cataract')) return 'Ophthalmology';
-    if (lowerSurgeon.contains('plastic') || lowerProcedure.contains('flap') ||
-        lowerProcedure.contains('graft')) return 'Plastic Surgery';
-    if (lowerSurgeon.contains('onco') || lowerProcedure.contains('mastectomy'))
-      return 'Oncology';
-    if (lowerSurgeon.contains('neuro') ||
-        lowerProcedure.contains('craniotomy') ||
-        lowerProcedure.contains('spine')) return 'Neurosurgery';
-    if (lowerSurgeon.contains('cardio') || lowerProcedure.contains('cabg') ||
-        lowerProcedure.contains('valve')) return 'Cardiology';
-    if (lowerSurgeon.contains('peds') || lowerSurgeon.contains('paed'))
-      return 'Paediatrics';
-    if (lowerSurgeon.contains('gastro') ||
-        lowerProcedure.contains('cholecystectomy') ||
-        lowerProcedure.contains('lap')) return 'Gastroenterology';
+    //print("surgeon: '$surgeon'");
+    String doctor = surgeon.toLowerCase().trim();
 
-    return 'General Surgery'; // Default
+    // Remove "Dr.", "Dr", "Dr.", "(Prof)", etc. prefixes
+    doctor = doctor.replaceAll(RegExp(r'^dr\.?\s*'), '')
+        .replaceAll(RegExp(r'\(prof\)\s*'), '')
+        .trim();
+
+    // Also remove any trailing "Dr." in the middle
+    doctor = doctor.replaceAll(RegExp(r'\s+dr\.?\s*'), ' ');
+
+    // Normalize multiple spaces to single space
+    doctor = doctor.replaceAll(RegExp(r'\s+'), ' ');
+
+    //if the doctor name contains multiple doctors
+    if (doctor.contains('/')) {
+      // Try each doctor in the list
+      List<String> doctors = doctor.split('/').map((d) => d.trim()).toList();
+      for (String doc in doctors) {
+        print("doctor lookup key: '$doc'");
+        print("speciality: ${Constants.doctorSpecialtyMap[doc]}");
+        String specialty = Constants.doctorSpecialtyMap[doc] ?? '';
+        if (specialty.isNotEmpty) return specialty;
+      }
+      return Constants.doctorSpecialtyMap[doctors[0]] ?? '';
+    }
+
+    print("doctor lookup key: '$doctor'");
+    print("speciality: ${Constants.doctorSpecialtyMap[doctor]}");
+
+    return Constants.doctorSpecialtyMap[doctor] ?? '';
   }
 
   String normalizeAge(String rawAge) {
@@ -1062,7 +1134,8 @@ class _SchedulerInputState extends State<SchedulerInput> {
         final specialRequest = row.length > 16 ? (row[16]?.value?.toString() ?? '') : '';
 
         // Skip rows that look like headers inside the list (e.g. "OT 2")
-        if (patientName.toLowerCase().contains('patient') || procedure.toLowerCase().contains('surgery')) continue;
+        //if (patientName.toLowerCase().contains('patient') || procedure.toLowerCase().contains('surgery')) continue;
+        if (patientName.toLowerCase().contains('patient')) continue;
 
         // --- Data Cleaning & Validation ---
 
@@ -1079,7 +1152,6 @@ class _SchedulerInputState extends State<SchedulerInput> {
            continue;
         }
 
-        //temp method for time-being till we get speciality in the raw file
         String speciality = determineSpecialty(surgeon, procedure);
 
         surgeries.add(SurgeryData(

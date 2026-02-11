@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:excel/excel.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:my_flutter_app/config/customThemes/MyAppBar.dart';
+import 'package:my_flutter_app/config/constants.dart';
 
 class ListConfirmation extends StatefulWidget {
   final List<int> fileBytes;
@@ -29,12 +30,14 @@ class _ListConfirmationState extends State<ListConfirmation> {
   Map<String, SurgeryMasterItem> surgeryMasterData = {};
   List<String> surgeryNameList = [];
   List<String> surgeryCodeList = [];
-  List<String> specialityList = [];
+  List<String> specialityList = Constants.departmentList;
 
   // Table Data
   List<ConfirmationRow> tableRows = [];
   List<SurgeryMasterItem> allMasterItems = [];
   bool isLoading = true;
+  //String baseUrl = 'http://127.0.0.1:8000/api';
+  String baseUrl = 'http://10.125.11.203:8091/api';
 
   @override
   void initState() {
@@ -42,9 +45,11 @@ class _ListConfirmationState extends State<ListConfirmation> {
     _loadData();
   }
 
+
+
   Future<void> _loadData() async {
     try {
-      await _loadMasterData();
+      //await _loadMasterData();
       if (widget.jsonData != null) {
         await _parseJsonData();
       } else {
@@ -138,7 +143,7 @@ class _ListConfirmationState extends State<ListConfirmation> {
               
               if(code.isNotEmpty && !surgeryCodeList.contains(code)) surgeryCodeList.add(code);
               if(name.isNotEmpty && !surgeryNameList.contains(name)) surgeryNameList.add(name);
-              if(spec.isNotEmpty && !specialityList.contains(spec)) specialityList.add(spec);
+              // if(spec.isNotEmpty && !specialityList.contains(spec)) specialityList.add(spec);
             }
           }
         }
@@ -156,6 +161,7 @@ class _ListConfirmationState extends State<ListConfirmation> {
   }
 
   Future<void> _parseJsonData() async {
+
     if (widget.jsonData == null) return;
 
     for (var item in widget.jsonData!) {
@@ -177,6 +183,14 @@ class _ListConfirmationState extends State<ListConfirmation> {
         surgeryList = [null]; // Default to at least one entry
       }
 
+      // Handle SURGERY_CODE list
+      List<dynamic> surgeryCodeList = [];
+      if (item['SURGERY_CODE'] is List) {
+        surgeryCodeList = item['SURGERY_CODE'];
+      } else if (item['SURGERY_CODE'] != null) {
+        surgeryCodeList = [item['SURGERY_CODE']];
+      }
+
       // Handle duration list
       List<dynamic> durationList = [];
       if (item['duration'] is List) {
@@ -188,15 +202,22 @@ class _ListConfirmationState extends State<ListConfirmation> {
       // Determine number of rows (use max length of arrays)
       int rowCount = surgeryList.length;
       if (rowCount < durationList.length) rowCount = durationList.length;
+      if (rowCount < surgeryCodeList.length) rowCount = surgeryCodeList.length;
       if (rowCount == 0) rowCount = 1;
 
       for (int i = 0; i < rowCount; i++) {
         dynamic rawSurgery = (i < surgeryList.length) ? surgeryList[i] : null;
         dynamic rawDuration = (i < durationList.length) ? durationList[i] : null;
+        dynamic rawCode = (i < surgeryCodeList.length) ? surgeryCodeList[i] : null;
 
         String surgeryName = '';
         String surgeryCode = '';
         String rowSpeciality = defaultSpeciality;
+
+        // Set Code from response
+        if (rawCode != null && rawCode.toString().trim().isNotEmpty) {
+           surgeryCode = rawCode.toString().trim();
+        }
 
         if (rawSurgery != null && rawSurgery.toString().trim().isNotEmpty) {
           surgeryName = rawSurgery.toString().trim();
@@ -204,7 +225,7 @@ class _ListConfirmationState extends State<ListConfirmation> {
           // Try to match with master data to get code and speciality
           if (surgeryMasterData.containsKey(surgeryName)) {
             var master = surgeryMasterData[surgeryName]!;
-            surgeryCode = master.code;
+            if (surgeryCode.isEmpty) surgeryCode = master.code;
             rowSpeciality = master.speciality;
           } else {
             // Try to extract code from parentheses e.g. "Surgery Name(CODE123)"
@@ -215,8 +236,10 @@ class _ListConfirmationState extends State<ListConfirmation> {
                if (surgeryMasterData.containsKey(extractedCode)) {
                   var master = surgeryMasterData[extractedCode]!;
                   surgeryName = master.name;
-                  surgeryCode = master.code;
+                  if (surgeryCode.isEmpty) surgeryCode = master.code;
                   rowSpeciality = master.speciality;
+               } else if (surgeryCode.isEmpty) {
+                  surgeryCode = extractedCode;
                }
             }
           }
@@ -264,7 +287,7 @@ class _ListConfirmationState extends State<ListConfirmation> {
              tableRows.add(ConfirmationRow(
                date: _getVal(row, 0),
                ageSex: _getVal(row, 1),
-               surgery: _getVal(row, 2),
+               surgery: _getVal(row, 2).split('(')[0],
                surgeon: _getVal(row, 3),
                speciality: _getVal(row, 4),
                patientName: _getVal(row, 5),
@@ -290,6 +313,43 @@ class _ListConfirmationState extends State<ListConfirmation> {
      return row[index]?.value.toString() ?? '';
   }
 
+  Map<String, String> _getSurgeryMap(String speciality) {
+    switch (speciality) {
+      case 'Breast Oncology': return Constants.breastOncologyMap;
+      case 'Cardiac Surgery - Adult': return Constants.cardiacSurgeryAdultMap;
+      case 'Cardiac Surgery - Paediatric': return Constants.cardiacSurgeryPediatricMap;
+      case 'Cardiac Surgery - Robotic Surgery': return Constants.cardiacSurgeryRoboticMap;
+      case 'Cardiology - Other Cath Procedure': return Constants.cardiologyOtherCarthProceduresMap;
+      case 'Cardiology - Paediatric': return Constants.cardiologyPediatricProceduresMap;
+      case 'Cardiology - Valve Replacement/Implantation': return Constants.cardiologyValveProceduresMap;
+      case 'Cardiology -Angiography': return Constants.cardiologyAngiographyMap;
+      case 'Cardiology -Angioplasty': return Constants.cardiologyAngioplastyProceduresMap;
+      case 'Cardiology -EPS Lab': return Constants.cardiologyEPSLabProceduresMap;
+      case 'Cardiology -Pacemaker and ICD': return Constants.cardiologyICDPacemakerMap;
+      case 'Cardiology Procedure -Pacemaker and ICD': return Constants.cardiologyICDPacemakerMap;
+      case 'Division of Spine': return Constants.divisionOfSpineMap;
+      case 'ENT': return Constants.entSurgeriesMap;
+      case 'Gastrointestinal Surgery': return Constants.gastroIntestinalSurgeryMap;
+      case 'General Surgery': return Constants.generalSurgeryMap;
+      case 'Gynecologic Oncology': return Constants.gynecologicOncologyMap;
+      case 'Head and Neck': return Constants.headAndNeckSurgeryMap;
+      case 'Interventional Radiology': return Constants.interventionalRadiologyMap;
+      case 'Kidney Transplant': return Constants.kidneyTransplantMap;
+      case 'Liver Transplant': return Constants.liverTransplantMap;
+      case 'Neurosurgery': return Constants.neuroSurgeryMap;
+      case 'Neurosurgery- DSA Lab': return Constants.neuroSurgeryDsalabMap;
+      case 'Obstetrics & Gynaecology': return Constants.obstetricsGynaecologyMap;
+      case 'Orthopaedic': return Constants.orthopaedicSurgeryMap;
+      case 'Ophthalmology': return Constants.ophthalmologySurgeryMap;
+      case 'Paediatric': return Constants.paediatricSurgeryMap;
+      case 'Plastic & Reconstructive': return Constants.plasticSurgeryMap;
+      case 'Thoracic Surgery': return Constants.thoracicSurgeryMap;
+      case 'Urology': return Constants.urologyMap;
+      case 'Vascular & Endovascular': return Constants.vascularEndovascularProceduresMap;
+      default: return {};
+    }
+  }
+
   Future<void> _handleScheduleButtonPress() async {
     setState(() {
       isLoading = true;
@@ -297,13 +357,15 @@ class _ListConfirmationState extends State<ListConfirmation> {
 
     try {
       // 1. Generate Excel from tableRows
-      var excel = Excel.createExcel();
-      var sheet = excel['Sheet1'];
+      // Create new Excel file
+      final excel = Excel.createExcel();
+      // Rename default sheet
+      final newSheet = excel['Sheet1'];
       excel.rename('Sheet1', 'Surgery Report');
-      var surgerySheet = excel['Surgery Report'];
+      
+      dynamic surgerySheet = excel['Surgery Report'];
 
       // Headers matching what the backend expects
-      // Note: Backend might rely on specific headers or order. using the standard set.
       final headers = [
         'DATE OF SURGERY',
         'AGE/SEX',
@@ -312,7 +374,8 @@ class _ListConfirmationState extends State<ListConfirmation> {
         'SPECIALITY',
         'Name of the Patient',
         'Special Request',
-        'Mrd Number'
+        'Mrd Number',
+        'Duration'
       ];
 
       // Add header row
@@ -335,15 +398,21 @@ class _ListConfirmationState extends State<ListConfirmation> {
         surgerySheet.cell(CellIndex.indexByString('F$r')).value = TextCellValue(row.patientName);
         surgerySheet.cell(CellIndex.indexByString('G$r')).value = TextCellValue(row.specialRequest);
         surgerySheet.cell(CellIndex.indexByString('H$r')).value = TextCellValue(row.mrdNumber);
-        // We are NOT sending Duration or Surgery Code for now as backend might not support it / expects specific format
-        // If backend needs them we would add them here.
+        surgerySheet.cell(CellIndex.indexByString('I$r')).value = TextCellValue(row.duration);
       }
 
-      var fileBytes = excel.encode()!;
+      var fileBytes = excel.encode();
+      if (fileBytes == null) {
+        throw Exception("Failed to encode excel file");
+      }
+      Uint8List bytes = Uint8List.fromList(fileBytes);
+      print("Generated Excel size: ${bytes.length} bytes");
       String base64File = base64Encode(fileBytes);
+      print("base64:${base64File}");
 
       // 2. Send to Backend
-      String apiUrl = 'https://us-central1-amrita-body-scan.cloudfunctions.net/OTSchedulerv2';
+      //String apiUrl = 'https://us-central1-amrita-body-scan.cloudfunctions.net/OTSchedulerv2';
+      String apiUrl = '$baseUrl/ot-schedule/';
       Map<String, dynamic> requestBody = {'doc': base64File};
       
       var response = await http.post(
@@ -408,44 +477,53 @@ class _ListConfirmationState extends State<ListConfirmation> {
                         DataColumn(label: Text('Request')),
                     ],
                     rows: tableRows.map((row) {
-                      return DataRow(cells: [
+                      bool isMissingData = row.surgery.isEmpty || row.duration.isEmpty;
+                      return DataRow(
+                        color: MaterialStateProperty.resolveWith<Color?>(
+                          (Set<MaterialState> states) {
+                            if (isMissingData) return Colors.red.withOpacity(0.1);
+                            return null;
+                          },
+                        ),
+                        cells: [
                         DataCell(Text(row.date)),
                         // ... cells mapped from tableRows (same as before)
                         DataCell(Text(row.ageSex)),
                         DataCell(DropdownButton<String>(
-                            value: surgeryNameList.contains(row.surgery) ? row.surgery : null,
+                            value: _getSurgeryMap(row.speciality).containsValue(row.surgery) ? row.surgery : null,
                             hint: Text(row.surgery.isEmpty ? 'Select' : row.surgery),
-                            items: (row.speciality.isEmpty 
-                                ? surgeryNameList 
-                                : allMasterItems.where((m) => m.speciality == row.speciality).map((m) => m.name).where((n) => n.isNotEmpty).toSet().toList())
+                            items: _getSurgeryMap(row.speciality).values.toSet().toList()
                               .map((String val) {
                                 return DropdownMenuItem<String>(value: val, child: Text(val));
                               }).toList(),
                             onChanged: (newValue) {
-                              setState(() {
-                                row.surgery = newValue!;
-                                if(surgeryMasterData.containsKey(newValue)) {
-                                  row.surgeryCode = surgeryMasterData[newValue]!.code;
-                                  if (row.speciality.isEmpty) row.speciality = surgeryMasterData[newValue]!.speciality;
-                                }
-                              });
+                                setState(() {
+                                  row.surgery = newValue!;
+                                  // Find code for this surgery name
+                                  var map = _getSurgeryMap(row.speciality);
+                                  for (var entry in map.entries) {
+                                    if (entry.value == newValue) {
+                                      row.surgeryCode = entry.key;
+                                      break;
+                                    }
+                                  }
+                                });
                             },
                         )),
                         DataCell(DropdownButton<String>(
-                            value: surgeryCodeList.contains(row.surgeryCode) ? row.surgeryCode : null,
+                            value: _getSurgeryMap(row.speciality).containsKey(row.surgeryCode) ? row.surgeryCode : null,
                             hint: Text(row.surgeryCode.isEmpty ? 'Select' : row.surgeryCode),
-                            items: (row.speciality.isEmpty 
-                                ? surgeryCodeList 
-                                : allMasterItems.where((m) => m.speciality == row.speciality).map((m) => m.code).where((c) => c.isNotEmpty).toSet().toList())
+                            items: _getSurgeryMap(row.speciality).keys.toSet().toList()
                               .map((String val) {
                                 return DropdownMenuItem<String>(value: val, child: Text(val));
                               }).toList(),
                             onChanged: (newValue) {
                                setState(() {
                                   row.surgeryCode = newValue!;
-                                  if(surgeryMasterData.containsKey(newValue)) {
-                                     row.surgery = surgeryMasterData[newValue]!.name;
-                                     if (row.speciality.isEmpty) row.speciality = surgeryMasterData[newValue]!.speciality;
+                                  // Find name for this code
+                                  var map = _getSurgeryMap(row.speciality);
+                                  if(map.containsKey(newValue)) {
+                                     row.surgery = map[newValue]!;
                                   }
                                });
                             },
@@ -470,7 +548,11 @@ class _ListConfirmationState extends State<ListConfirmation> {
                         DataCell(Text(row.mrdNumber)),
                         DataCell(TextFormField(
                             initialValue: row.duration,
-                            onChanged: (val) { row.duration = val; },
+                            onChanged: (val) { 
+                              setState(() {
+                                row.duration = val; 
+                              });
+                            },
                         )),
                         DataCell(Text(row.specialRequest)),
                       ]);
