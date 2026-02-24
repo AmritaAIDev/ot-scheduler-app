@@ -3,10 +3,13 @@ import 'package:http/http.dart' as http;
 import 'package:my_flutter_app/OTSchedule/SchedulerOutput.dart';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:excel/excel.dart';
+import 'package:excel/excel.dart' hide Border;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:my_flutter_app/config/customThemes/MyAppBar.dart';
 import 'package:my_flutter_app/config/constants.dart';
+import 'package:dropdown_search/dropdown_search.dart';
+
+import '../config/customThemes/elevatedButtonTheme.dart';
 
 class ListConfirmation extends StatefulWidget {
   final List<int> fileBytes;
@@ -455,116 +458,342 @@ class _ListConfirmationState extends State<ListConfirmation> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: MyAppBar(),
-      body: isLoading 
+      body: isLoading
           ? Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              // ... existing scroll views
-              child: SingleChildScrollView(
-                 scrollDirection: Axis.horizontal,
-                 child: DataTable(
-                    // ... existing columns
-                    // ... existing rows
-                    columns: [
-                        DataColumn(label: Text('Date')),
-                        DataColumn(label: Text('Age/Sex')),
-                        DataColumn(label: Text('Surgery')),
-                        DataColumn(label: Text('Surgery Code')),
-                        DataColumn(label: Text('Speciality')),
-                        DataColumn(label: Text('Surgeon')),
-                        DataColumn(label: Text('Patient')),
-                        DataColumn(label: Text('MRD')),
-                        DataColumn(label: Text('Duration (Hrs)')),
-                        DataColumn(label: Text('Request')),
-                    ],
-                    rows: tableRows.map((row) {
-                      bool isMissingData = row.surgery.isEmpty || row.duration.isEmpty;
-                      return DataRow(
-                        color: MaterialStateProperty.resolveWith<Color?>(
-                          (Set<MaterialState> states) {
-                            if (isMissingData) return Colors.red.withOpacity(0.1);
-                            return null;
+          : Padding(
+              padding: const EdgeInsets.only(left: 180, right: 80, top: 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  IntrinsicWidth(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Confirm Surgery Details',
+                            style: TextStyle(
+                                fontSize: 25, fontWeight: FontWeight.bold)),
+                        Text(
+                            'Review and update surgery details before final scheduling',
+                            style: TextStyle(
+                                fontSize: 16, color: Colors.grey[600])),
+                        Divider(color: Colors.blueGrey[50], thickness: 2),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  Text(
+                    'SPECIALITY',
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.blueGrey),
+                  ),
+                  SizedBox(height: 6),
+                  Row(
+                    children: [
+                      SizedBox(
+                        width: 220,
+                        height: 45,
+                        child: TextField(
+                          decoration: InputDecoration(
+                            hintText: 'Filter by Speciality',
+                            hintStyle: TextStyle(color: Colors.grey[500]),
+                            contentPadding: EdgeInsets.symmetric(
+                                horizontal: 15, vertical: 10),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(color: Colors.blueGrey),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(color: Colors.blueGrey),
+                            ),
+                          ),
+                          onChanged: (value) {
+                            // Filter logic could be added here
                           },
                         ),
-                        cells: [
-                        DataCell(Text(row.date)),
-                        // ... cells mapped from tableRows (same as before)
-                        DataCell(Text(row.ageSex)),
-                        DataCell(DropdownButton<String>(
-                            value: _getSurgeryMap(row.speciality).containsValue(row.surgery) ? row.surgery : null,
-                            hint: Text(row.surgery.isEmpty ? 'Select' : row.surgery),
-                            items: _getSurgeryMap(row.speciality).values.toSet().toList()
-                              .map((String val) {
-                                return DropdownMenuItem<String>(value: val, child: Text(val));
-                              }).toList(),
-                            onChanged: (newValue) {
-                                setState(() {
-                                  row.surgery = newValue!;
-                                  // Find code for this surgery name
-                                  var map = _getSurgeryMap(row.speciality);
-                                  for (var entry in map.entries) {
-                                    if (entry.value == newValue) {
-                                      row.surgeryCode = entry.key;
-                                      break;
-                                    }
-                                  }
-                                });
-                            },
-                        )),
-                        DataCell(DropdownButton<String>(
-                            value: _getSurgeryMap(row.speciality).containsKey(row.surgeryCode) ? row.surgeryCode : null,
-                            hint: Text(row.surgeryCode.isEmpty ? 'Select' : row.surgeryCode),
-                            items: _getSurgeryMap(row.speciality).keys.toSet().toList()
-                              .map((String val) {
-                                return DropdownMenuItem<String>(value: val, child: Text(val));
-                              }).toList(),
-                            onChanged: (newValue) {
-                               setState(() {
-                                  row.surgeryCode = newValue!;
-                                  // Find name for this code
-                                  var map = _getSurgeryMap(row.speciality);
-                                  if(map.containsKey(newValue)) {
-                                     row.surgery = map[newValue]!;
-                                  }
-                               });
-                            },
-                        )),
-                        DataCell(DropdownButton<String>(
-                            value: specialityList.contains(row.speciality) ? row.speciality : null,
-                            hint: Text(row.speciality.isEmpty ? 'Select' : row.speciality),
-                            items: specialityList.map((String val) {
-                              return DropdownMenuItem<String>(value: val, child: Text(val));
+                      ),
+                      SizedBox(width: 10),
+                      SizedBox(
+                        width: 80,
+                        height: 45,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blueGrey[200],
+                            shape: const RoundedRectangleBorder(
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(15))),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 15, vertical: 10),
+                            textStyle: TextStyle(fontSize: 18),
+                          ),
+                          onPressed: () {
+                            // Apply filter logic
+                          },
+                          child: Text(
+                            'Go',
+                            style: TextStyle(color: Colors.black87),
+                          ),
+                        ),
+                      ),
+                      // Spacer(),
+                      // ElevatedButton(
+                      //   style: ElevatedButton.styleFrom(
+                      //     backgroundColor: Colors.grey[300],
+                      //     shape: RoundedRectangleBorder(
+                      //         borderRadius: BorderRadius.circular(15)),
+                      //   ),
+                      //   onPressed: null, // Disabled by default in image
+                      //   child: Text(
+                      //     'Download',
+                      //     style: TextStyle(color: Colors.white),
+                      //   ),
+                      // ),
+                    ],
+                  ),
+                  SizedBox(height: 25),
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.blueGrey),
+                        borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                      ),
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: SingleChildScrollView(
+                          child: DataTable(
+                            dividerThickness: 1.5,
+                            columns: [
+                              DataColumn(
+                                  label: Text('Date',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold))),
+                              DataColumn(
+                                  label: Text('Age/Sex',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold))),
+                              DataColumn(
+                                  label: Text('Surgery',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold))),
+                              DataColumn(
+                                  label: Text('Surgery Code',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold))),
+                              DataColumn(
+                                  label: Text('Speciality',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold))),
+                              DataColumn(
+                                  label: Text('Surgeon',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold))),
+                              DataColumn(
+                                  label: Text('Patient',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold))),
+                              DataColumn(
+                                  label: Text('MRD',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold))),
+                              DataColumn(
+                                  label: Text('Duration (Hrs)',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold))),
+                              DataColumn(
+                                  label: Text('Request',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold))),
+                            ],
+                            rows: tableRows.map((row) {
+                              bool isMissingData = row.surgery.isEmpty ||
+                                  row.duration.isEmpty;
+                              return DataRow(
+                                color:
+                                    MaterialStateProperty.resolveWith<Color?>(
+                                  (Set<MaterialState> states) {
+                                    if (isMissingData)
+                                      return Colors.blue[50];
+                                    return null;
+                                  },
+                                ),
+                                cells: [
+                                  DataCell(Text(row.date)),
+                                  DataCell(Text(row.ageSex)),
+                                  DataCell(
+                                    SizedBox(
+                                      width: 250,
+                                      child: DropdownSearch<String>(
+                                        popupProps: PopupProps.menu(
+                                          showSearchBox: true,
+                                          searchFieldProps: TextFieldProps(
+                                            decoration: InputDecoration(
+                                              hintText: "Search Surgery...",
+                                              border: OutlineInputBorder(),
+                                            ),
+                                          ),
+                                        ),
+                                        items: _getSurgeryMap(row.speciality)
+                                            .values
+                                            .toSet()
+                                            .toList(),
+                                        dropdownDecoratorProps:
+                                            DropDownDecoratorProps(
+                                          dropdownSearchDecoration:
+                                              InputDecoration(
+                                            hintText: "Select Surgery",
+                                            border: InputBorder.none,
+                                          ),
+                                        ),
+                                        onChanged: (newValue) {
+                                          if (newValue == null) return;
+                                          setState(() {
+                                            row.surgery = newValue;
+                                            var map = _getSurgeryMap(
+                                                row.speciality);
+                                            for (var entry in map.entries) {
+                                              if (entry.value == newValue) {
+                                                row.surgeryCode = entry.key;
+                                                break;
+                                              }
+                                            }
+                                          });
+                                        },
+                                        selectedItem:
+                                            _getSurgeryMap(row.speciality)
+                                                    .containsValue(row.surgery)
+                                                ? row.surgery
+                                                : null,
+                                      ),
+                                    ),
+                                  ),
+                                  DataCell(
+                                    SizedBox(
+                                      width: 150,
+                                      child: DropdownSearch<String>(
+                                        popupProps: PopupProps.menu(
+                                          showSearchBox: true,
+                                          searchFieldProps: TextFieldProps(
+                                            decoration: InputDecoration(
+                                              hintText: "Search Code...",
+                                              border: OutlineInputBorder(),
+                                            ),
+                                          ),
+                                        ),
+                                        items: _getSurgeryMap(row.speciality)
+                                            .keys
+                                            .toSet()
+                                            .toList(),
+                                        dropdownDecoratorProps:
+                                            DropDownDecoratorProps(
+                                          dropdownSearchDecoration:
+                                              InputDecoration(
+                                            hintText: "Select Code",
+                                            border: InputBorder.none,
+                                          ),
+                                        ),
+                                        onChanged: (newValue) {
+                                          if (newValue == null) return;
+                                          setState(() {
+                                            row.surgeryCode = newValue;
+                                            var map = _getSurgeryMap(
+                                                row.speciality);
+                                            if (map.containsKey(newValue)) {
+                                              row.surgery = map[newValue]!;
+                                            }
+                                          });
+                                        },
+                                        selectedItem:
+                                            _getSurgeryMap(row.speciality)
+                                                    .containsKey(
+                                                        row.surgeryCode)
+                                                ? row.surgeryCode
+                                                : null,
+                                      ),
+                                    ),
+                                  ),
+                                  DataCell(
+                                    SizedBox(
+                                      width: 200,
+                                      child: DropdownSearch<String>(
+                                        popupProps: PopupProps.menu(
+                                          showSearchBox: true,
+                                          searchFieldProps: TextFieldProps(
+                                            decoration: InputDecoration(
+                                              hintText: "Search Speciality...",
+                                              border: OutlineInputBorder(),
+                                            ),
+                                          ),
+                                        ),
+                                        items: specialityList,
+                                        dropdownDecoratorProps:
+                                            DropDownDecoratorProps(
+                                          dropdownSearchDecoration:
+                                              InputDecoration(
+                                            hintText: "Select Speciality",
+                                            border: InputBorder.none,
+                                          ),
+                                        ),
+                                        onChanged: (newValue) {
+                                          if (newValue == null) return;
+                                          setState(() {
+                                            row.speciality = newValue;
+                                            row.surgery = '';
+                                            row.surgeryCode = '';
+                                          });
+                                        },
+                                        selectedItem: specialityList
+                                                .contains(row.speciality)
+                                            ? row.speciality
+                                            : null,
+                                      ),
+                                    ),
+                                  ),
+                                  DataCell(Text(row.surgeon)),
+                                  DataCell(Text(row.patientName)),
+                                  DataCell(Text(row.mrdNumber)),
+                                  DataCell(TextFormField(
+                                    initialValue: row.duration,
+                                    onChanged: (val) {
+                                      setState(() {
+                                        row.duration = val;
+                                      });
+                                    },
+                                    decoration:
+                                        InputDecoration(border: InputBorder.none),
+                                  )),
+                                  DataCell(Text(row.specialRequest)),
+                                ],
+                              );
                             }).toList(),
-                            onChanged: (newValue) {
-                               setState(() {
-                                  row.speciality = newValue!;
-                                  // Reset surgery and code if they don't belong to new speciality
-                                  row.surgery = '';
-                                  row.surgeryCode = '';
-                               });
-                            },
-                        )),
-                        DataCell(Text(row.surgeon)),
-                        DataCell(Text(row.patientName)),
-                        DataCell(Text(row.mrdNumber)),
-                        DataCell(TextFormField(
-                            initialValue: row.duration,
-                            onChanged: (val) { 
-                              setState(() {
-                                row.duration = val; 
-                              });
-                            },
-                        )),
-                        DataCell(Text(row.specialRequest)),
-                      ]);
-                    }).toList(),
-                 ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  Center(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blueGrey[400],
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20)),
+                      ),
+                      //style: MyElevatedButtonTheme.elevatedButtonTheme1.style,
+                      onPressed: _handleScheduleButtonPress,
+                      child: Text(
+                        'Schedule',
+                        style: TextStyle(color: Colors.white, fontSize: 16),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                ],
               ),
             ),
-       floatingActionButton: FloatingActionButton.extended(
-        onPressed: _handleScheduleButtonPress,
-        label: Text('Schedule'),
-        icon: Icon(Icons.calendar_today),
-       ),
     );
   }
 }
