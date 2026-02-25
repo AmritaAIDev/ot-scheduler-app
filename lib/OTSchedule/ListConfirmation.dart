@@ -37,6 +37,8 @@ class _ListConfirmationState extends State<ListConfirmation> {
 
   // Table Data
   List<ConfirmationRow> tableRows = [];
+  List<ConfirmationRow> displayedRows = [];
+  String selectedFilterSpeciality = '';
   List<SurgeryMasterItem> allMasterItems = [];
   bool isLoading = true;
   //String baseUrl = 'http://127.0.0.1:8000/api';
@@ -66,10 +68,20 @@ class _ListConfirmationState extends State<ListConfirmation> {
     } finally {
       if (mounted) {
         setState(() {
+          displayedRows = List.from(tableRows);
           isLoading = false;
         });
       }
     }
+  }
+
+  bool _isDataComplete() {
+    if (tableRows.isEmpty) return false;
+    return tableRows.every((row) => 
+      row.surgery.isNotEmpty && 
+      row.duration.isNotEmpty && 
+      row.surgeryCode.isNotEmpty
+    );
   }
 
   Future<void> _loadMasterData() async {
@@ -492,26 +504,41 @@ class _ListConfirmationState extends State<ListConfirmation> {
                   Row(
                     children: [
                       SizedBox(
-                        width: 220,
+                        width: 250,
                         height: 45,
-                        child: TextField(
-                          decoration: InputDecoration(
-                            hintText: 'Filter by Speciality',
-                            hintStyle: TextStyle(color: Colors.grey[500]),
-                            contentPadding: EdgeInsets.symmetric(
-                                horizontal: 15, vertical: 10),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(color: Colors.blueGrey),
+                        child: DropdownSearch<String>(
+                          popupProps: PopupProps.menu(
+                            showSearchBox: true,
+                            searchFieldProps: TextFieldProps(
+                              decoration: InputDecoration(
+                                hintText: "Search Specialty...",
+                                border: OutlineInputBorder(),
+                              ),
                             ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(color: Colors.blueGrey),
+                          ),
+                          items: ["All", ...specialityList],
+                          dropdownDecoratorProps: DropDownDecoratorProps(
+                            dropdownSearchDecoration: InputDecoration(
+                              hintText: 'Filter by Speciality',
+                              hintStyle: TextStyle(color: Colors.grey[500]),
+                              contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 15, vertical: 10),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(color: Colors.blueGrey),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(color: Colors.blueGrey),
+                              ),
                             ),
                           ),
                           onChanged: (value) {
-                            // Filter logic could be added here
+                            setState(() {
+                              selectedFilterSpeciality = value ?? '';
+                            });
                           },
+                          selectedItem: selectedFilterSpeciality.isEmpty ? "All" : selectedFilterSpeciality,
                         ),
                       ),
                       SizedBox(width: 10),
@@ -529,7 +556,13 @@ class _ListConfirmationState extends State<ListConfirmation> {
                             textStyle: TextStyle(fontSize: 18),
                           ),
                           onPressed: () {
-                            // Apply filter logic
+                            setState(() {
+                              if (selectedFilterSpeciality == 'All' || selectedFilterSpeciality.isEmpty) {
+                                displayedRows = List.from(tableRows);
+                              } else {
+                                displayedRows = tableRows.where((row) => row.speciality == selectedFilterSpeciality).toList();
+                              }
+                            });
                           },
                           child: Text(
                             'Go',
@@ -606,9 +639,9 @@ class _ListConfirmationState extends State<ListConfirmation> {
                                       style: TextStyle(
                                           fontWeight: FontWeight.bold))),
                             ],
-                            rows: tableRows.map((row) {
+                            rows: displayedRows.map((row) {
                               bool isMissingData = row.surgery.isEmpty ||
-                                  row.duration.isEmpty;
+                                  row.duration.isEmpty || row.surgeryCode.isEmpty;
                               return DataRow(
                                 color:
                                     MaterialStateProperty.resolveWith<Color?>(
@@ -783,10 +816,12 @@ class _ListConfirmationState extends State<ListConfirmation> {
                             borderRadius: BorderRadius.circular(20)),
                       ),
                       //style: MyElevatedButtonTheme.elevatedButtonTheme1.style,
-                      onPressed: _handleScheduleButtonPress,
+                      onPressed: _isDataComplete() ? _handleScheduleButtonPress : null,
                       child: Text(
                         'Schedule',
-                        style: TextStyle(color: Colors.white, fontSize: 16),
+                        style: TextStyle(
+                            color: _isDataComplete() ? Colors.white : Colors.black54,
+                            fontSize: 16),
                       ),
                     ),
                   ),
