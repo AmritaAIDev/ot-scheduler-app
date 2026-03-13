@@ -18,6 +18,7 @@ import 'package:my_flutter_app/Dashboards/PatientDashboard.dart';
 import 'package:my_flutter_app/config/customThemes/MyAppBar.dart';
 import 'package:my_flutter_app/config/customThemes/elevatedButtonTheme.dart';
 
+import '../config/constants.dart';
 import 'OTDashboard2.dart';
 
 class Dashboard2 extends StatefulWidget {
@@ -43,7 +44,7 @@ class Dashboard2 extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard2> {
-  String baseUrl = 'http://10.125.11.203:8091/api';
+  String baseUrl = Constants.baseURL;
   late TextEditingController fromDateController;
   late TextEditingController toDateController;
   late DateTime selectedFromDate;

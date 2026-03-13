@@ -43,7 +43,7 @@ class _OTDashboardState extends State<OTDashboard2> {
   String displayText2 = 'Comprehensive Overview of OT Metrics';
   String calenderHintText = 'Select the Date';
 
-  String baseUrl = 'http://10.125.11.203:8091/api';
+  String baseUrl = Constants.baseURL;
 
   @override
   void initState() {

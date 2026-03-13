@@ -11,6 +11,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
 import '../TimeMonitoring/TimeMonitoring.dart';
+import '../config/constants.dart';
 import '../config/customThemes/elevatedButtonTheme.dart';
 
 class PastSurgeries extends StatefulWidget {
@@ -35,7 +36,7 @@ class _PastSurgeriesState extends State<PastSurgeries> {
   static const InputDecoration rowDecoration = InputDecoration(
     border: InputBorder.none,
   );
-  String baseUrl = 'http://10.125.11.203:8091/api';
+  String baseUrl = Constants.baseURL;
   bool isDownloadEnabled = true;
   int tapCount = 0;
 

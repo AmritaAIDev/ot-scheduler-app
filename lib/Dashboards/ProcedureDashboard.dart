@@ -8,6 +8,8 @@ import 'package:intl/intl.dart';
 import 'package:pie_chart/pie_chart.dart' as pie;
 import 'package:syncfusion_flutter_charts/charts.dart';
 
+import '../config/constants.dart';
+
 class ProcedureDashboard extends StatefulWidget {
   DateTime? selectedFromDate;
   DateTime? selectedToDate;
@@ -88,7 +90,7 @@ class _ProcedureDashboardState extends State<ProcedureDashboard> {
 
   // List<AverageSurgeryDuration> avgSurgeryDurationData = [];
 
-  String baseUrl = 'http://10.125.11.203:8091/api';
+  String baseUrl = Constants.baseURL;
 
   @override
   void initState() {

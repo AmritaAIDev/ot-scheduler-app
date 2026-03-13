@@ -1,15 +1,15 @@
 class SurgeryData {
-  String dateOfSurgery;
   String ageSex;
   String surgery;
   String surgeon;
-  String speciality;
+  String speciality; // Department
   String patientName;
   String specialRequest;
-  String mrdNumber; // UHID
+  String mrdNumber;
+  String contactNo;
+  String bedNo;
 
   SurgeryData({
-    required this.dateOfSurgery,
     required this.ageSex,
     required this.surgery,
     required this.surgeon,
@@ -17,5 +17,7 @@ class SurgeryData {
     required this.patientName,
     required this.specialRequest,
     required this.mrdNumber,
+    required this.contactNo,
+    required this.bedNo,
   });
 }

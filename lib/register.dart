@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 import 'package:http/http.dart' as http;
+import 'package:my_flutter_app/config/constants.dart';
 import 'package:my_flutter_app/login.dart';
 
 class Register extends StatefulWidget {
@@ -26,7 +27,7 @@ class _RegisterState extends State<Register> {
   TextEditingController _passwordController = TextEditingController();
   TextEditingController _emailController = TextEditingController();
   bool _passwordVisible = false;
-  String baseUrl = 'http://10.125.11.203:8091/api';
+  String baseUrl = Constants.baseURL;
 
   final _formkey = GlobalKey<FormState>();
 

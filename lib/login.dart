@@ -9,6 +9,7 @@ import 'package:my_flutter_app/MenuPage.dart';
 import 'package:my_flutter_app/OTSchedule/SchedulerInput.dart';
 import 'package:my_flutter_app/TimeMonitoring/PatientListScreen.dart';
 import 'package:my_flutter_app/OTSchedule/OTScheduleScreen.dart';
+import 'package:my_flutter_app/config/constants.dart';
 import 'package:my_flutter_app/register.dart';
 import 'package:http/http.dart' as http;
 
@@ -35,7 +36,7 @@ class _LoginState extends State<Login> {
   int patientCount = 0;
   int otstaffCount = 0;
   Map<String, String> dateRangeMap = {};
-  String baseUrl = 'http://10.125.11.203:8091/api';
+  String baseUrl = Constants.baseURL;
 
   bool _passwordVisible = false;
 

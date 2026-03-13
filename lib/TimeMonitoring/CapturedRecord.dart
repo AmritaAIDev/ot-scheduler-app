@@ -7,6 +7,8 @@ import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
+import '../config/constants.dart';
+
 class CapturedRecord extends StatefulWidget {
   // int mrd;
   String patientName;
@@ -85,7 +87,7 @@ class _CapturedRecordState extends State<CapturedRecord> {
   bool wheeledOutFromTimeEnabled = false;
   bool submitButtonEnabled = true;
 
-  String baseUrl = 'http://10.125.11.203:8091/api';
+  String baseUrl = Constants.baseURL;
 
   // Initial Selected Value
   String selectedAnesthesiaType  = 'General Anesthesia';

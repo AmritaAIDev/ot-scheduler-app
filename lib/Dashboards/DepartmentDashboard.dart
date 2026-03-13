@@ -6,6 +6,8 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
+import '../config/constants.dart';
+
 class DepartmentDashboard extends StatefulWidget {
 
   DateTime? selectedFromDate;
@@ -28,7 +30,7 @@ class _DepartmentDashboardState extends State<DepartmentDashboard> {
   List<UniqueSurgeryData> chartData2 = [];
   // List<AverageSurgeryDuration> avgSurgeryDurationData = [];
 
-  String baseUrl = 'http://10.125.11.203:8091/api';
+  String baseUrl = Constants.baseURL;
 
   List<String> specialityList = [];
   //Map<String, List<String>> surgeryMap = {};

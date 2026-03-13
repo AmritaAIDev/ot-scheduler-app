@@ -6,6 +6,8 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
+import '../config/constants.dart';
+
 class OTStaffDashboard extends StatefulWidget {
   DateTime? selectedFromDate;
   DateTime? selectedToDate;
@@ -26,7 +28,7 @@ class _OTStaffDashboardState extends State<OTStaffDashboard> {
   late DateTime selectedFromDate;
   late DateTime selectedToDate;
 
-  String baseUrl = 'http://10.125.11.203:8091/api';
+  String baseUrl = Constants.baseURL;
 
   @override
   void initState() {

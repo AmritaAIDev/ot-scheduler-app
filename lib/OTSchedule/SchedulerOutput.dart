@@ -11,6 +11,7 @@ import 'package:my_flutter_app/config/customThemes/utilities/Utilities.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
+import '../config/constants.dart';
 import '../config/customThemes/elevatedButtonTheme.dart';
 
 class SchedulerOutput extends StatefulWidget {
@@ -47,7 +48,7 @@ class _SchedulerOutputState extends State<SchedulerOutput> {
   static const Color headerTextColor = Colors.black87;
   static const double headerTextSize = 16.0;
   static const InputDecoration rowDecoration = InputDecoration(border: InputBorder.none,);
-  String baseUrl = 'http://10.125.11.203:8091/api';
+  String baseUrl = Constants.baseURL;
   bool isDownloadEnabled = false;
 
   String displayText1 = 'Scheduled Surgeries';
@@ -612,7 +613,7 @@ print('All Functions called');
         'Surgery',
         'Start Time',
         'End Time',
-        'MRD Number'
+        'MRD Number',
         'Special Equipment',
         // 'Name of Patient',
         // 'Age/Sex',
@@ -639,7 +640,7 @@ print('All Functions called');
 
         rows.add([
           date,
-          'OT $otNumber',
+          '$otNumber',
           surgeon,
           department,
           surgery,

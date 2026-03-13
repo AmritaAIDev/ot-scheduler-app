@@ -48,7 +48,7 @@ class _SchedulerInputState extends State<SchedulerInput> {
   String _notificationMessage = '';
   String _uploadedDate = '';
   //String baseUrl = 'http://10.125.11.203:8091/api';
-  String baseUrl = 'http://10.125.11.203:8091/api';
+  String baseUrl = Constants.baseURL;
   List<dynamic> previousScheduledData = [];
 
   // Doctor Specialty Map
@@ -291,6 +291,7 @@ class _SchedulerInputState extends State<SchedulerInput> {
             final outputBytes = await generateSurgeryExcel(
               fileBytes,
               result.files.single.name,
+              selectedDate,
             );
             _webFile = Uint8List.fromList(outputBytes);
 
@@ -302,7 +303,7 @@ class _SchedulerInputState extends State<SchedulerInput> {
               uploadFileText = _notificationMessage;
             });
 
-            await _extractDateFromFile();
+            // await _extractDateFromFile();
 
             Navigator.push(
               context,
@@ -441,19 +442,19 @@ class _SchedulerInputState extends State<SchedulerInput> {
       print('_uploadedDate: $_uploadedDate');
       String formattedDate = selectedDate.toString().split(' ')[0];
       print('formattedDate:$formattedDate');
-      if (formattedDate != _uploadedDate) {
-        // setState(() {
-        //   _notificationMessage = 'Selected date does not match date in the uploaded file';
-        // });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: Colors.redAccent,
-            content: Text(
-                'Selected date does not match date in the uploaded file.Please select correct date'),
-          ),
-        );
-        return;
-      }
+      // if (formattedDate != _uploadedDate) {
+      //   // setState(() {
+      //   //   _notificationMessage = 'Selected date does not match date in the uploaded file';
+      //   // });
+      //   ScaffoldMessenger.of(context).showSnackBar(
+      //     SnackBar(
+      //       backgroundColor: Colors.redAccent,
+      //       content: Text(
+      //           'Selected date does not match date in the uploaded file.Please select correct date'),
+      //     ),
+      //   );
+      //   return;
+      // }
 
       // if (_file ==null) {
       //   // setState(() {
@@ -1063,99 +1064,56 @@ class _SchedulerInputState extends State<SchedulerInput> {
   }
 
   Future<List<int>> generateSurgeryExcel(
-      List<int> inputFileBytes, String inputFileName) async {
+      List<int> inputFileBytes, String inputFileName, DateTime selectedDate) async {
     try {
-      // Parse input Excel file
-      var excel = Excel.decodeBytes(inputFileBytes);
-      // Assuming the first sheet is the one we want
-      var sheet = excel.tables[excel.tables.keys.first]!;
+      List<List<dynamic>> rows = [];
+      String extension = inputFileName.split('.').last.toLowerCase();
 
-      // Extract date from filename (assuming format: OT LIST 02-01-2026.xlsx)
-      // Attempt to find a date pattern in DD-MM-YYYY or YYYY-MM-DD
-      final dateMatch = RegExp(r'(\d{2}-\d{2}-\d{4})').firstMatch(inputFileName);
-      String surgeryDate;
-      if (dateMatch != null) {
-         surgeryDate = dateMatch.group(1)!;
+      if (extension == 'csv') {
+        String csvString = utf8.decode(inputFileBytes);
+        rows = const CsvToListConverter().convert(csvString);
       } else {
-         // Fallback: try to find date in the first few rows?
-         // For now defaulting to today or a placeholder if not found,
-         // but ideally we should parse it from the file content if possible.
-         // Let's try to find a date cell in the first 5 rows/cols
-         DateTime now = DateTime.now();
-         surgeryDate = DateFormat('dd-MM-yyyy').format(now);
-         for(var i=0; i<5; i++) {
-            if(i >= sheet.rows.length) break;
-            for(var cell in sheet.rows[i]) {
-               if(cell?.value != null) {
-                  String val = cell!.value.toString();
-                   if(RegExp(r'\d{2}-\d{2}-\d{4}').hasMatch(val)) {
-                      surgeryDate = RegExp(r'\d{2}-\d{2}-\d{4}').firstMatch(val)!.group(0)!;
-                      break;
-                   }
-               }
-            }
-         }
+        var excel = Excel.decodeBytes(inputFileBytes);
+        var sheet = excel.tables[excel.tables.keys.first]!;
+        for (var row in sheet.rows) {
+          rows.add(row.map((cell) => cell?.value?.toString() ?? '').toList());
+        }
       }
 
+      String surgeryDate = DateFormat('dd-MM-yyyy').format(selectedDate);
       List<SurgeryData> surgeries = [];
 
-      // Process each row (skip header rows)
-      // Starting from row 2 (index 2, so 3rd row) based on previous code view,
-      // but let's be safe and check where data starts.
-      // The user says "Raw File inputs", usually headers are on row 1 (index 1) or row 0.
-      // Based on previous code, it started at index 2.
-      for (int rowIndex = 2; rowIndex < sheet.rows.length; rowIndex++) {
-        final row = sheet.rows[rowIndex];
+      // Process each row (skip header row)
+      for (int rowIndex = 1; rowIndex < rows.length; rowIndex++) {
+        final row = rows[rowIndex];
 
-        // Skip empty rows or rows with insufficient columns
-        if (row.isEmpty || row.length < 10) continue;
+        // Skip empty rows or rows with insufficient columns (11 columns expected)
+        if (row.isEmpty || row.length < 11) continue;
 
-        // Sr No is usually column 0. If it's empty, might be a separator line.
-        final srNo = row[0]?.value?.toString() ?? '';
-        if (srNo.isEmpty) continue;
+        // Column Mapping (Skip index 0: Serial No)
+        final uhid = row[1]?.toString() ?? '';
+        final patientName = row[2]?.toString() ?? '';
+        final rawSex = row[3]?.toString() ?? '';
+        final rawAge = row[4]?.toString() ?? '';
+        final contactNo = row[5]?.toString() ?? '';
+        final bedNo = row[6]?.toString() ?? '';
+        final surgeon = row[7]?.toString() ?? '';
+        final department = row[8]?.toString() ?? '';
+        final procedure = row[9]?.toString() ?? '';
+        final specialRequest = row[10]?.toString() ?? '';
 
-        // Check columns based on assumed indices:
-        // 0: Sr
-        // 1: Time?
-        // 2: UHID
-        // 3: Name
-        // 4: Age
-        // 5: Sex
-        // 9: Procedure
-        // 10: Surgeon
-        // 16: Remarks
-
-        final uhid = row[2]?.value?.toString() ?? '';
-        final patientName = row[3]?.value?.toString() ?? '';
-        final rawAge = row[4]?.value?.toString() ?? '';
-        final rawSex = row[5]?.value?.toString() ?? '';
-        final procedure = row[9]?.value?.toString() ?? '';
-        final surgeon = row[10]?.value?.toString() ?? '';
-        final specialRequest = row.length > 16 ? (row[16]?.value?.toString() ?? '') : '';
-
-        // Skip rows that look like headers inside the list (e.g. "OT 2")
-        //if (patientName.toLowerCase().contains('patient') || procedure.toLowerCase().contains('surgery')) continue;
         if (patientName.toLowerCase().contains('patient')) continue;
-
-        // --- Data Cleaning & Validation ---
 
         // Normalize Age and Sex
         String normalizedAge = normalizeAge(rawAge);
         String normalizedSex = normalizeSex(rawSex);
         String ageSex = '$normalizedAge/$normalizedSex';
 
-        // Strict Validation Rule: "aY/M" or "aY/F"
-        // Regex: Number (int or float) + Y + / + M or F
-        if (!RegExp(r'^[\d\.]+Y\/[MF]$').hasMatch(ageSex)) {
-           // Skip Invalid Rows
-           print('Skipping Invalid Row: $ageSex ($patientName)');
-           continue;
-        }
-
+        // speciality lookup or use department from file
         String speciality = determineSpecialty(surgeon, procedure);
+        if (speciality.isEmpty) speciality = department;
 
         surgeries.add(SurgeryData(
-          dateOfSurgery: surgeryDate,
           ageSex: ageSex,
           surgery: procedure,
           surgeon: surgeon,
@@ -1163,15 +1121,15 @@ class _SchedulerInputState extends State<SchedulerInput> {
           patientName: patientName,
           specialRequest: specialRequest,
           mrdNumber: uhid,
+          contactNo: contactNo,
+          bedNo: bedNo,
         ));
       }
 
       // Create new Excel file
       final newExcel = Excel.createExcel();
-      // Rename default sheet
       final newSheet = newExcel['Sheet1'];
       newExcel.rename('Sheet1', 'Surgery Report');
-
       dynamic surgerySheet = newExcel['Surgery Report'];
 
       // Create headers
@@ -1183,10 +1141,11 @@ class _SchedulerInputState extends State<SchedulerInput> {
         'SPECIALITY',
         'Name of the Patient',
         'Special Request',
-        'Mrd Number'
+        'Mrd Number',
+        'Contact No',
+        'Bed No'
       ];
 
-      // Add header row
       for (int i = 0; i < headers.length; i++) {
         surgerySheet
             .cell(CellIndex.indexByString('${String.fromCharCode(65 + i)}1'))
@@ -1197,34 +1156,19 @@ class _SchedulerInputState extends State<SchedulerInput> {
       for (int i = 0; i < surgeries.length; i++) {
         dynamic surgery = surgeries[i];
         final r = i + 2;
-        surgerySheet
-            .cell(CellIndex.indexByString('A$r'))
-            .value = TextCellValue(surgery.dateOfSurgery);
-        surgerySheet
-            .cell(CellIndex.indexByString('B$r'))
-            .value = TextCellValue(surgery.ageSex);
-        surgerySheet
-            .cell(CellIndex.indexByString('C$r'))
-            .value = TextCellValue(surgery.surgery);
-        surgerySheet
-            .cell(CellIndex.indexByString('D$r'))
-            .value = TextCellValue(surgery.surgeon);
-        surgerySheet
-            .cell(CellIndex.indexByString('E$r'))
-            .value = TextCellValue(surgery.speciality);
-        surgerySheet
-            .cell(CellIndex.indexByString('F$r'))
-            .value = TextCellValue(surgery.patientName);
-        surgerySheet
-            .cell(CellIndex.indexByString('G$r'))
-            .value = TextCellValue(surgery.specialRequest);
-        surgerySheet
-            .cell(CellIndex.indexByString('H$r'))
-            .value = TextCellValue(surgery.mrdNumber);
+        surgerySheet.cell(CellIndex.indexByString('A$r')).value = TextCellValue(surgeryDate);
+        surgerySheet.cell(CellIndex.indexByString('B$r')).value = TextCellValue(surgery.ageSex);
+        surgerySheet.cell(CellIndex.indexByString('C$r')).value = TextCellValue(surgery.surgery);
+        surgerySheet.cell(CellIndex.indexByString('D$r')).value = TextCellValue(surgery.surgeon);
+        surgerySheet.cell(CellIndex.indexByString('E$r')).value = TextCellValue(surgery.speciality);
+        surgerySheet.cell(CellIndex.indexByString('F$r')).value = TextCellValue(surgery.patientName);
+        surgerySheet.cell(CellIndex.indexByString('G$r')).value = TextCellValue(surgery.specialRequest);
+        surgerySheet.cell(CellIndex.indexByString('H$r')).value = TextCellValue(surgery.mrdNumber);
+        surgerySheet.cell(CellIndex.indexByString('I$r')).value = TextCellValue(surgery.contactNo);
+        surgerySheet.cell(CellIndex.indexByString('J$r')).value = TextCellValue(surgery.bedNo);
       }
 
-      //return newExcel.save()!; Save and return the file bytes
-      return newExcel.encode()!; //not save but only return the file bytes
+      return newExcel.encode()!;
     } catch (e) {
       print('Error generating Excel: $e');
       throw Exception('Uncaught Error generating Excel: $e');
