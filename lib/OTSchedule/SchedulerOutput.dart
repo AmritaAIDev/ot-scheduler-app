@@ -43,6 +43,8 @@ class _SchedulerOutputState extends State<SchedulerOutput> {
   late List<TextEditingController> ageSexControllers;
   late List<TextEditingController> technicalLeadsControllers;
   late List<TextEditingController> nursingLeadsControllers;
+  late List<TextEditingController> bedControllers;
+  late List<TextEditingController> contactControllers;
 
   static const double leftMargin = 180;
   static const Color headerTextColor = Colors.black87;
@@ -63,9 +65,11 @@ class _SchedulerOutputState extends State<SchedulerOutput> {
   void initState() {
     super.initState();
 
+    print("scheduleData:${widget.scheduleData}");
+
     // Initialize sortedOTEntries when the widget initializes
     sortedOTEntries = widget.scheduleData['OT'].entries.toList();
-    sortedOTEntries.sort((a, b) => a.value.compareTo(b.value));
+    sortedOTEntries.sort((a, b) => a.value.toString().compareTo(b.value.toString()));
 
     // Initialize controllers for each field
     otNumberControllers = List.generate(sortedOTEntries.length, (index) =>
@@ -109,6 +113,12 @@ class _SchedulerOutputState extends State<SchedulerOutput> {
     nursingLeadsControllers = List.generate(sortedOTEntries.length, (index) =>
         TextEditingController(text: widget.scheduleData['Nursing T/L'][sortedOTEntries[index].key])
     );
+
+    bedControllers = List.generate(sortedOTEntries.length, (index) =>
+        TextEditingController(text: widget.scheduleData['Bed No'][sortedOTEntries[index].key].toString()));
+
+    contactControllers = List.generate(sortedOTEntries.length, (index) =>
+        TextEditingController(text: widget.scheduleData['Contact No'][sortedOTEntries[index].key].toString()));
 
 
     // Define table rows
@@ -174,7 +184,22 @@ class _SchedulerOutputState extends State<SchedulerOutput> {
               widget.scheduleData['MRD'][entry.key] = value;
             },
           )),
-
+          DataCell(TextField(
+            controller: bedControllers[index],
+            decoration: rowDecoration,
+            onChanged: (value) {
+              // Update scheduleData on change
+              widget.scheduleData['Bed No'][entry.key] = value;
+            },
+          )),
+          DataCell(TextField(
+            controller: contactControllers[index],
+            decoration: rowDecoration,
+            onChanged: (value) {
+              // Update scheduleData on change
+              widget.scheduleData['Contact No'][entry.key] = value;
+            },
+          )),
           DataCell(TextField(
             controller: specialEquipmentControllers[index],
             decoration: rowDecoration,
@@ -199,6 +224,7 @@ class _SchedulerOutputState extends State<SchedulerOutput> {
               widget.scheduleData['Nursing T/L'][entry.key] = value;
             },
           )),
+
         ],
       );
     }).toList();
@@ -222,6 +248,8 @@ class _SchedulerOutputState extends State<SchedulerOutput> {
     ageSexControllers.forEach((controller) => controller.dispose());
     technicalLeadsControllers.forEach((controller) => controller.dispose());
     nursingLeadsControllers.forEach((controller) => controller.dispose());
+    bedControllers.forEach((controller) => controller.dispose());
+    contactControllers.forEach((controller) => controller.dispose());
     super.dispose();
   }
 
@@ -614,11 +642,13 @@ print('All Functions called');
         'Start Time',
         'End Time',
         'MRD Number',
+        'Bed No',
+        'Contact No',
         'Special Equipment',
         // 'Name of Patient',
         // 'Age/Sex',
         'Nursing T/l',
-        'Technician T/L'
+        'Technician T/L',
       ];
       rows.add(headers);
 
@@ -638,6 +668,9 @@ print('All Functions called');
         final String nusringTL = nursingLeadsControllers[sortedOTEntries.indexOf(entry)].text;
         final String technicianTL = technicalLeadsControllers[sortedOTEntries.indexOf(entry)].text;
 
+        final String bedNo = bedControllers[sortedOTEntries.indexOf(entry)].text;
+        final String contactNo = contactControllers[sortedOTEntries.indexOf(entry)].text;
+
         rows.add([
           date,
           '$otNumber',
@@ -647,6 +680,8 @@ print('All Functions called');
           startTime,
           endTime,
           mrdNumber,
+          bedNo,
+          contactNo,
           specialEquipment,
           // patientName,
           // ageSex,
@@ -752,6 +787,20 @@ print('All Functions called');
           child: Text('MRD Number', style: TextStyle(color: headerTextColor,fontSize: headerTextSize,fontWeight: FontWeight.bold)),
         ),
       ),
+      DataColumn(
+        label: Container(
+          padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+          //color: Colors.blueAccent,
+          child: Text('Bed No', style: TextStyle(color: headerTextColor,fontSize: headerTextSize,fontWeight: FontWeight.bold)),
+        ),
+      ),
+      DataColumn(
+        label: Container(
+          padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+          //color: Colors.blueAccent,
+          child: Text('Contact No', style: TextStyle(color: headerTextColor,fontSize: headerTextSize,fontWeight: FontWeight.bold)),
+        ),
+      ),
       // DataColumn(
       //   label: Container(
       //     padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
@@ -788,6 +837,7 @@ print('All Functions called');
           child: Text('Nursing T/L', style: TextStyle(color: headerTextColor,fontSize: headerTextSize,fontWeight: FontWeight.bold)),
         ),
       ),
+
     ];
 
 

@@ -95,7 +95,10 @@ class _DetailsConfirmationState extends State<DetailsConfirmation> {
     _nurseController = TextEditingController(text: widget.nurse);
     _departmentController = TextEditingController(text: widget.department);
     _technicianController = TextEditingController(text: widget.technician);
-    selectedSurgery = Constants.surgeryMap[selectedDepartment]!.first;
+
+    selectedDepartment = widget.department.isNotEmpty ? widget.department : Constants.departmentList[0];
+    dropdownItemsSurgery = Constants.surgeryMap[selectedDepartment] ?? [];
+    selectedSurgery = dropdownItemsSurgery.isNotEmpty ? dropdownItemsSurgery.first : '';
   }
 
   @override

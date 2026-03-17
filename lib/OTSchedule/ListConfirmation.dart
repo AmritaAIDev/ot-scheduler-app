@@ -77,10 +77,10 @@ class _ListConfirmationState extends State<ListConfirmation> {
 
   bool _isDataComplete() {
     if (tableRows.isEmpty) return false;
-    return tableRows.every((row) => 
-      row.surgery.isNotEmpty && 
-      row.duration.isNotEmpty && 
-      row.surgeryCode.isNotEmpty
+    return tableRows.every((row) =>
+    row.surgery.isNotEmpty &&
+        row.duration.isNotEmpty &&
+        row.surgeryCode.isNotEmpty
     );
   }
 
@@ -105,29 +105,29 @@ class _ListConfirmationState extends State<ListConfirmation> {
 
           // Search for header row in first 20 rows
           for (int r = 0; r < 20 && r < sheet.rows.length; r++) {
-             var row = sheet.rows[r];
-             bool foundHeader = false;
-             for(int c=0; c<row.length; c++) {
-                var val = row[c]?.value.toString().toLowerCase() ?? '';
-                if(val.contains('surgery') && !val.contains('code') && !val.contains('date')) {
-                   // Found potential Surgery Name column
-                   foundHeader = true;
-                   break;
-                }
-             }
-             if(foundHeader) {
-                startRow = r;
-                // Identify columns in this row
-                for(int i=0; i<row.length; i++) {
-                   var val = row[i]?.value.toString().toLowerCase() ?? '';
-                   if(val.contains('surgery') && !val.contains('code') && !val.contains('date')) nameIdx = i;
-                   else if(val.contains('code') || val.contains('cp')) codeIdx = i; // 'cp' for CPT Code?
-                   else if(val.contains('speciality') || val.contains('department')) specIdx = i;
-                }
+            var row = sheet.rows[r];
+            bool foundHeader = false;
+            for(int c=0; c<row.length; c++) {
+              var val = row[c]?.value.toString().toLowerCase() ?? '';
+              if(val.contains('surgery') && !val.contains('code') && !val.contains('date')) {
+                // Found potential Surgery Name column
+                foundHeader = true;
                 break;
-             }
+              }
+            }
+            if(foundHeader) {
+              startRow = r;
+              // Identify columns in this row
+              for(int i=0; i<row.length; i++) {
+                var val = row[i]?.value.toString().toLowerCase() ?? '';
+                if(val.contains('surgery') && !val.contains('code') && !val.contains('date')) nameIdx = i;
+                else if(val.contains('code') || val.contains('cp')) codeIdx = i; // 'cp' for CPT Code?
+                else if(val.contains('speciality') || val.contains('department')) specIdx = i;
+              }
+              break;
+            }
           }
-          
+
           print('Header Row found at: $startRow');
           print('Indices: Name=$nameIdx, Code=$codeIdx, Spec=$specIdx');
 
@@ -139,11 +139,11 @@ class _ListConfirmationState extends State<ListConfirmation> {
           for (int i = startRow + 1; i < sheet.rows.length; i++) {
             var row = sheet.rows[i];
             if (row.isEmpty) continue;
-            
+
             String code = row.length > codeIdx ? row[codeIdx]?.value.toString() ?? '' : '';
             String name = row.length > nameIdx ? row[nameIdx]?.value.toString() ?? '' : '';
             String spec = row.length > specIdx ? row[specIdx]?.value.toString() ?? '' : '';
-            
+
             // Clean up values
             code = code.trim();
             name = name.trim();
@@ -154,8 +154,8 @@ class _ListConfirmationState extends State<ListConfirmation> {
               allMasterItems.add(item);
               // Store by Code and Name for easy lookup
               if(code.isNotEmpty) surgeryMasterData[code] = item;
-              if(name.isNotEmpty) surgeryMasterData[name] = item; 
-              
+              if(name.isNotEmpty) surgeryMasterData[name] = item;
+
               if(code.isNotEmpty && !surgeryCodeList.contains(code)) surgeryCodeList.add(code);
               if(name.isNotEmpty && !surgeryNameList.contains(name)) surgeryNameList.add(name);
               // if(spec.isNotEmpty && !specialityList.contains(spec)) specialityList.add(spec);
@@ -187,6 +187,8 @@ class _ListConfirmationState extends State<ListConfirmation> {
       String patientName = item['Name of the Patient']?.toString() ?? '';
       String specialRequest = item['Special Request']?.toString() ?? '';
       String mrdNumber = item['Mrd Number']?.toString() ?? '';
+      String contactNo = item['Contact no']?.toString() ?? '';
+      String bedNo = item['Bed No']?.toString() ?? '';
 
       // Handle SURGERY list
       List<dynamic> surgeryList = [];
@@ -231,7 +233,7 @@ class _ListConfirmationState extends State<ListConfirmation> {
 
         // Set Code from response
         if (rawCode != null && rawCode.toString().trim().isNotEmpty) {
-           surgeryCode = rawCode.toString().trim();
+          surgeryCode = rawCode.toString().trim();
         }
 
         if (rawSurgery != null && rawSurgery.toString().trim().isNotEmpty) {
@@ -247,22 +249,22 @@ class _ListConfirmationState extends State<ListConfirmation> {
             RegExp codeRegex = RegExp(r'\(([^)]+)\)');
             Iterable<RegExpMatch> matches = codeRegex.allMatches(surgeryName);
             if (matches.isNotEmpty) {
-               String extractedCode = matches.last.group(1)!;
-               if (surgeryMasterData.containsKey(extractedCode)) {
-                  var master = surgeryMasterData[extractedCode]!;
-                  surgeryName = master.name;
-                  if (surgeryCode.isEmpty) surgeryCode = master.code;
-                  rowSpeciality = master.speciality;
-               } else if (surgeryCode.isEmpty) {
-                  surgeryCode = extractedCode;
-               }
+              String extractedCode = matches.last.group(1)!;
+              if (surgeryMasterData.containsKey(extractedCode)) {
+                var master = surgeryMasterData[extractedCode]!;
+                surgeryName = master.name;
+                if (surgeryCode.isEmpty) surgeryCode = master.code;
+                rowSpeciality = master.speciality;
+              } else if (surgeryCode.isEmpty) {
+                surgeryCode = extractedCode;
+              }
             }
           }
         }
 
         String durationStr = '';
         if (rawDuration != null && rawDuration.toString().trim().isNotEmpty) {
-           durationStr = rawDuration.toString().trim();
+          durationStr = rawDuration.toString().trim();
         }
 
         tableRows.add(ConfirmationRow(
@@ -276,6 +278,8 @@ class _ListConfirmationState extends State<ListConfirmation> {
           mrdNumber: mrdNumber,
           duration: durationStr,
           surgeryCode: surgeryCode,
+          ContactNo: contactNo,
+          BedNo: bedNo
         ));
       }
     }
@@ -284,48 +288,50 @@ class _ListConfirmationState extends State<ListConfirmation> {
   Future<void> _parseInputExcel() async {
     var excel = Excel.decodeBytes(widget.fileBytes);
     if (excel.tables.isNotEmpty) {
-       // Assuming 'Surgery Report' or first sheet
-       var sheet = excel.tables['Surgery Report'] ?? excel.tables[excel.tables.keys.first];
-       if(sheet != null) {
-          // Headers are in row 0. Data starts row 1.
-          // Expected cols: DATE OF SURGERY, AGE/SEX, SURGERY, SURGEON, SPECIALITY, Name of the Patient, Special Request, Mrd Number
-          // We map these to our row object
-          // Let's assume standard order from generation logic
-          for(int i=1; i<sheet.rows.length; i++) {
-             var row = sheet.rows[i];
-             if(row.isEmpty) continue;
-             
-             // Check if all null
-             bool allNull = row.every((c) => c?.value == null);
-             if(allNull) continue;
+      // Assuming 'Surgery Report' or first sheet
+      var sheet = excel.tables['Surgery Report'] ?? excel.tables[excel.tables.keys.first];
+      if(sheet != null) {
+        // Headers are in row 0. Data starts row 1.
+        // Expected cols: DATE OF SURGERY, AGE/SEX, SURGERY, SURGEON, SPECIALITY, Name of the Patient, Special Request, Mrd Number
+        // We map these to our row object
+        // Let's assume standard order from generation logic
+        for(int i=1; i<sheet.rows.length; i++) {
+          var row = sheet.rows[i];
+          if(row.isEmpty) continue;
 
-             tableRows.add(ConfirmationRow(
-               date: _getVal(row, 0),
-               ageSex: _getVal(row, 1),
-               surgery: _getVal(row, 2).split('(')[0],
-               surgeon: _getVal(row, 3),
-               speciality: _getVal(row, 4),
-               patientName: _getVal(row, 5),
-               specialRequest: _getVal(row, 6),
-               mrdNumber: _getVal(row, 7),
-               duration: '', // New field
-               surgeryCode: '', // New field, initially empty? Or try to match surgery name?
-             ));
-             
-             // Try to pre-fill code if surgery name matches master
-             String currentSurgery = _getVal(row, 2);
-             if(surgeryMasterData.containsKey(currentSurgery)) {
-                tableRows.last.surgeryCode = surgeryMasterData[currentSurgery]?.code ?? '';
-                // Also update speciality if matches master? User said Default value = value from generated Excel.
-             }
+          // Check if all null
+          bool allNull = row.every((c) => c?.value == null);
+          if(allNull) continue;
+
+          tableRows.add(ConfirmationRow(
+            date: _getVal(row, 0),
+            ageSex: _getVal(row, 1),
+            surgery: _getVal(row, 2).split('(')[0],
+            surgeon: _getVal(row, 3),
+            speciality: _getVal(row, 4),
+            patientName: _getVal(row, 5),
+            specialRequest: _getVal(row, 6),
+            mrdNumber: _getVal(row, 7),
+            duration: '', // New field
+            surgeryCode: '', // New field, initially empty? Or try to match surgery name?
+              ContactNo: _getVal(row, 8),
+              BedNo:  _getVal(row, 9),
+          ));
+
+          // Try to pre-fill code if surgery name matches master
+          String currentSurgery = _getVal(row, 2);
+          if(surgeryMasterData.containsKey(currentSurgery)) {
+            tableRows.last.surgeryCode = surgeryMasterData[currentSurgery]?.code ?? '';
+            // Also update speciality if matches master? User said Default value = value from generated Excel.
           }
-       }
+        }
+      }
     }
   }
-  
+
   String _getVal(List<Data? > row, int index) {
-     if(index >= row.length) return '';
-     return row[index]?.value.toString() ?? '';
+    if(index >= row.length) return '';
+    return row[index]?.value.toString() ?? '';
   }
 
   Map<String, String> _getSurgeryMap(String speciality) {
@@ -377,7 +383,7 @@ class _ListConfirmationState extends State<ListConfirmation> {
       // Rename default sheet
       final newSheet = excel['Sheet1'];
       excel.rename('Sheet1', 'Surgery Report');
-      
+
       dynamic surgerySheet = excel['Surgery Report'];
 
       // Headers matching what the backend expects
@@ -390,7 +396,9 @@ class _ListConfirmationState extends State<ListConfirmation> {
         'Name of the Patient',
         'Special Request',
         'Mrd Number',
-        'Duration'
+        'Duration',
+        'Bed No',
+        'Contact no',
       ];
 
       // Add header row
@@ -404,7 +412,7 @@ class _ListConfirmationState extends State<ListConfirmation> {
       for (int i = 0; i < tableRows.length; i++) {
         var row = tableRows[i];
         final r = i + 2;
-        
+
         surgerySheet.cell(CellIndex.indexByString('A$r')).value = TextCellValue(row.date);
         surgerySheet.cell(CellIndex.indexByString('B$r')).value = TextCellValue(row.ageSex);
         surgerySheet.cell(CellIndex.indexByString('C$r')).value = TextCellValue(row.surgery);
@@ -414,6 +422,10 @@ class _ListConfirmationState extends State<ListConfirmation> {
         surgerySheet.cell(CellIndex.indexByString('G$r')).value = TextCellValue(row.specialRequest);
         surgerySheet.cell(CellIndex.indexByString('H$r')).value = TextCellValue(row.mrdNumber);
         surgerySheet.cell(CellIndex.indexByString('I$r')).value = TextCellValue(row.duration);
+        surgerySheet.cell(CellIndex.indexByString('J$r')).value = TextCellValue(row.BedNo);
+        surgerySheet.cell(CellIndex.indexByString('K$r')).value = TextCellValue(row.ContactNo);
+
+
       }
 
       var fileBytes = excel.encode();
@@ -429,7 +441,7 @@ class _ListConfirmationState extends State<ListConfirmation> {
       //String apiUrl = 'https://us-central1-amrita-body-scan.cloudfunctions.net/OTSchedulerv2';
       String apiUrl = '$baseUrl/ot-schedule/';
       Map<String, dynamic> requestBody = {'doc': base64File};
-      
+
       var response = await http.post(
         Uri.parse(apiUrl),
         headers: {'Content-Type': 'application/json'},
@@ -438,7 +450,7 @@ class _ListConfirmationState extends State<ListConfirmation> {
 
       if (response.statusCode == 200) {
         Map<String, dynamic> jsonResponse = jsonDecode(response.body);
-        
+
         // 3. Navigate to SchedulerOutput
         Navigator.push(
           context,
@@ -473,362 +485,362 @@ class _ListConfirmationState extends State<ListConfirmation> {
       body: isLoading
           ? Center(child: CircularProgressIndicator())
           : Padding(
-              padding: const EdgeInsets.only(left: 180, right: 80, top: 10),
+        padding: const EdgeInsets.only(left: 180, right: 80, top: 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            IntrinsicWidth(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  IntrinsicWidth(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Confirm Surgery Details',
-                            style: TextStyle(
-                                fontSize: 25, fontWeight: FontWeight.bold)),
-                        Text(
-                            'Review and update surgery details before final scheduling',
-                            style: TextStyle(
-                                fontSize: 16, color: Colors.grey[600])),
-                        Divider(color: Colors.blueGrey[50], thickness: 2),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: 20),
+                  Text('Confirm Surgery Details',
+                      style: TextStyle(
+                          fontSize: 25, fontWeight: FontWeight.bold)),
                   Text(
-                    'SPECIALITY',
-                    style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.blueGrey),
-                  ),
-                  SizedBox(height: 6),
-                  Row(
-                    children: [
-                      SizedBox(
-                        width: 250,
-                        height: 45,
-                        child: DropdownSearch<String>(
-                          popupProps: PopupProps.menu(
-                            showSearchBox: true,
-                            searchFieldProps: TextFieldProps(
-                              decoration: InputDecoration(
-                                hintText: "Search Specialty...",
-                                border: OutlineInputBorder(),
-                              ),
-                            ),
-                          ),
-                          items: ["All", ...specialityList],
-                          dropdownDecoratorProps: DropDownDecoratorProps(
-                            dropdownSearchDecoration: InputDecoration(
-                              hintText: 'Filter by Speciality',
-                              hintStyle: TextStyle(color: Colors.grey[500]),
-                              contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 15, vertical: 10),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide(color: Colors.blueGrey),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide(color: Colors.blueGrey),
-                              ),
-                            ),
-                          ),
-                          onChanged: (value) {
-                            setState(() {
-                              selectedFilterSpeciality = value ?? '';
-                            });
-                          },
-                          selectedItem: selectedFilterSpeciality.isEmpty ? "All" : selectedFilterSpeciality,
-                        ),
-                      ),
-                      SizedBox(width: 10),
-                      SizedBox(
-                        width: 80,
-                        height: 45,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blueGrey[200],
-                            shape: const RoundedRectangleBorder(
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(15))),
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 15, vertical: 10),
-                            textStyle: TextStyle(fontSize: 18),
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              if (selectedFilterSpeciality == 'All' || selectedFilterSpeciality.isEmpty) {
-                                displayedRows = List.from(tableRows);
-                              } else {
-                                displayedRows = tableRows.where((row) => row.speciality == selectedFilterSpeciality).toList();
-                              }
-                            });
-                          },
-                          child: Text(
-                            'Go',
-                            style: TextStyle(color: Colors.black87),
-                          ),
-                        ),
-                      ),
-                      // Spacer(),
-                      // ElevatedButton(
-                      //   style: ElevatedButton.styleFrom(
-                      //     backgroundColor: Colors.grey[300],
-                      //     shape: RoundedRectangleBorder(
-                      //         borderRadius: BorderRadius.circular(15)),
-                      //   ),
-                      //   onPressed: null, // Disabled by default in image
-                      //   child: Text(
-                      //     'Download',
-                      //     style: TextStyle(color: Colors.white),
-                      //   ),
-                      // ),
-                    ],
-                  ),
-                  SizedBox(height: 25),
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.blueGrey),
-                        borderRadius: BorderRadius.all(Radius.circular(10.0)),
-                      ),
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: SingleChildScrollView(
-                          child: DataTable(
-                            dividerThickness: 1.5,
-                            columns: [
-                              DataColumn(
-                                  label: Text('Date',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold))),
-                              DataColumn(
-                                  label: Text('Age/Sex',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold))),
-                              DataColumn(
-                                  label: Text('Surgery',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold))),
-                              DataColumn(
-                                  label: Text('Surgery Code',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold))),
-                              DataColumn(
-                                  label: Text('Speciality',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold))),
-                              DataColumn(
-                                  label: Text('Surgeon',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold))),
-                              DataColumn(
-                                  label: Text('Patient',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold))),
-                              DataColumn(
-                                  label: Text('MRD',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold))),
-                              DataColumn(
-                                  label: Text('Duration (Hrs)',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold))),
-                              DataColumn(
-                                  label: Text('Request',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold))),
-                            ],
-                            rows: displayedRows.map((row) {
-                              bool isMissingData = row.surgery.isEmpty ||
-                                  row.duration.isEmpty || row.surgeryCode.isEmpty;
-                              return DataRow(
-                                color:
-                                    MaterialStateProperty.resolveWith<Color?>(
-                                  (Set<MaterialState> states) {
-                                    if (isMissingData)
-                                      return Colors.blue[50];
-                                    return null;
-                                  },
-                                ),
-                                cells: [
-                                  DataCell(Text(row.date)),
-                                  DataCell(Text(row.ageSex)),
-                                  DataCell(
-                                    SizedBox(
-                                      width: 250,
-                                      child: DropdownSearch<String>(
-                                        popupProps: PopupProps.menu(
-                                          showSearchBox: true,
-                                          searchFieldProps: TextFieldProps(
-                                            decoration: InputDecoration(
-                                              hintText: "Search Surgery...",
-                                              border: OutlineInputBorder(),
-                                            ),
-                                          ),
-                                        ),
-                                        items: _getSurgeryMap(row.speciality)
-                                            .values
-                                            .toSet()
-                                            .toList(),
-                                        dropdownDecoratorProps:
-                                            DropDownDecoratorProps(
-                                          dropdownSearchDecoration:
-                                              InputDecoration(
-                                            hintText: "Select Surgery",
-                                            border: InputBorder.none,
-                                          ),
-                                        ),
-                                        onChanged: (newValue) {
-                                          if (newValue == null) return;
-                                          setState(() {
-                                            row.surgery = newValue;
-                                            var map = _getSurgeryMap(
-                                                row.speciality);
-                                            for (var entry in map.entries) {
-                                              if (entry.value == newValue) {
-                                                row.surgeryCode = entry.key;
-                                                break;
-                                              }
-                                            }
-                                          });
-                                        },
-                                        selectedItem:
-                                            _getSurgeryMap(row.speciality)
-                                                    .containsValue(row.surgery)
-                                                ? row.surgery
-                                                : null,
-                                      ),
-                                    ),
-                                  ),
-                                  DataCell(
-                                    SizedBox(
-                                      width: 150,
-                                      child: DropdownSearch<String>(
-                                        popupProps: PopupProps.menu(
-                                          showSearchBox: true,
-                                          searchFieldProps: TextFieldProps(
-                                            decoration: InputDecoration(
-                                              hintText: "Search Code...",
-                                              border: OutlineInputBorder(),
-                                            ),
-                                          ),
-                                        ),
-                                        items: _getSurgeryMap(row.speciality)
-                                            .keys
-                                            .toSet()
-                                            .toList(),
-                                        dropdownDecoratorProps:
-                                            DropDownDecoratorProps(
-                                          dropdownSearchDecoration:
-                                              InputDecoration(
-                                            hintText: "Select Code",
-                                            border: InputBorder.none,
-                                          ),
-                                        ),
-                                        onChanged: (newValue) {
-                                          if (newValue == null) return;
-                                          setState(() {
-                                            row.surgeryCode = newValue;
-                                            var map = _getSurgeryMap(
-                                                row.speciality);
-                                            if (map.containsKey(newValue)) {
-                                              row.surgery = map[newValue]!;
-                                            }
-                                          });
-                                        },
-                                        selectedItem:
-                                            _getSurgeryMap(row.speciality)
-                                                    .containsKey(
-                                                        row.surgeryCode)
-                                                ? row.surgeryCode
-                                                : null,
-                                      ),
-                                    ),
-                                  ),
-                                  DataCell(
-                                    SizedBox(
-                                      width: 200,
-                                      child: DropdownSearch<String>(
-                                        popupProps: PopupProps.menu(
-                                          showSearchBox: true,
-                                          searchFieldProps: TextFieldProps(
-                                            decoration: InputDecoration(
-                                              hintText: "Search Speciality...",
-                                              border: OutlineInputBorder(),
-                                            ),
-                                          ),
-                                        ),
-                                        items: specialityList,
-                                        dropdownDecoratorProps:
-                                            DropDownDecoratorProps(
-                                          dropdownSearchDecoration:
-                                              InputDecoration(
-                                            hintText: "Select Speciality",
-                                            border: InputBorder.none,
-                                          ),
-                                        ),
-                                        onChanged: (newValue) {
-                                          if (newValue == null) return;
-                                          setState(() {
-                                            row.speciality = newValue;
-                                            row.surgery = '';
-                                            row.surgeryCode = '';
-                                          });
-                                        },
-                                        selectedItem: specialityList
-                                                .contains(row.speciality)
-                                            ? row.speciality
-                                            : null,
-                                      ),
-                                    ),
-                                  ),
-                                  DataCell(Text(row.surgeon)),
-                                  DataCell(Text(row.patientName)),
-                                  DataCell(Text(row.mrdNumber)),
-                                  DataCell(TextFormField(
-                                    initialValue: row.duration,
-                                    onChanged: (val) {
-                                      setState(() {
-                                        row.duration = val;
-                                      });
-                                    },
-                                    decoration:
-                                        InputDecoration(border: InputBorder.none),
-                                  )),
-                                  DataCell(Text(row.specialRequest)),
-                                ],
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 16),
-                  Center(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blueGrey[400],
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20)),
-                      ),
-                      //style: MyElevatedButtonTheme.elevatedButtonTheme1.style,
-                      onPressed: _isDataComplete() ? _handleScheduleButtonPress : null,
-                      child: Text(
-                        'Schedule',
-                        style: TextStyle(
-                            color: _isDataComplete() ? Colors.white : Colors.black54,
-                            fontSize: 16),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 10),
+                      'Review and update surgery details before final scheduling',
+                      style: TextStyle(
+                          fontSize: 16, color: Colors.grey[600])),
+                  Divider(color: Colors.blueGrey[50], thickness: 2),
                 ],
               ),
             ),
+            SizedBox(height: 20),
+            Text(
+              'SPECIALITY',
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.blueGrey),
+            ),
+            SizedBox(height: 6),
+            Row(
+              children: [
+                SizedBox(
+                  width: 250,
+                  height: 45,
+                  child: DropdownSearch<String>(
+                    popupProps: PopupProps.menu(
+                      showSearchBox: true,
+                      searchFieldProps: TextFieldProps(
+                        decoration: InputDecoration(
+                          hintText: "Search Specialty...",
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
+                    items: ["All", ...specialityList],
+                    dropdownDecoratorProps: DropDownDecoratorProps(
+                      dropdownSearchDecoration: InputDecoration(
+                        hintText: 'Filter by Speciality',
+                        hintStyle: TextStyle(color: Colors.grey[500]),
+                        contentPadding: EdgeInsets.symmetric(
+                            horizontal: 15, vertical: 10),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: Colors.blueGrey),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: Colors.blueGrey),
+                        ),
+                      ),
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedFilterSpeciality = value ?? '';
+                      });
+                    },
+                    selectedItem: selectedFilterSpeciality.isEmpty ? "All" : selectedFilterSpeciality,
+                  ),
+                ),
+                SizedBox(width: 10),
+                SizedBox(
+                  width: 80,
+                  height: 45,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blueGrey[200],
+                      shape: const RoundedRectangleBorder(
+                          borderRadius:
+                          BorderRadius.all(Radius.circular(15))),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 15, vertical: 10),
+                      textStyle: TextStyle(fontSize: 18),
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        if (selectedFilterSpeciality == 'All' || selectedFilterSpeciality.isEmpty) {
+                          displayedRows = List.from(tableRows);
+                        } else {
+                          displayedRows = tableRows.where((row) => row.speciality == selectedFilterSpeciality).toList();
+                        }
+                      });
+                    },
+                    child: Text(
+                      'Go',
+                      style: TextStyle(color: Colors.black87),
+                    ),
+                  ),
+                ),
+                // Spacer(),
+                // ElevatedButton(
+                //   style: ElevatedButton.styleFrom(
+                //     backgroundColor: Colors.grey[300],
+                //     shape: RoundedRectangleBorder(
+                //         borderRadius: BorderRadius.circular(15)),
+                //   ),
+                //   onPressed: null, // Disabled by default in image
+                //   child: Text(
+                //     'Download',
+                //     style: TextStyle(color: Colors.white),
+                //   ),
+                // ),
+              ],
+            ),
+            SizedBox(height: 25),
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.blueGrey),
+                  borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                ),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: SingleChildScrollView(
+                    child: DataTable(
+                      dividerThickness: 1.5,
+                      columns: [
+                        DataColumn(
+                            label: Text('Date',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold))),
+                        DataColumn(
+                            label: Text('Age/Sex',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold))),
+                        DataColumn(
+                            label: Text('Surgery',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold))),
+                        DataColumn(
+                            label: Text('Surgery Code',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold))),
+                        DataColumn(
+                            label: Text('Speciality',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold))),
+                        DataColumn(
+                            label: Text('Surgeon',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold))),
+                        DataColumn(
+                            label: Text('Patient',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold))),
+                        DataColumn(
+                            label: Text('MRD',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold))),
+                        DataColumn(
+                            label: Text('Duration (Hrs)',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold))),
+                        DataColumn(
+                            label: Text('Request',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold))),
+                      ],
+                      rows: displayedRows.map((row) {
+                        bool isMissingData = row.surgery.isEmpty ||
+                            row.duration.isEmpty || row.surgeryCode.isEmpty;
+                        return DataRow(
+                          color:
+                          MaterialStateProperty.resolveWith<Color?>(
+                                (Set<MaterialState> states) {
+                              if (isMissingData)
+                                return Colors.blue[50];
+                              return null;
+                            },
+                          ),
+                          cells: [
+                            DataCell(Text(row.date)),
+                            DataCell(Text(row.ageSex)),
+                            DataCell(
+                              SizedBox(
+                                width: 250,
+                                child: DropdownSearch<String>(
+                                  popupProps: PopupProps.menu(
+                                    showSearchBox: true,
+                                    searchFieldProps: TextFieldProps(
+                                      decoration: InputDecoration(
+                                        hintText: "Search Surgery...",
+                                        border: OutlineInputBorder(),
+                                      ),
+                                    ),
+                                  ),
+                                  items: _getSurgeryMap(row.speciality)
+                                      .values
+                                      .toSet()
+                                      .toList(),
+                                  dropdownDecoratorProps:
+                                  DropDownDecoratorProps(
+                                    dropdownSearchDecoration:
+                                    InputDecoration(
+                                      hintText: "Select Surgery",
+                                      border: InputBorder.none,
+                                    ),
+                                  ),
+                                  onChanged: (newValue) {
+                                    if (newValue == null) return;
+                                    setState(() {
+                                      row.surgery = newValue;
+                                      var map = _getSurgeryMap(
+                                          row.speciality);
+                                      for (var entry in map.entries) {
+                                        if (entry.value == newValue) {
+                                          row.surgeryCode = entry.key;
+                                          break;
+                                        }
+                                      }
+                                    });
+                                  },
+                                  selectedItem:
+                                  _getSurgeryMap(row.speciality)
+                                      .containsValue(row.surgery)
+                                      ? row.surgery
+                                      : null,
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              SizedBox(
+                                width: 150,
+                                child: DropdownSearch<String>(
+                                  popupProps: PopupProps.menu(
+                                    showSearchBox: true,
+                                    searchFieldProps: TextFieldProps(
+                                      decoration: InputDecoration(
+                                        hintText: "Search Code...",
+                                        border: OutlineInputBorder(),
+                                      ),
+                                    ),
+                                  ),
+                                  items: _getSurgeryMap(row.speciality)
+                                      .keys
+                                      .toSet()
+                                      .toList(),
+                                  dropdownDecoratorProps:
+                                  DropDownDecoratorProps(
+                                    dropdownSearchDecoration:
+                                    InputDecoration(
+                                      hintText: "Select Code",
+                                      border: InputBorder.none,
+                                    ),
+                                  ),
+                                  onChanged: (newValue) {
+                                    if (newValue == null) return;
+                                    setState(() {
+                                      row.surgeryCode = newValue;
+                                      var map = _getSurgeryMap(
+                                          row.speciality);
+                                      if (map.containsKey(newValue)) {
+                                        row.surgery = map[newValue]!;
+                                      }
+                                    });
+                                  },
+                                  selectedItem:
+                                  _getSurgeryMap(row.speciality)
+                                      .containsKey(
+                                      row.surgeryCode)
+                                      ? row.surgeryCode
+                                      : null,
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              SizedBox(
+                                width: 200,
+                                child: DropdownSearch<String>(
+                                  popupProps: PopupProps.menu(
+                                    showSearchBox: true,
+                                    searchFieldProps: TextFieldProps(
+                                      decoration: InputDecoration(
+                                        hintText: "Search Speciality...",
+                                        border: OutlineInputBorder(),
+                                      ),
+                                    ),
+                                  ),
+                                  items: specialityList,
+                                  dropdownDecoratorProps:
+                                  DropDownDecoratorProps(
+                                    dropdownSearchDecoration:
+                                    InputDecoration(
+                                      hintText: "Select Speciality",
+                                      border: InputBorder.none,
+                                    ),
+                                  ),
+                                  onChanged: (newValue) {
+                                    if (newValue == null) return;
+                                    setState(() {
+                                      row.speciality = newValue;
+                                      row.surgery = '';
+                                      row.surgeryCode = '';
+                                    });
+                                  },
+                                  selectedItem: specialityList
+                                      .contains(row.speciality)
+                                      ? row.speciality
+                                      : null,
+                                ),
+                              ),
+                            ),
+                            DataCell(Text(row.surgeon)),
+                            DataCell(Text(row.patientName)),
+                            DataCell(Text(row.mrdNumber)),
+                            DataCell(TextFormField(
+                              initialValue: row.duration,
+                              onChanged: (val) {
+                                setState(() {
+                                  row.duration = val;
+                                });
+                              },
+                              decoration:
+                              InputDecoration(border: InputBorder.none),
+                            )),
+                            DataCell(Text(row.specialRequest)),
+                          ],
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 16),
+            Center(
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueGrey[400],
+                  padding:
+                  EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20)),
+                ),
+                //style: MyElevatedButtonTheme.elevatedButtonTheme1.style,
+                onPressed: _isDataComplete() ? _handleScheduleButtonPress : null,
+                child: Text(
+                  'Schedule',
+                  style: TextStyle(
+                      color: _isDataComplete() ? Colors.white : Colors.black54,
+                      fontSize: 16),
+                ),
+              ),
+            ),
+            SizedBox(height: 10),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -839,7 +851,7 @@ class SurgeryMasterItem {
   final String code;
   final String name;
   final String speciality;
-  
+
   SurgeryMasterItem({required this.code, required this.name, required this.speciality});
 }
 
@@ -854,6 +866,8 @@ class ConfirmationRow {
   String mrdNumber;
   String duration;
   String surgeryCode;
+  String ContactNo;
+  String BedNo;
 
   ConfirmationRow({
     required this.date,
@@ -866,5 +880,7 @@ class ConfirmationRow {
     required this.mrdNumber,
     required this.duration,
     required this.surgeryCode,
+    required this.ContactNo,
+    required this.BedNo,
   });
 }

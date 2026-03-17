@@ -28,7 +28,7 @@ class SchedulerInput extends StatefulWidget {
 }
 
 class _SchedulerInputState extends State<SchedulerInput> {
-  DateTime selectedDate = DateTime.now();
+  DateTime selectedDate = DateTime.now().add(const Duration(days: 1));
   bool isDateSelected = true;
   static const double leftMargin = 180;
   static const double rightMargin = 180;
@@ -1227,7 +1227,8 @@ class _SchedulerInputState extends State<SchedulerInput> {
     "Name of the Patient": "Ishaa Raman",
     "Special Request": null,
     "Mrd Number": "258246",
-    "duration": ["4.4"]
+    "duration": ["4.4"],
+    "Contact
   },
   {
     "DATE OF SURGERY": "30-01-2026",
@@ -1260,7 +1261,9 @@ class _SchedulerInputState extends State<SchedulerInput> {
     "Name of the Patient": "Monja",
     "Special Request": null,
     "Mrd Number": "272886",
-    "duration": [null, null, null]
+    "duration": [null, null, null],
+    "Contact no": 9876543245,
+    "Bed No": 24
   }
 ]
        */

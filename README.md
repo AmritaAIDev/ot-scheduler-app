@@ -227,7 +227,7 @@ fvm flutter build web --release
 2. **Copy Updated Files to Server**
 ```bash
 # Copy all updated files to the server
-scp -r build/web/* souvik@10.125.11.203:/usr/share/nginx/html/ot-scheduler/
+scp -r build/web/* souvik@10.125.50.200:/usr/share/nginx/html/ot-scheduler/
 ```
 3. **Resolve Errors(if any)**
 ```
@@ -239,7 +239,7 @@ C:\windows\System32\OpenSSH\scp.exe: dest open "/usr/share/nginx/html/ot-schedul
 * Temporarily change ownership
 ```bash
 # SSH into server
-ssh souvik@10.125.11.203
+ssh souvik@10.125.50.200
 ```
 
 # Change ownership to souvik temporarily
@@ -254,13 +254,13 @@ exit
 * Now copy your files:
 ```bash
 # Copy all files from your local machine
-scp -r build/web/* souvik@10.125.11.203:/usr/share/nginx/html/ot-scheduler/
+scp -r build/web/* souvik@10.125.50.200:/usr/share/nginx/html/ot-scheduler/
 ```
 
 * After copying, fix permissions back:
 ```bash
 # SSH back and fix permissions
-ssh souvik@10.125.11.203
+ssh souvik@10.125.50.200
 
 # Change ownership back to www-data for Nginx
 sudo chown -R www-data:www-data /usr/share/nginx/html/ot-scheduler/
@@ -274,7 +274,7 @@ exit
 * Verify the deployment
 ```bash
 # you can see that files have updated date
-ssh souvik@10.125.11.203 "ls -la /usr/share/nginx/html/ot-scheduler/"   
+ssh souvik@10.125.50.200 "ls -la /usr/share/nginx/html/ot-scheduler/"   
 ```
 
 * Clear Browser Cache
