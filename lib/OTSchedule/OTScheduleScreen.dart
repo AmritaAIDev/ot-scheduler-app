@@ -140,29 +140,53 @@ class _OTScheduleScreenState extends State<OTScheduleScreen> {
 
   Future<void> _pickFile() async {
     try {
-      FilePickerResult? result = await FilePicker.platform.pickFiles();
+      print("[DEBUG] Attempting to open file picker for spreadsheet files (v8.x cleaner API)");
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['xlsx', 'xls', 'csv'],
+        allowMultiple: false,
+        withData: true,
+      );
 
       if (result != null) {
+        String fileName = result.files.single.name;
+        String fileNameLower = fileName.toLowerCase();
+        print("[DEBUG] File selected: $fileName");
+
+        // Manual validation for Excel/CSV
+        if (!fileNameLower.endsWith('.xlsx') && 
+            !fileNameLower.endsWith('.xls') && 
+            !fileNameLower.endsWith('.csv')) {
+          print("[DEBUG] Invalid file extension selected: $fileName");
+          setState(() {
+            _notificationMessage = 'Invalid file type. Please select an Excel (.xlsx, .xls) or CSV file.';
+          });
+          return;
+        }
+
         if (kIsWeb) {
           Uint8List fileBytes = result.files.single.bytes!;
           _webFile = fileBytes;
+          print("[DEBUG] Web mode. File bytes length: ${fileBytes.length}");
           setState(() {
-            _notificationMessage = 'File Uploaded: ${result.files.single.name}';
+            _notificationMessage = 'File Uploaded: $fileName';
           });
           _extractDateFromFile();
         } else {
           _file = File(result.files.single.path!);
+          print("[DEBUG] Native mode. File path: ${_file!.path}, Exists: ${await _file!.exists()}");
           setState(() {
             _notificationMessage = 'File Uploaded: ${_file!.path}';
           });
         }
       } else {
+        print("[DEBUG] File picker returned null. The dialog might have been cancelled, or the OS silently failed to return a file.");
         setState(() {
           _notificationMessage = 'No file selected';
         });
       }
-    } catch (e) {
-      print('Error picking file: $e');
+    } catch (e, stacktrace) {
+      print('[DEBUG] Error picking file (Exception caught): $e\nStacktrace: $stacktrace');
       setState(() {
         _notificationMessage = 'Error picking file: $e';
       });

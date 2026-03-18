@@ -280,17 +280,42 @@ class _SchedulerInputState extends State<SchedulerInput> {
 
   //
   Future<void> _pickFile() async {
+    
+    print("filepicker:${FilePicker.platform}");
     try {
-      FilePickerResult? result = await FilePicker.platform.pickFiles();
+      print("[DEBUG] Attempting to open file picker for spreadsheet files (v8.x cleaner API)");
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['xlsx', 'xls', 'csv'],
+        allowMultiple: false,
+        withData: true,
+      );
 
       if (result != null) {
+        String fileName = result.files.single.name;
+        String fileNameLower = fileName.toLowerCase();
+        print("[DEBUG] File selected: $fileName");
+
+        // Manual validation for Excel/CSV
+        if (!fileNameLower.endsWith('.xlsx') && 
+            !fileNameLower.endsWith('.xls') && 
+            !fileNameLower.endsWith('.csv')) {
+          print("[DEBUG] Invalid file extension selected: $fileName");
+          setState(() {
+            _notificationMessage = 'Invalid file type. Please select an Excel (.xlsx, .xls) or CSV file.';
+            uploadFileText = _notificationMessage;
+          });
+          return;
+        }
+
         if (kIsWeb) {
           Uint8List fileBytes = result.files.single.bytes!;
+          print("[DEBUG] Web mode. File bytes length: ${fileBytes.length}");
 
           try {
             final outputBytes = await generateSurgeryExcel(
               fileBytes,
-              result.files.single.name,
+              fileName,
               selectedDate,
             );
             _webFile = Uint8List.fromList(outputBytes);
@@ -298,46 +323,44 @@ class _SchedulerInputState extends State<SchedulerInput> {
             final backendJson = await sendExcelToBackend(outputBytes);
 
             setState(() {
-              _notificationMessage =
-              'File Processed: ${result.files.single.name}';
+              _notificationMessage = 'File Processed: $fileName';
               uploadFileText = _notificationMessage;
             });
-
-            // await _extractDateFromFile();
 
             Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => ListConfirmation(
-                  fileBytes: outputBytes,//not needed --this is orginal excel converted
-                  fileName: result.files.single.name,
+                  fileBytes: outputBytes,
+                  fileName: fileName,
                   jsonData: backendJson,
                 ),
               ),
             );
 
-          } catch (e) {
-            print('Error processing file: $e');
+          } catch (e, stacktrace) {
+            print('[DEBUG] Error processing file on web: $e\nStacktrace: $stacktrace');
             setState(() {
-              _notificationMessage =
-              'Error processing file: $e';
+              _notificationMessage = 'Error processing file: $e';
             });
           }
         } else {
           _file = File(result.files.single.path!);
+          print("[DEBUG] Native mode. File path: ${_file!.path}, Exists: ${await _file!.exists()}");
           setState(() {
             _notificationMessage = 'File Uploaded: ${_file!.path}';
             uploadFileText = _notificationMessage;
           });
         }
       } else {
+        print("[DEBUG] File picker returned null. The dialog might have been cancelled, or the OS silently failed to return a file.");
         setState(() {
           _notificationMessage = 'No file selected';
           uploadFileText = _notificationMessage;
         });
       }
-    } catch (e) {
-      print('Error picking file: $e');
+    } catch (e, stacktrace) {
+      print('[DEBUG] Error picking file (Exception caught): $e\nStacktrace: $stacktrace');
       setState(() {
         _notificationMessage = 'Error picking file: $e';
       });
