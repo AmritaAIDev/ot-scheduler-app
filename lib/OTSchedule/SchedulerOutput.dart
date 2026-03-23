@@ -52,6 +52,9 @@ class _SchedulerOutputState extends State<SchedulerOutput> {
   static const InputDecoration rowDecoration = InputDecoration(border: InputBorder.none,);
   String baseUrl = Constants.baseURL;
   bool isDownloadEnabled = false;
+  final ScrollController _horizontalController = ScrollController();
+  final ScrollController _verticalController = ScrollController();
+
 
   String displayText1 = 'Scheduled Surgeries';
   String displayText2 = 'View all scheduled surgeries across all operation theaters';
@@ -234,6 +237,8 @@ class _SchedulerOutputState extends State<SchedulerOutput> {
 
   @override
   void dispose() {
+    _horizontalController.dispose();
+    _verticalController.dispose();
     // Dispose controllers to free up resources
     otNumberControllers.forEach((controller) => controller.dispose());
     surgeonControllers.forEach((controller) => controller.dispose());
@@ -921,11 +926,20 @@ print('All Functions called');
                   border: Border.all(color: Colors.blueGrey), // Ensure borders are visible
                   borderRadius: BorderRadius.all(Radius.circular(10.0)),
                 ),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
+                child: Scrollbar(
+                  controller: _horizontalController,
+                  thumbVisibility: true,
+                  trackVisibility: true,
                   child: SingleChildScrollView(
-                    //scrollDirection: Axis.horizontal,
-                    child: DataTable(
+                    controller: _horizontalController,
+                    scrollDirection: Axis.horizontal,
+                    child: Scrollbar(
+                      controller: _verticalController,
+                      thumbVisibility: true,
+                      trackVisibility: true,
+                      child: SingleChildScrollView(
+                        controller: _verticalController,
+                        child: DataTable(
                       columns: columns,
                       rows: rows,
                       dividerThickness: 1.5,
@@ -939,6 +953,8 @@ print('All Functions called');
                 ),
               ),
             ),
+          ),
+        ),
             SizedBox(height: 16),
             Center(
               child: ElevatedButton(

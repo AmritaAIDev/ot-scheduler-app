@@ -43,11 +43,21 @@ class _ListConfirmationState extends State<ListConfirmation> {
   bool isLoading = true;
   //String baseUrl = 'http://127.0.0.1:8000/api';
   String baseUrl = Constants.baseURL;
+  final ScrollController _horizontalController = ScrollController();
+  final ScrollController _verticalController = ScrollController();
+
 
   @override
   void initState() {
     super.initState();
     _loadData();
+  }
+
+  @override
+  void dispose() {
+    _horizontalController.dispose();
+    _verticalController.dispose();
+    super.dispose();
   }
 
 
@@ -604,10 +614,20 @@ class _ListConfirmationState extends State<ListConfirmation> {
                   border: Border.all(color: Colors.blueGrey),
                   borderRadius: BorderRadius.all(Radius.circular(10.0)),
                 ),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
+                child: Scrollbar(
+                  controller: _horizontalController,
+                  thumbVisibility: true,
+                  trackVisibility: true,
                   child: SingleChildScrollView(
-                    child: DataTable(
+                    controller: _horizontalController,
+                    scrollDirection: Axis.horizontal,
+                    child: Scrollbar(
+                      controller: _verticalController,
+                      thumbVisibility: true,
+                      trackVisibility: true,
+                      child: SingleChildScrollView(
+                        controller: _verticalController,
+                        child: DataTable(
                       dividerThickness: 1.5,
                       columns: [
                         DataColumn(
@@ -817,6 +837,8 @@ class _ListConfirmationState extends State<ListConfirmation> {
                 ),
               ),
             ),
+          ),
+        ),
             SizedBox(height: 16),
             Center(
               child: ElevatedButton(
