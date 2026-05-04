@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:csv/csv.dart';
+import 'package:excel/excel.dart' hide Border;
 import 'package:intl/intl.dart';
 import 'package:my_flutter_app/config/customThemes/MyAppBar.dart';
 import 'package:my_flutter_app/config/customThemes/utilities/Utilities.dart';
@@ -730,6 +731,109 @@ print('All Functions called');
 
   }
 
+  Future<void> _exportDataToExcel() async {
+    try {
+      var excel = Excel.createExcel();
+      Sheet sheet = excel['OT Schedule'];
+
+      final CellStyle headerStyle = CellStyle(
+        bold: true,
+        backgroundColorHex: ExcelColor.fromHexString('FF1F4E79'),
+        fontColorHex: ExcelColor.fromHexString('FFFFFFFF'),
+      );
+
+      final List<String> headers = [
+        'Date',
+        'OT Number',
+        'Surgeon',
+        'Department',
+        'Surgery',
+        'Start Time',
+        'End Time',
+        'MRD Number',
+        'Bed No',
+        'Contact No',
+        'Special Equipment',
+        'Nursing T/L',
+        'Technician T/L',
+      ];
+
+      for (int i = 0; i < headers.length; i++) {
+        var cell = sheet.cell(CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0));
+        cell.value = TextCellValue(headers[i]);
+        cell.cellStyle = headerStyle;
+      }
+
+      for (int idx = 0; idx < sortedOTEntries.length; idx++) {
+        final entry = sortedOTEntries[idx];
+        final String otNumberText = entry.value.toString();
+        final String surgeon = surgeonControllers[idx].text;
+        final String surgery = surgeryControllers[idx].text;
+        final String startTime = startTimeControllers[idx].text;
+        final String endTime = endTimeControllers[idx].text;
+        final String date = dateControllers[idx].text;
+        final String mrdText = mrdControllers[idx].text;
+        final String specialEquipment = specialEquipmentControllers[idx].text;
+        final String department = departmentControllers[idx].text;
+        final String nursingTL = nursingLeadsControllers[idx].text;
+        final String technicianTL = technicalLeadsControllers[idx].text;
+        final String bedNo = bedControllers[idx].text;
+        final String contactNo = contactControllers[idx].text;
+
+        sheet.appendRow([
+          TextCellValue(date),
+          IntCellValue(int.tryParse(otNumberText) ?? 0),
+          TextCellValue(surgeon),
+          TextCellValue(department),
+          TextCellValue(surgery),
+          TextCellValue(startTime),
+          TextCellValue(endTime),
+          IntCellValue(int.tryParse(mrdText) ?? 0),
+          TextCellValue(bedNo),
+          TextCellValue(contactNo),
+          TextCellValue(specialEquipment),
+          TextCellValue(nursingTL),
+          TextCellValue(technicianTL),
+        ]);
+      }
+
+      if (excel.sheets.containsKey('Sheet1')) {
+        excel.delete('Sheet1');
+      }
+
+      final List<int>? bytes = excel.encode();
+      if (bytes == null) {
+        print('Error: Failed to encode Excel file');
+        return;
+      }
+
+      if (kIsWeb) {
+        final String base64Data = base64Encode(bytes);
+        html.AnchorElement(
+          href: 'data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,$base64Data',
+        )
+          ..setAttribute('download', 'ot_schedule.xlsx')
+          ..click();
+      } else {
+        Directory? directory = await getExternalStorageDirectory();
+        if (directory != null) {
+          String filePath = '${directory.path}/ot_schedule.xlsx';
+          File file = File(filePath);
+          await file.writeAsBytes(bytes);
+          print('Excel file exported to: $filePath');
+        } else {
+          print('Error: Directory not found');
+        }
+      }
+    } catch (e) {
+      print('Error exporting data to Excel: $e');
+    }
+
+    setState(() {
+      isDownloadEnabled = false;
+    });
+  }
+
 
 
   @override
@@ -912,10 +1016,16 @@ print('All Functions called');
                 ),
                 //SizedBox(width: 500), // Old - 900
                 Spacer(),
-                ElevatedButton (
+                ElevatedButton(
                   style: MyElevatedButtonTheme.elevatedButtonTheme2.style,
-                  onPressed: isDownloadEnabled ? _exportDataToCsv:null,
-                  child: Text('Download',style: TextStyle(color: Colors.white),),
+                  onPressed: isDownloadEnabled ? _exportDataToCsv : null,
+                  child: Text('Download CSV', style: TextStyle(color: Colors.white)),
+                ),
+                SizedBox(width: 10),
+                ElevatedButton(
+                  style: MyElevatedButtonTheme.elevatedButtonTheme2.style,
+                  onPressed: isDownloadEnabled ? _exportDataToExcel : null,
+                  child: Text('Download Excel', style: TextStyle(color: Colors.white)),
                 ),
               ],
             ),
