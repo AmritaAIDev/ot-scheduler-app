@@ -5,7 +5,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:csv/csv.dart';
-import 'package:excel/excel.dart' hide Border;
+import 'package:excel/excel.dart' hide Border, BorderStyle;
+import 'package:excel/excel.dart' as _xl show Border, BorderStyle;
 import 'package:intl/intl.dart';
 import 'package:my_flutter_app/config/customThemes/MyAppBar.dart';
 import 'package:my_flutter_app/config/customThemes/utilities/Utilities.dart';
@@ -635,88 +636,93 @@ print('All Functions called');
     //}
   }
 
+  // Groups sortedOTEntries by OT number, preserving sorted order of OT keys.
+  Map<String, List<int>> _groupByOT() {
+    final Map<String, List<int>> groups = {};
+    for (int idx = 0; idx < sortedOTEntries.length; idx++) {
+      final String otNum = sortedOTEntries[idx].value.toString();
+      groups.putIfAbsent(otNum, () => []).add(idx);
+    }
+    return groups;
+  }
+
+  List<String> _sortedOTKeys(Map<String, List<int>> groups) {
+    return groups.keys.toList()
+      ..sort((a, b) => (int.tryParse(a) ?? 0).compareTo(int.tryParse(b) ?? 0));
+  }
+
+  List<String> get _exportHeaders => [
+    'Sr No',
+    'Duration/Time',
+    'UHID',
+    'Name of Patient',
+    'Age',
+    'Sex',
+    'Bed No',
+    'Requirement ICU',
+    'Mobile No',
+    'Surgery',
+    'Surgeon',
+    'Anaesthesiologist',
+    'PAC Status',
+    'FIC Clearance',
+    'Nursing TL',
+    'Technicians',
+    'Special Request',
+    'Department',
+  ];
+
   Future<void> _exportDataToCsv() async {
     try {
-      List<List<dynamic>> rows = [];
-      // Add header row
-      List<String> headers = [
-        'Date',
-        'OT Number',
-        'Surgeon',
-        'Department',
-        'Surgery',
-        'Start Time',
-        'End Time',
-        'MRD Number',
-        'Bed No',
-        'Contact No',
-        'Special Equipment',
-        // 'Name of Patient',
-        // 'Age/Sex',
-        'Nursing T/l',
-        'Technician T/L',
-      ];
-      rows.add(headers);
+      final List<List<dynamic>> csvRows = [_exportHeaders];
+      final Map<String, List<int>> groups = _groupByOT();
+      int srNo = 1;
 
-      // Add data rows
-      sortedOTEntries.forEach((entry) {
-        final otNumber = entry.value.toString();
-        final String surgeon = surgeonControllers[sortedOTEntries.indexOf(entry)].text;
-        final String surgery = surgeryControllers[sortedOTEntries.indexOf(entry)].text;
-        final String startTime = startTimeControllers[sortedOTEntries.indexOf(entry)].text;
-        final String endTime = endTimeControllers[sortedOTEntries.indexOf(entry)].text;
-        final String date = dateControllers[sortedOTEntries.indexOf(entry)].text;
-        //final String patientName = patientNameControllers[sortedOTEntries.indexOf(entry)].text;
-        final String mrdNumber = mrdControllers[sortedOTEntries.indexOf(entry)].text;
-        final String specialEquipment = specialEquipmentControllers[sortedOTEntries.indexOf(entry)].text;
-        final String department = departmentControllers[sortedOTEntries.indexOf(entry)].text;
-        //final String ageSex = ageSexControllers[sortedOTEntries.indexOf(entry)].text;
-        final String nusringTL = nursingLeadsControllers[sortedOTEntries.indexOf(entry)].text;
-        final String technicianTL = technicalLeadsControllers[sortedOTEntries.indexOf(entry)].text;
-
-        final String bedNo = bedControllers[sortedOTEntries.indexOf(entry)].text;
-        final String contactNo = contactControllers[sortedOTEntries.indexOf(entry)].text;
-
-        rows.add([
-          date,
-          '$otNumber',
-          surgeon,
-          department,
-          surgery,
-          startTime,
-          endTime,
-          mrdNumber,
-          bedNo,
-          contactNo,
-          specialEquipment,
-          // patientName,
-          // ageSex,
-          nusringTL,
-          technicianTL,
+      for (final otNum in _sortedOTKeys(groups)) {
+        // OT separator row — label in first cell, rest empty
+        csvRows.add([
+          '                     OT $otNum',
+          ...List.filled(_exportHeaders.length - 1, ''),
         ]);
-      });
 
-      // Generate CSV string
-      String csvString = const ListToCsvConverter().convert(rows);
+        for (final idx in groups[otNum]!) {
+          final List<String> ageParts = ageSexControllers[idx].text.split('/');
+          csvRows.add([
+            srNo.toString(),
+            '${startTimeControllers[idx].text}-${endTimeControllers[idx].text}',
+            mrdControllers[idx].text,
+            patientNameControllers[idx].text,
+            ageParts.isNotEmpty ? ageParts[0].trim() : 'N/A',
+            ageParts.length > 1 ? ageParts[1].trim() : 'N/A',
+            bedControllers[idx].text,
+            'N/A',
+            contactControllers[idx].text,
+            surgeryControllers[idx].text,
+            surgeonControllers[idx].text,
+            'N/A',
+            'N/A',
+            'N/A',
+            nursingLeadsControllers[idx].text,
+            technicalLeadsControllers[idx].text,
+            specialEquipmentControllers[idx].text,
+            departmentControllers[idx].text,
+          ]);
+          srNo++;
+        }
+      }
+
+      final String csvString = const ListToCsvConverter().convert(csvRows);
 
       if (kIsWeb) {
-        // Generate download link for web
-        final anchor = html.AnchorElement(
-            href:
-            'data:text/csv;charset=utf-8,${Uri.encodeComponent(csvString)}')
+        html.AnchorElement(
+            href: 'data:text/csv;charset=utf-8,${Uri.encodeComponent(csvString)}')
           ..setAttribute('download', 'ot_schedule.csv')
           ..click();
       } else {
-        // Get the directory for saving the CSV file
         Directory? directory = await getExternalStorageDirectory();
         if (directory != null) {
-          String filePath = '${directory.path}/ot_schedule.csv';
-
-          // Write CSV string to file
-          File file = File(filePath);
-          await file.writeAsString(csvString);
-
-          print('CSV file exported to: $filePath');
+          await File('${directory.path}/ot_schedule.csv').writeAsString(csvString);
+          print('CSV file exported to: ${directory.path}/ot_schedule.csv');
         } else {
           print('Error: Directory not found');
         }
@@ -728,7 +734,6 @@ print('All Functions called');
     setState(() {
       isDownloadEnabled = false;
     });
-
   }
 
   Future<void> _exportDataToExcel() async {
@@ -736,65 +741,97 @@ print('All Functions called');
       var excel = Excel.createExcel();
       Sheet sheet = excel['OT Schedule'];
 
-      final CellStyle headerStyle = CellStyle(
-        bold: true,
-        backgroundColorHex: ExcelColor.fromHexString('FF1F4E79'),
-        fontColorHex: ExcelColor.fromHexString('FFFFFFFF'),
+      final blackBorder = _xl.Border(
+        borderStyle: _xl.BorderStyle.Thin,
+        borderColorHex: ExcelColor.fromHexString('FF000000'),
       );
 
-      final List<String> headers = [
-        'Date',
-        'OT Number',
-        'Surgeon',
-        'Department',
-        'Surgery',
-        'Start Time',
-        'End Time',
-        'MRD Number',
-        'Bed No',
-        'Contact No',
-        'Special Equipment',
-        'Nursing T/L',
-        'Technician T/L',
-      ];
+      final CellStyle headerStyle = CellStyle(
+        bold: true,
+        backgroundColorHex: ExcelColor.fromHexString('FFED7D31'),
+        fontColorHex: ExcelColor.fromHexString('FF000000'),
+        leftBorder: blackBorder,
+        rightBorder: blackBorder,
+        topBorder: blackBorder,
+        bottomBorder: blackBorder,
+      );
 
+      final CellStyle otSeparatorStyle = CellStyle(
+        bold: true,
+        backgroundColorHex: ExcelColor.fromHexString('FFA6A6A6'),
+        fontColorHex: ExcelColor.fromHexString('FF000000'),
+        horizontalAlign: HorizontalAlign.Center,
+        leftBorder: blackBorder,
+        rightBorder: blackBorder,
+        topBorder: blackBorder,
+        bottomBorder: blackBorder,
+      );
+
+      final CellStyle dataCellStyle = CellStyle(
+        leftBorder: blackBorder,
+        rightBorder: blackBorder,
+        topBorder: blackBorder,
+        bottomBorder: blackBorder,
+      );
+
+      final List<String> headers = _exportHeaders;
+
+      // Write styled header row
       for (int i = 0; i < headers.length; i++) {
-        var cell = sheet.cell(CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0));
+        final cell = sheet.cell(CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0));
         cell.value = TextCellValue(headers[i]);
         cell.cellStyle = headerStyle;
       }
+      sheet.setRowHeight(0, 30.0); // double the default ~15pt row height
 
-      for (int idx = 0; idx < sortedOTEntries.length; idx++) {
-        final entry = sortedOTEntries[idx];
-        final String otNumberText = entry.value.toString();
-        final String surgeon = surgeonControllers[idx].text;
-        final String surgery = surgeryControllers[idx].text;
-        final String startTime = startTimeControllers[idx].text;
-        final String endTime = endTimeControllers[idx].text;
-        final String date = dateControllers[idx].text;
-        final String mrdText = mrdControllers[idx].text;
-        final String specialEquipment = specialEquipmentControllers[idx].text;
-        final String department = departmentControllers[idx].text;
-        final String nursingTL = nursingLeadsControllers[idx].text;
-        final String technicianTL = technicalLeadsControllers[idx].text;
-        final String bedNo = bedControllers[idx].text;
-        final String contactNo = contactControllers[idx].text;
+      final Map<String, List<int>> groups = _groupByOT();
+      int currentRow = 1;
+      int srNo = 1;
 
-        sheet.appendRow([
-          TextCellValue(date),
-          IntCellValue(int.tryParse(otNumberText) ?? 0),
-          TextCellValue(surgeon),
-          TextCellValue(department),
-          TextCellValue(surgery),
-          TextCellValue(startTime),
-          TextCellValue(endTime),
-          IntCellValue(int.tryParse(mrdText) ?? 0),
-          TextCellValue(bedNo),
-          TextCellValue(contactNo),
-          TextCellValue(specialEquipment),
-          TextCellValue(nursingTL),
-          TextCellValue(technicianTL),
-        ]);
+      for (final otNum in _sortedOTKeys(groups)) {
+        // Merge all columns in separator row and center the OT label
+        sheet.merge(
+          CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: currentRow),
+          CellIndex.indexByColumnRow(columnIndex: headers.length - 1, rowIndex: currentRow),
+        );
+        final separatorCell = sheet.cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: currentRow));
+        separatorCell.value = TextCellValue('OT $otNum');
+        separatorCell.cellStyle = otSeparatorStyle;
+        currentRow++;
+
+        for (final idx in groups[otNum]!) {
+          final List<String> ageParts = ageSexControllers[idx].text.split('/');
+          final String age = ageParts.isNotEmpty ? ageParts[0].trim() : 'N/A';
+          final String sex = ageParts.length > 1 ? ageParts[1].trim() : 'N/A';
+
+          void setCell(int col, CellValue val) {
+            final c = sheet.cell(CellIndex.indexByColumnRow(columnIndex: col, rowIndex: currentRow));
+            c.value = val;
+            c.cellStyle = dataCellStyle;
+          }
+
+          setCell(0,  IntCellValue(srNo));
+          setCell(1,  TextCellValue('${startTimeControllers[idx].text}-${endTimeControllers[idx].text}'));
+          setCell(2,  IntCellValue(int.tryParse(mrdControllers[idx].text) ?? 0));
+          setCell(3,  TextCellValue(patientNameControllers[idx].text));
+          setCell(4,  TextCellValue(age));
+          setCell(5,  TextCellValue(sex));
+          setCell(6,  TextCellValue(bedControllers[idx].text));
+          setCell(7,  TextCellValue('N/A'));
+          setCell(8,  TextCellValue(contactControllers[idx].text));
+          setCell(9,  TextCellValue(surgeryControllers[idx].text));
+          setCell(10, TextCellValue(surgeonControllers[idx].text));
+          setCell(11, TextCellValue('N/A'));
+          setCell(12, TextCellValue('N/A'));
+          setCell(13, TextCellValue('N/A'));
+          setCell(14, TextCellValue(nursingLeadsControllers[idx].text));
+          setCell(15, TextCellValue(technicalLeadsControllers[idx].text));
+          setCell(16, TextCellValue(specialEquipmentControllers[idx].text));
+          setCell(17, TextCellValue(departmentControllers[idx].text));
+
+          currentRow++;
+          srNo++;
+        }
       }
 
       if (excel.sheets.containsKey('Sheet1')) {
@@ -817,9 +854,8 @@ print('All Functions called');
       } else {
         Directory? directory = await getExternalStorageDirectory();
         if (directory != null) {
-          String filePath = '${directory.path}/ot_schedule.xlsx';
-          File file = File(filePath);
-          await file.writeAsBytes(bytes);
+          final String filePath = '${directory.path}/ot_schedule.xlsx';
+          await File(filePath).writeAsBytes(bytes);
           print('Excel file exported to: $filePath');
         } else {
           print('Error: Directory not found');
