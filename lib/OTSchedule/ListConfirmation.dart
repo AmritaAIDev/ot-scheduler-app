@@ -57,6 +57,9 @@ class _ListConfirmationState extends State<ListConfirmation> {
   void dispose() {
     _horizontalController.dispose();
     _verticalController.dispose();
+    for (final row in tableRows) {
+      row.durationController.dispose();
+    }
     super.dispose();
   }
 
@@ -378,6 +381,25 @@ class _ListConfirmationState extends State<ListConfirmation> {
       case 'Urology': return Constants.urologyMap;
       case 'Vascular & Endovascular': return Constants.vascularEndovascularProceduresMap;
       default: return {};
+    }
+  }
+
+  Future<void> _fetchAndUpdateDuration(ConfirmationRow row, String surgeryName) async {
+    try {
+      final uri = Uri.parse('$baseUrl/surgery-duration/')
+          .replace(queryParameters: {'surgery_name': surgeryName});
+      final response = await http.get(uri);
+      if (response.statusCode == 200 && mounted) {
+        final data = jsonDecode(response.body);
+        final dynamic raw = data['estimated_duration'];
+        final val = raw != null ? raw.toString() : '';
+        row.durationController.text = val;
+        setState(() {
+          row.duration = val;
+        });
+      }
+    } catch (_) {
+      // Leave duration unchanged on failure
     }
   }
 
@@ -724,6 +746,7 @@ class _ListConfirmationState extends State<ListConfirmation> {
                                         }
                                       }
                                     });
+                                    _fetchAndUpdateDuration(row, newValue);
                                   },
                                   selectedItem:
                                   _getSurgeryMap(row.speciality)
@@ -760,14 +783,19 @@ class _ListConfirmationState extends State<ListConfirmation> {
                                   ),
                                   onChanged: (newValue) {
                                     if (newValue == null) return;
+                                    String? surgeryName;
                                     setState(() {
                                       row.surgeryCode = newValue;
                                       var map = _getSurgeryMap(
                                           row.speciality);
                                       if (map.containsKey(newValue)) {
                                         row.surgery = map[newValue]!;
+                                        surgeryName = map[newValue];
                                       }
                                     });
+                                    if (surgeryName != null) {
+                                      _fetchAndUpdateDuration(row, surgeryName!);
+                                    }
                                   },
                                   selectedItem:
                                   _getSurgeryMap(row.speciality)
@@ -819,11 +847,9 @@ class _ListConfirmationState extends State<ListConfirmation> {
                             DataCell(Text(row.patientName)),
                             DataCell(Text(row.mrdNumber)),
                             DataCell(TextFormField(
-                              initialValue: row.duration,
+                              controller: row.durationController,
                               onChanged: (val) {
-                                setState(() {
-                                  row.duration = val;
-                                });
+                                row.duration = val;
                               },
                               decoration:
                               InputDecoration(border: InputBorder.none),
@@ -890,6 +916,7 @@ class ConfirmationRow {
   String surgeryCode;
   String ContactNo;
   String BedNo;
+  late final TextEditingController durationController;
 
   ConfirmationRow({
     required this.date,
@@ -904,5 +931,7 @@ class ConfirmationRow {
     required this.surgeryCode,
     required this.ContactNo,
     required this.BedNo,
-  });
+  }) {
+    durationController = TextEditingController(text: duration);
+  }
 }
