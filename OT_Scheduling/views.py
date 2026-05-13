@@ -2184,6 +2184,11 @@ class OTSchedulerView(APIView):
         # Fill Bed No and Contact No nulls before the null-row removal check
         inp['Bed No'] = inp['Bed No'].fillna('NA')
         inp['Contact no'] = inp['Contact no'].fillna('NA')
+
+        NEW_COLS = ['Requirement ICU', 'Anaesthesiologist', 'PAC Status', 'FIC Clearance']
+        for col in NEW_COLS:
+            if col in inp.columns:
+                inp[col] = inp[col].fillna('NA')
         print(f"[OTScheduler] After fillna — Bed No: {inp['Bed No'].head(3).tolist()}, Contact No: {inp['Contact no'].head(3).tolist()}")
 
         # change date
@@ -2249,8 +2254,21 @@ class OTSchedulerView(APIView):
         temp_path.replace(file_path)
         print("Update completed. No duplicates inserted.")
 
+        # Drop new columns so priority_surgery gets the expected 11 columns (positional rename).
+        inp_sched = inp.drop(columns=[c for c in NEW_COLS if c in inp.columns])
+
+        # Build a (MRD, surgery) → {col: val} lookup using positional indices before the
+        # pipeline renames columns. Position 2 = surgery, position 7 = MRD.
+        extra_lookup = {}
+        for _, row in inp_sched.iterrows():
+            key = (str(row.iloc[7]), str(row.iloc[2]))
+            extra_lookup[key] = {
+                col: (inp.at[row.name, col] if col in inp.columns else 'NA')
+                for col in NEW_COLS
+            }
+
         #clean_surgeries = len(inp)
-        a = priority_surgery(inp,ot_data)
+        a = priority_surgery(inp_sched, ot_data)
         print(f'Priority Function Executed Successfully. The output rows are{a.columns} & datatype are {a.dtypes} & {len(a)}')
 
         mapped_equipments = map_equipements(a,special_equipment)
@@ -2288,6 +2306,12 @@ class OTSchedulerView(APIView):
         final_schedule_surgeries = pd.DataFrame(scheduled_list)
         unscheduled_df = pd.DataFrame(unscheduled_list)
 
+        for col in NEW_COLS:
+            final_schedule_surgeries[col] = final_schedule_surgeries.apply(
+                lambda r: extra_lookup.get((str(r['MRD']), str(r['surgery'])), {}).get(col, 'NA'),
+                axis=1
+            )
+
         print(f"Scheduling of surgeries completed{final_schedule_surgeries.columns} and length are {len(final_schedule_surgeries)}")
         final_schedule_surgeries['Start_time'] = [f'{int(i // 60)}:{str(int(i % 60)).zfill(2)}' for i in final_schedule_surgeries['Start_time']]
         final_schedule_surgeries['End_time'] = [f'{int(i // 60)}:{str(int(i % 60)).zfill(2)}' for i in final_schedule_surgeries['End_time']]
@@ -2317,7 +2341,8 @@ class OTSchedulerView(APIView):
         print(f'Merge Done. The columns are {result.columns} and rows are {len(result)}')
         result.drop_duplicates(['MRD','surgery','Start_time'],inplace=True)
         result.drop(['Doctor','Special Equipment_y'],axis=1,inplace=True)
-        result.columns = ['Date of Surgery', 'Age/Sex', 'surgery', 'Surgeon', 'Department','Name of the Patient', 'Special Equipment', 'MRD', 'Bed No', 'Contact No', 'Nursing T/L','Technicial T/L', 'OT','Start_time', 'End_time']
+        result.columns = ['Date of Surgery', 'Age/Sex', 'surgery', 'Surgeon', 'Department', 'Name of the Patient', 'Special Equipment', 'MRD', 'Bed No', 'Contact No', 'Nursing T/L', 'Technicial T/L', 'OT', 'Start_time', 'End_time', 'Requirement ICU', 'Anaesthesiologist', 'PAC Status', 'FIC Clearance']
+
         result = result.astype('object')
         result = result.fillna('NA')
         print(f"Input surgeries: {input_surgeries}, Scheduled surgeries: {len(result)}")
@@ -2842,6 +2867,10 @@ class ExcelProcessingView(APIView):
                     "duration":self.process_duration(surgery_names),
                     "Contact no":row.get("Contact No"),
                     "Bed No":row.get("Bed No"),
+                    "Requirement ICU": normalize_value(row.get("Requirement ICU")),
+                    "Anaesthesiologist": normalize_value(row.get("Anaesthesiologist")),
+                    "PAC Status": normalize_value(row.get("PAC Status")),
+                    "FIC Clearance": normalize_value(row.get("FIC Clearance")),
                 })
 
             # Replace NaN with None (which becomes null in JSON) to avoid JSON serialization errors
