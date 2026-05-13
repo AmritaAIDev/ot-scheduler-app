@@ -47,6 +47,10 @@ class _SchedulerOutputState extends State<SchedulerOutput> {
   late List<TextEditingController> nursingLeadsControllers;
   late List<TextEditingController> bedControllers;
   late List<TextEditingController> contactControllers;
+  late List<TextEditingController> requirementICUControllers;
+  late List<TextEditingController> anaesthesiologistControllers;
+  late List<TextEditingController> pacStatusControllers;
+  late List<TextEditingController> ficClearanceControllers;
 
   static const double leftMargin = 180;
   static const Color headerTextColor = Colors.black87;
@@ -84,7 +88,7 @@ class _SchedulerOutputState extends State<SchedulerOutput> {
         TextEditingController(text: widget.scheduleData['Surgeon'][sortedOTEntries[index].key])
     );
     surgeryControllers = List.generate(sortedOTEntries.length, (index) =>
-        TextEditingController(text: widget.scheduleData['surgery'][sortedOTEntries[index].key])
+        TextEditingController(text: (widget.scheduleData['surgery_y'] ?? widget.scheduleData['surgery'])[sortedOTEntries[index].key])
     );
     startTimeControllers = List.generate(sortedOTEntries.length, (index) =>
         TextEditingController(text: widget.scheduleData['Start_time'][sortedOTEntries[index].key])
@@ -125,6 +129,30 @@ class _SchedulerOutputState extends State<SchedulerOutput> {
     contactControllers = List.generate(sortedOTEntries.length, (index) =>
         TextEditingController(text: widget.scheduleData['Contact No'][sortedOTEntries[index].key].toString()));
 
+    requirementICUControllers = List.generate(sortedOTEntries.length, (index) {
+      final m = widget.scheduleData['Requirement ICU'];
+      final k = sortedOTEntries[index].key;
+      return TextEditingController(text: (m != null && m[k] != null) ? m[k].toString() : '');
+    });
+
+    anaesthesiologistControllers = List.generate(sortedOTEntries.length, (index) {
+      final m = widget.scheduleData['Anaesthesiologist'];
+      final k = sortedOTEntries[index].key;
+      return TextEditingController(text: (m != null && m[k] != null) ? m[k].toString() : '');
+    });
+
+    pacStatusControllers = List.generate(sortedOTEntries.length, (index) {
+      final m = widget.scheduleData['PAC Status'];
+      final k = sortedOTEntries[index].key;
+      return TextEditingController(text: (m != null && m[k] != null) ? m[k].toString() : '');
+    });
+
+    ficClearanceControllers = List.generate(sortedOTEntries.length, (index) {
+      final m = widget.scheduleData['FIC Clearance'];
+      final k = sortedOTEntries[index].key;
+      return TextEditingController(text: (m != null && m[k] != null) ? m[k].toString() : '');
+    });
+
 
     // Define table rows
     rows = sortedOTEntries.map<DataRow>((entry) {
@@ -162,7 +190,7 @@ class _SchedulerOutputState extends State<SchedulerOutput> {
             decoration: rowDecoration,
             onChanged: (value) {
               // Update scheduleData on change
-              widget.scheduleData['surgery'][entry.key] = value;
+              (widget.scheduleData['surgery_y'] ?? widget.scheduleData['surgery'])[entry.key] = value;
             },
           )),
           DataCell(TextField(
@@ -257,6 +285,10 @@ class _SchedulerOutputState extends State<SchedulerOutput> {
     nursingLeadsControllers.forEach((controller) => controller.dispose());
     bedControllers.forEach((controller) => controller.dispose());
     contactControllers.forEach((controller) => controller.dispose());
+    requirementICUControllers.forEach((controller) => controller.dispose());
+    anaesthesiologistControllers.forEach((controller) => controller.dispose());
+    pacStatusControllers.forEach((controller) => controller.dispose());
+    ficClearanceControllers.forEach((controller) => controller.dispose());
     super.dispose();
   }
 
@@ -695,13 +727,13 @@ print('All Functions called');
             ageParts.isNotEmpty ? ageParts[0].trim() : 'N/A',
             ageParts.length > 1 ? ageParts[1].trim() : 'N/A',
             bedControllers[idx].text,
-            'N/A',
+            requirementICUControllers[idx].text,
             contactControllers[idx].text,
             surgeryControllers[idx].text,
             surgeonControllers[idx].text,
-            'N/A',
-            'N/A',
-            'N/A',
+            anaesthesiologistControllers[idx].text,
+            pacStatusControllers[idx].text,
+            ficClearanceControllers[idx].text,
             nursingLeadsControllers[idx].text,
             technicalLeadsControllers[idx].text,
             specialEquipmentControllers[idx].text,
@@ -817,13 +849,13 @@ print('All Functions called');
           setCell(4,  TextCellValue(age));
           setCell(5,  TextCellValue(sex));
           setCell(6,  TextCellValue(bedControllers[idx].text));
-          setCell(7,  TextCellValue('N/A'));
+          setCell(7,  TextCellValue(requirementICUControllers[idx].text));
           setCell(8,  TextCellValue(contactControllers[idx].text));
           setCell(9,  TextCellValue(surgeryControllers[idx].text));
           setCell(10, TextCellValue(surgeonControllers[idx].text));
-          setCell(11, TextCellValue('N/A'));
-          setCell(12, TextCellValue('N/A'));
-          setCell(13, TextCellValue('N/A'));
+          setCell(11, TextCellValue(anaesthesiologistControllers[idx].text));
+          setCell(12, TextCellValue(pacStatusControllers[idx].text));
+          setCell(13, TextCellValue(ficClearanceControllers[idx].text));
           setCell(14, TextCellValue(nursingLeadsControllers[idx].text));
           setCell(15, TextCellValue(technicalLeadsControllers[idx].text));
           setCell(16, TextCellValue(specialEquipmentControllers[idx].text));
@@ -1167,7 +1199,7 @@ print('All Functions called');
               decoration: rowDecoration,
               onChanged: (value) {
                 // Update scheduleData on change
-                widget.scheduleData['surgery'][entry.key] = value;
+                (widget.scheduleData['surgery_y'] ?? widget.scheduleData['surgery'])[entry.key] = value;
               },
             )),
             DataCell(TextField(

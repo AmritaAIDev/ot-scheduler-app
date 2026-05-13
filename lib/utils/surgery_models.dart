@@ -8,6 +8,10 @@ class SurgeryData {
   String mrdNumber;
   String contactNo;
   String bedNo;
+  String requirementICU;
+  String anaesthesiologist;
+  String pacStatus;
+  String ficClearance;
 
   SurgeryData({
     required this.ageSex,
@@ -19,5 +23,9 @@ class SurgeryData {
     required this.mrdNumber,
     required this.contactNo,
     required this.bedNo,
+    this.requirementICU = '',
+    this.anaesthesiologist = '',
+    this.pacStatus = '',
+    this.ficClearance = '',
   });
 }

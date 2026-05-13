@@ -202,6 +202,10 @@ class _ListConfirmationState extends State<ListConfirmation> {
       String mrdNumber = item['Mrd Number']?.toString() ?? '';
       String contactNo = item['Contact no']?.toString() ?? '';
       String bedNo = item['Bed No']?.toString() ?? '';
+      String requirementICU = item['Requirement ICU']?.toString() ?? '';
+      String anaesthesiologist = item['Anaesthesiologist']?.toString() ?? '';
+      String pacStatus = item['PAC Status']?.toString() ?? '';
+      String ficClearance = item['FIC Clearance']?.toString() ?? '';
 
       // Handle SURGERY list
       List<dynamic> surgeryList = [];
@@ -292,7 +296,11 @@ class _ListConfirmationState extends State<ListConfirmation> {
           duration: durationStr,
           surgeryCode: surgeryCode,
           ContactNo: contactNo,
-          BedNo: bedNo
+          BedNo: bedNo,
+          requirementICU: requirementICU,
+          anaesthesiologist: anaesthesiologist,
+          pacStatus: pacStatus,
+          ficClearance: ficClearance,
         ));
       }
     }
@@ -325,10 +333,14 @@ class _ListConfirmationState extends State<ListConfirmation> {
             patientName: _getVal(row, 5),
             specialRequest: _getVal(row, 6),
             mrdNumber: _getVal(row, 7),
-            duration: '', // New field
-            surgeryCode: '', // New field, initially empty? Or try to match surgery name?
-              ContactNo: _getVal(row, 8),
-              BedNo:  _getVal(row, 9),
+            duration: '',
+            surgeryCode: '',
+            ContactNo: _getVal(row, 8),
+            BedNo: _getVal(row, 9),
+            requirementICU: _getVal(row, 10),
+            anaesthesiologist: _getVal(row, 11),
+            pacStatus: _getVal(row, 12),
+            ficClearance: _getVal(row, 13),
           ));
 
           // Try to pre-fill code if surgery name matches master
@@ -431,6 +443,10 @@ class _ListConfirmationState extends State<ListConfirmation> {
         'Duration',
         'Bed No',
         'Contact no',
+        'Requirement ICU',
+        'Anaesthesiologist',
+        'PAC Status',
+        'FIC Clearance',
       ];
 
       // Add header row
@@ -456,6 +472,10 @@ class _ListConfirmationState extends State<ListConfirmation> {
         surgerySheet.cell(CellIndex.indexByString('I$r')).value = TextCellValue(row.duration);
         surgerySheet.cell(CellIndex.indexByString('J$r')).value = TextCellValue(row.BedNo);
         surgerySheet.cell(CellIndex.indexByString('K$r')).value = TextCellValue(row.ContactNo);
+        surgerySheet.cell(CellIndex.indexByString('L$r')).value = TextCellValue(row.requirementICU);
+        surgerySheet.cell(CellIndex.indexByString('M$r')).value = TextCellValue(row.anaesthesiologist);
+        surgerySheet.cell(CellIndex.indexByString('N$r')).value = TextCellValue(row.pacStatus);
+        surgerySheet.cell(CellIndex.indexByString('O$r')).value = TextCellValue(row.ficClearance);
 
 
       }
@@ -849,7 +869,9 @@ class _ListConfirmationState extends State<ListConfirmation> {
                             DataCell(TextFormField(
                               controller: row.durationController,
                               onChanged: (val) {
-                                row.duration = val;
+                                setState(() {
+                                  row.duration = val;
+                                });
                               },
                               decoration:
                               InputDecoration(border: InputBorder.none),
@@ -916,6 +938,10 @@ class ConfirmationRow {
   String surgeryCode;
   String ContactNo;
   String BedNo;
+  String requirementICU;
+  String anaesthesiologist;
+  String pacStatus;
+  String ficClearance;
   late final TextEditingController durationController;
 
   ConfirmationRow({
@@ -931,6 +957,10 @@ class ConfirmationRow {
     required this.surgeryCode,
     required this.ContactNo,
     required this.BedNo,
+    this.requirementICU = '',
+    this.anaesthesiologist = '',
+    this.pacStatus = '',
+    this.ficClearance = '',
   }) {
     durationController = TextEditingController(text: duration);
   }

@@ -1124,6 +1124,10 @@ class _SchedulerInputState extends State<SchedulerInput> {
         final department = row[8]?.toString() ?? '';
         final procedure = row[9]?.toString() ?? '';
         final specialRequest = row[10]?.toString() ?? '';
+        final requirementICU = row.length > 11 ? row[11]?.toString() ?? '' : '';
+        final anaesthesiologist = row.length > 12 ? row[12]?.toString() ?? '' : '';
+        final pacStatus = row.length > 13 ? row[13]?.toString() ?? '' : '';
+        final ficClearance = row.length > 14 ? row[14]?.toString() ?? '' : '';
 
         if (patientName.toLowerCase().contains('patient')) continue;
 
@@ -1146,6 +1150,10 @@ class _SchedulerInputState extends State<SchedulerInput> {
           mrdNumber: uhid,
           contactNo: contactNo,
           bedNo: bedNo,
+          requirementICU: requirementICU,
+          anaesthesiologist: anaesthesiologist,
+          pacStatus: pacStatus,
+          ficClearance: ficClearance,
         ));
       }
 
@@ -1166,7 +1174,11 @@ class _SchedulerInputState extends State<SchedulerInput> {
         'Special Request',
         'Mrd Number',
         'Contact No',
-        'Bed No'
+        'Bed No',
+        'Requirement ICU',
+        'Anaesthesiologist',
+        'PAC Status',
+        'FIC Clearance',
       ];
 
       for (int i = 0; i < headers.length; i++) {
@@ -1189,6 +1201,10 @@ class _SchedulerInputState extends State<SchedulerInput> {
         surgerySheet.cell(CellIndex.indexByString('H$r')).value = TextCellValue(surgery.mrdNumber);
         surgerySheet.cell(CellIndex.indexByString('I$r')).value = TextCellValue(surgery.contactNo);
         surgerySheet.cell(CellIndex.indexByString('J$r')).value = TextCellValue(surgery.bedNo);
+        surgerySheet.cell(CellIndex.indexByString('K$r')).value = TextCellValue(surgery.requirementICU);
+        surgerySheet.cell(CellIndex.indexByString('L$r')).value = TextCellValue(surgery.anaesthesiologist);
+        surgerySheet.cell(CellIndex.indexByString('M$r')).value = TextCellValue(surgery.pacStatus);
+        surgerySheet.cell(CellIndex.indexByString('N$r')).value = TextCellValue(surgery.ficClearance);
       }
 
       return newExcel.encode()!;
