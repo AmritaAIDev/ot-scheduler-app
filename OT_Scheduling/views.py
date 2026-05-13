@@ -2853,3 +2853,34 @@ class ExcelProcessingView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+
+class SurgeryDurationAPI(APIView):
+    permission_classes = (permissions.AllowAny,)
+
+    def get(self, request, *args, **kwargs):
+        surgery_name = request.query_params.get("surgery_name", "").strip()
+
+        if not surgery_name:
+            return Response(
+                {"error": "'surgery_name' is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        excel_view = ExcelProcessingView()
+        excel_view._initialize_matcher()
+
+        standardized = excel_view.process_surgery_name(surgery_name)
+        matched_name, _ = standardized[0]
+        duration = excel_view.process_duration([matched_name])[0]
+
+        if matched_name is None:
+            return Response(
+                {"error": "No matching surgery found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        return Response(
+            {"surgery_name": matched_name, "estimated_duration": duration},
+            status=status.HTTP_200_OK,
+        )
+

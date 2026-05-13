@@ -2,7 +2,7 @@ from django.urls import path
 from .views import UserCreate, LoginView
 from rest_framework_simplejwt.views import TokenRefreshView
 from . import views
-from .views import UserCreate, UserUpdateView, LoginView, DoctorListCreateView,OTListCreateView, PatientListCreateView, ProcedureListCreateView, ScheduleListCreateView, MonitorListCreateView, OTstaffListCreateView, OTSchedulerView, OTNumberCountAPI, OTSurgeriesCountAPI, OTTimeSlotUsageAPI, AvgMonitoringStepsAPIView, OTUtilizationAPIView, DoctorNumberCountAPI,DoctorSurgeriesCountAPI, DoctorTimeSlotUsageAPI, DoctorAverageSurgeryDurationAPI, DepartmentNumberCountAPI, DepartmentSurgeryCountAPI, ProcedureCountAPI, ProcedureTimeComparisonAPI, SurgeryTypePercentageAPI, SurgeryTimingPercentageAPI, PatientCountAPI, GenderDistributionAPI, AgeDistributionAPI, SurgeryDateAPI, AvgTimeDifferenceAPIView, UniqueDepartmentSurgeryCountAPI, OTstaffNumberCountAPI,OTstaffSurgeriesCountAPI, OTstaffAverageSurgeryDurationAPI,ExcelProcessingView
+from .views import UserCreate, UserUpdateView, LoginView, DoctorListCreateView,OTListCreateView, PatientListCreateView, ProcedureListCreateView, ScheduleListCreateView, MonitorListCreateView, OTstaffListCreateView, OTSchedulerView, OTNumberCountAPI, OTSurgeriesCountAPI, OTTimeSlotUsageAPI, AvgMonitoringStepsAPIView, OTUtilizationAPIView, DoctorNumberCountAPI,DoctorSurgeriesCountAPI, DoctorTimeSlotUsageAPI, DoctorAverageSurgeryDurationAPI, DepartmentNumberCountAPI, DepartmentSurgeryCountAPI, ProcedureCountAPI, ProcedureTimeComparisonAPI, SurgeryTypePercentageAPI, SurgeryTimingPercentageAPI, PatientCountAPI, GenderDistributionAPI, AgeDistributionAPI, SurgeryDateAPI, AvgTimeDifferenceAPIView, UniqueDepartmentSurgeryCountAPI, OTstaffNumberCountAPI,OTstaffSurgeriesCountAPI, OTstaffAverageSurgeryDurationAPI, ExcelProcessingView, SurgeryDurationAPI
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework.routers import DefaultRouter
 #from django.contrib.auth.views import PasswordResetView, PasswordResetConfirmView, PasswordResetCompleteView
@@ -57,6 +57,7 @@ urlpatterns = [
     #path('password-reset/confirm/<uidb64>/<token>/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     #path('password-reset/complete/', PasswordResetCompleteView.as_view(), name='password_reset_complete'),
     path('parse-excel/', ExcelProcessingView.as_view(), name='parse-excel'),
+    path('surgery-duration/', SurgeryDurationAPI.as_view(), name='surgery-duration'),
 ]
 
 
