@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-i35(07v-#jin!$$@%a=rpl2mbgjqgmrej2y6yer5h@a8-u21u2
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1','172.25.84.48','*','41f1-2409-4050-dc0-ea19-358f-3834-d6a4-4e2f.ngrok-free.app']
+ALLOWED_HOSTS = ['127.0.0.1','10.125.50.200','172.25.84.48','10.125.11.203','*','41f1-2409-4050-dc0-ea19-358f-3834-d6a4-4e2f.ngrok-free.app']
 
 
 # Application definition
@@ -144,8 +144,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = 'static/'
-
+#STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'static'
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 

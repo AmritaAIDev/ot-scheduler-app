@@ -1,0 +1,14 @@
+Django
+djangorestframework
+djangorestframework-simplejwt
+django-cors-headers
+django-otp
+gunicorn
+#mysqlclient==2.2.0
+openpyxl
+numpy
+pandas
+python-dateutil
+pytz
+sqlparse
+tzdata
