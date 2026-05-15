@@ -2887,29 +2887,21 @@ class SurgeryDurationAPI(APIView):
     permission_classes = (permissions.AllowAny,)
 
     def get(self, request, *args, **kwargs):
-        surgery_name = request.query_params.get("surgery_name", "").strip()
-
+        surgery_name = request.query_params.get('surgery_name')
         if not surgery_name:
-            return Response(
-                {"error": "'surgery_name' is required."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            return Response({"error": "surgery_name query parameter is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        excel_view = ExcelProcessingView()
-        excel_view._initialize_matcher()
+        standardized_name = surgery_name.replace("+", " ").strip()
+        print(f"Received surgery name: {surgery_name}, standardized to: {standardized_name}")
+        
+        assets_dir = settings.BASE_DIR / "OT_Scheduling" / "assets"
+        df_timestamps = pd.read_excel(assets_dir / "Aug 2022-Dec 2023.xlsx").fillna("")
 
-        standardized = excel_view.process_surgery_name(surgery_name)
-        matched_name, _ = standardized[0]
-        duration = excel_view.process_duration([matched_name])[0]
-
-        if matched_name is None:
-            return Response(
-                {"error": "No matching surgery found."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-        return Response(
-            {"surgery_name": matched_name, "estimated_duration": duration},
-            status=status.HTTP_200_OK,
-        )
-
+        # check the surgery name in the df_timestamps and return the duration if found
+        for _, row in df_timestamps.iterrows():
+            if str(row['Surgery']).strip().lower() == standardized_name.lower():
+                duration = row['Duration(Hrs)']
+                print(f"Found duration for surgery '{standardized_name}': {duration} hours")
+                return Response({"surgery_name": standardized_name, "estimated_duration": duration}, status=status.HTTP_200_OK)
+        print(f"No duration found for surgery '{standardized_name}'")
+        return Response({"error": "No matching surgery found."},status=status.HTTP_404_NOT_FOUND)
