@@ -1,0 +1,31 @@
+class SurgeryData {
+  String ageSex;
+  String surgery;
+  String surgeon;
+  String speciality; // Department
+  String patientName;
+  String specialRequest;
+  String mrdNumber;
+  String contactNo;
+  String bedNo;
+  String requirementICU;
+  String anaesthesiologist;
+  String pacStatus;
+  String ficClearance;
+
+  SurgeryData({
+    required this.ageSex,
+    required this.surgery,
+    required this.surgeon,
+    required this.speciality,
+    required this.patientName,
+    required this.specialRequest,
+    required this.mrdNumber,
+    required this.contactNo,
+    required this.bedNo,
+    this.requirementICU = '',
+    this.anaesthesiologist = '',
+    this.pacStatus = '',
+    this.ficClearance = '',
+  });
+}
