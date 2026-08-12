@@ -2,9 +2,10 @@ import 'dart:core';
 
 class Constants {
 
+
   //URL CONSTANTS
-  static const String baseURL = 'http://10.125.50.200:8091/api';
-  //static const String baseURL = 'http://localhost:8000/api';
+  //static const String baseURL = 'http://10.125.50.200:8091/api';
+  static const String baseURL = 'http://localhost:8000/api';
 
   static const List<String> anesthesiaTypes = ['General Anesthesia',
   'Spinal Anesthesia',
