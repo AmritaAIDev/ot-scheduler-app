@@ -2681,6 +2681,15 @@ def normalize_value(value):
     return value
 
 
+# Normalizes a surgery name for lookup/comparison so entries that only
+# differ by whitespace, capitalization, dashes ('-' vs '–'/'—'), curly vs
+# straight quotes, or '&' vs 'and' still match.
+def normalize_surgery_key(text):
+    normalized = str(text).strip().lower().replace("&", " and ")
+    normalized = re.sub(r"[^a-z0-9\s]", " ", normalized)
+    return re.sub(r"\s+", " ", normalized).strip()
+
+
 class ExcelProcessingView(APIView):
     permission_classes = (permissions.AllowAny,)
 
@@ -2715,7 +2724,7 @@ class ExcelProcessingView(APIView):
 
         self.__class__._duration_map = dict(
             zip(
-                df_duration["Surgery"].astype(str).str.lower(),
+                df_duration["Surgery"].astype(str).map(normalize_surgery_key),
                 df_duration["Duration(Hrs)"]
             )
         )
@@ -2839,8 +2848,8 @@ class ExcelProcessingView(APIView):
             if not surgery_name:
                 durations.append(None)
             else:
-                surgery_name = surgery_name.split("(")[0].strip().lower()
-                durations.append(duration_map.get(surgery_name, None))
+                lookup_key = normalize_surgery_key(surgery_name.split("(")[0])
+                durations.append(duration_map.get(lookup_key, None))
             
         return durations
     
@@ -2909,8 +2918,9 @@ class SurgeryDurationAPI(APIView):
         df_timestamps = pd.read_excel(assets_dir / "Aug 2022-Dec 2023.xlsx").fillna("")
 
         # check the surgery name in the df_timestamps and return the duration if found
+        target_key = normalize_surgery_key(standardized_name)
         for _, row in df_timestamps.iterrows():
-            if str(row['Surgery']).strip().lower() == standardized_name.lower():
+            if normalize_surgery_key(row['Surgery']) == target_key:
                 duration = row['Duration(Hrs)']
                 print(f"Found duration for surgery '{standardized_name}': {duration} hours")
                 return Response({"surgery_name": standardized_name, "estimated_duration": duration}, status=status.HTTP_200_OK)
