@@ -1,0 +1,24 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+
+# Django specific
+media/
+
+
+
+# Virtualenv
+venv/
+
+# Migrations (optional — only if you regenerate often)
+# Comment out if you want to track migrations
+# **/migrations/
+
+# Node modules (if using JS frontend bundled)
+node_modules/
+
+
+
+# Data
+data/
+backup/
