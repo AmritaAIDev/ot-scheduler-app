@@ -20,7 +20,8 @@ import pandas as pd
 import re
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from django.conf import settings
+
+# import the package for the logging
 import logging
 
 User = get_user_model()
@@ -504,8 +505,7 @@ class OTSurgeriesCountAPI(APIView):
 
         #return Response({'message': message}) 
         return Response(result) 
-
-      
+     
 ## heat map of the OT slots
 from datetime import time
 class OTTimeSlotUsageAPI(APIView):
@@ -1427,480 +1427,12 @@ class SurgeryDateAPI(APIView):
 import pandas as pd
 import base64
 import tempfile
-import os
 from datetime import datetime
-
-
-# class OTSchedulerView(APIView):
-
-#     def post(self, request, *args, **kwargs):
-#         # Enable CORS
-#         headers = {
-#             'Access-Control-Allow-Origin': '*',
-#             'Access-Control-Allow-Methods': 'GET, POST',
-#             'Access-Control-Allow-Headers': 'Content-Type'
-#         }
-
-#         if request.method == 'OPTIONS':
-#             return ('', 204, headers)
-
-#         # Decode the base64 string
-#         request_json = request.data
-#         doc_data = request_json['doc']
-#         decoded_bytes = base64.b64decode(doc_data)
-        
-#         # Write the decoded bytes to a temporary Excel file
-#         with tempfile.NamedTemporaryFile(suffix='.xlsx', delete=False) as tmp:
-#             tmp.write(decoded_bytes)
-#             tmp_path = tmp.name
-#         print(f"Temporary file created Successfully")
-        
-#         assets_dir = settings.BASE_DIR / "OT_Scheduling" / "assets"
-
-#         special_equipment = pd.read_excel(assets_dir / "Special Equipments.xlsx")
-#         nursing_technician_tl = pd.read_excel(assets_dir / "Nurshing and Technician OT.xlsx")
-#         ot_data = pd.read_excel(assets_dir / "OT preferences(1).xlsx")
-#         print(f"All files are sucessfully attached")
-
-#         # Preprocessing Input
-#         def preprocessed_surgeries(data):
-#             # Each surgery name, converts it to lowercase, and removes all spaces.Then it returns a list of these cleaned surgery strings
-#             q = []
-#             for i in data:
-#                 if pd.isna(i):
-#                     q.append(None)
-#                 else:
-#                     i = str(i).lower().replace(" ", "")
-#                     q.append(i)
-#             return q
-
-#         # Preprocessing Equipments
-#         # Removes all spaces and special characters from each equipment name, converts it to lowercase, and standardizes it.
-#         def preprocess_equipments(data):
-#             q = []
-#             for i in data:
-#                 a = ''.join(e for e in i if e.isalnum()).lower()
-#                 q.append(a)
-#             return q
-        
-#         # Sorting with the Priority & priority surgery function
-#         def priority_surgery(input_file,ot):
-#             #print(f"Priority surgery function started.")
-#             print(f"Input file columns: {input_file.columns}, length: {len(input_file)}")
-#             print(f"OT preferences columns: {ot.columns}, length: {len(ot)}")
-#             input_file.columns = ['Date of Surgery','Age/Sex','Procedure','Surgeon','Department','Name of the Patient','Special Equipment','MRD','Duration','Bed No','Contact no']
-#             input_file['Processed_Procedures'] = preprocessed_surgeries(input_file['Procedure'])
-
-#             # for ot mapping
-#             input_file['Processed_Department'] = preprocessed_surgeries(input_file['Department'])
-#             ot['Processed_Department'] = preprocessed_surgeries(ot['Department'])
-
-#             print(f"Preprocessing completed.")
-#             print(f"Input file columns: {input_file.columns}, length: {len(input_file)}")
-#             print(f"OT preferences columns: {ot.columns}, length: {len(ot)}")
-#             map_input = pd.merge(input_file,ot,on='Processed_Department',how='inner')
-#             print(f"Merging OT preferences completed. {map_input.columns} and length {len(map_input)}") 
-#             filter_map = map_input.drop(['Sr No','Department_y','Processed_Department'],axis=1)
-#             print(f"Dropping unnecessary columns completed {filter_map.columns} and length {len(filter_map)}")
-
-#             age = []
-#             for i in filter_map['Age/Sex']:
-#                 i = i.split('Y')
-#                 age.append(float(i[0]))
-
-#             filter_map['Age'] = age
-#             #print(f"Age extraction completed{filter_map.columns}")
- 
-#             print(f"filter_map columns datatype are {filter_map.dtypes} and length {len(filter_map)}")
-#             #print(f"checking the data {filter_map['Duration'].head(5)}")
-#             filter_a = filter_map[filter_map['Duration']>10.0].sort_values(by='Age',ascending=True)
-#             #print(f"filter_a completed. Length {len(filter_a)}")
-#             filter_b = filter_map[(filter_map['Duration']<10.0) & (filter_map['Age']<12.0)].sort_values(by='Age',ascending=True)
-#             #print(f"filter_b completed. Length {len(filter_b)}")
-#             filter_c = filter_map[(filter_map['Duration']<10.0)& (filter_map['Age']>=12.0)].sort_values(by='Duration',ascending=False)
-#             #print(f"filter_c completed. Length {len(filter_c)}")
-#             print(f"Filtering based on duration and age completed. Length of filter_a: {len(filter_a)}, filter_b: {len(filter_b)}, filter_c: {len(filter_c)}")
-#             filter = pd.concat([filter_a,filter_b,filter_c],axis=0)
-#             print(f"Sorting with priority completed {filter.columns} and length {len(filter)}")
-            
-#             ot = []
-
-#             # for i in filter['Preferred OT']:
-#                 # i = str(i)
-#                 # i = i.replace(' ','')
-#                 # j = list(map(int,i.split(',')))
-#                 # ot.append(j)
-            
-#             for i in filter['Preferred OT']:
-#                 if not i:
-#                     continue
-#                 i = str(i).strip()
-#                 # Case 1: pure string (Cath lab)
-#                 if not any(ch.isdigit() for ch in i):
-#                     ot.append([i])
-#                     continue
-#                 # Case 2: numbers separated by commas
-#                 values = [v.strip() for v in i.split(',')]
-#                 try:
-#                     ot.append([int(v) for v in values])
-#                 except ValueError:
-#                     # fallback safety (should rarely happen)
-#                     ot.append([i])
-
-#             print(f"Preferred OT extraction completed {filter.columns} and length {len(filter)}")
-#             filter['ot'] = ot
-#             filter['number ots'] = [len(i) for i in filter['ot']]
-#             filter_1 = pd.concat([filter[filter['number ots']==1],filter[filter['number ots']!=1]],axis=0)
-            
-#             return filter_1
-
-#         # Mapping Equipments function
-#         def map_equipements (df,special_equipment):
-#             print(f"Mapping equipments function started.")
-#             print(f"Input df columns: {df.columns}, length: {len(df)}")
-#             print(f"Special equipment columns: {special_equipment.columns}, length: {len(special_equipment)}")
-#             df['processed_equipment'] = preprocess_equipments(df['Special Equipment'].to_list())
-#             special_equipment['processed_equipment'] = preprocess_equipments(special_equipment['Equipment Name'].to_list()) 
-#             print(f"Preprocessing equipments completed {df.columns} and length {len(df)} and special equipment columns are {special_equipment.columns} and length {len(special_equipment)}")
-#             merge = pd.merge(df,special_equipment,on='processed_equipment',how='left')
-#             return merge
-        
-#         def scheduled_procedure(surgeries,m):
-#             print(f"Scheduling Algorithm function started {surgeries.columns} and length {len(surgeries)}")
-
-#             filter_1 = surgeries.copy()
-
-#             surgery_duration = dict(zip(filter_1['MRD'], filter_1['Duration']))
-#             surgery_ot = dict(zip(filter_1['Procedure'], filter_1['ot']))
-#             surgery_doctor = dict(zip(filter_1['MRD'], filter_1['Surgeon']))
-#             mrd_equipment = dict(zip(filter_1['MRD'], filter_1['Equipment Name']))
-#             mrd_equipment_required = dict(zip(filter_1['MRD'], filter_1['Equipment Name'].notna()))
-
-#             # Longest first improves packing
-#             filter_1 = filter_1.sort_values(by="Duration", ascending=False)
-
-#             unscheduled_surgeries = [
-#                 [filter_1['Procedure'].iloc[i], filter_1["MRD"].iloc[i]]
-#                 for i in range(len(filter_1))
-#             ]
-
-#             scheduled_surgeries = []
-#             unscheduled_result = []
-#             OT_dict = {}
-#             doctors = {i: [] for i in filter_1['Surgeon']}
-
-#             def check_overlap(slot1, slot2):
-#                 return slot1[0] < slot2[1] and slot2[0] < slot1[1]
-
-#             def book_slot(occupied_slots, new_slot):
-#                 for slot in occupied_slots:
-#                     if check_overlap(slot, new_slot):
-#                         return False
-#                 return True
-
-#             def book_slot_special(occupied_slots, new_slot):
-#                 for slot in occupied_slots:
-#                     if check_overlap(slot, new_slot):
-#                         return False
-#                 return True
-
-#             # =============================
-#             # MAIN SCHEDULING LOOP
-#             # =============================
-
-#             for i in unscheduled_surgeries:
-
-#                 ots = surgery_ot[i[0]]
-#                 duration = int(surgery_duration[i[1]] * 60)
-#                 doctor = surgery_doctor[i[1]]
-#                 is_special = mrd_equipment_required[i[1]]
-
-#                 schedule_hua = False
-
-#                 # Two-phase scheduling: Day first, then night
-#                 for phase in [(480, 1080), (1080, 1440)]:
-
-#                     if schedule_hua:
-#                         break
-
-#                     phase_start, phase_end = phase
-
-#                     for ot in ots:
-
-#                         base_start = max(OT_dict.get(ot, 480), phase_start)
-#                         current_time = base_start
-
-#                         while current_time + duration <= phase_end:
-
-#                             start_time = current_time
-#                             end_time = start_time + duration
-
-#                             # Doctor check
-#                             if not book_slot(doctors[doctor], (start_time, end_time)):
-#                                 current_time += 5
-#                                 continue
-
-#                             # Equipment check
-#                             slots_special = True
-#                             slot_special_index = 0
-
-#                             if is_special:
-#                                 slots_special = False
-#                                 for k in range(len(m[mrd_equipment[i[1]]])):
-#                                     if book_slot_special(
-#                                             m[mrd_equipment[i[1]]][k],
-#                                             (start_time, end_time)
-#                                     ):
-#                                         slots_special = True
-#                                         slot_special_index = k
-#                                         break
-
-#                             if not slots_special:
-#                                 current_time += 5
-#                                 continue
-
-#                             # ✅ Schedule it
-#                             scheduled_surgeries.append({
-#                                 'surgery': i[0],
-#                                 'OT': ot,
-#                                 'Start_time': start_time,
-#                                 'End_time': end_time,
-#                                 'Doctor': doctor,
-#                                 'MRD': i[1],
-#                                 "Special Equipment": mrd_equipment[i[1]]
-#                             })
-
-#                             OT_dict[ot] = end_time + 30
-#                             doctors[doctor].append((start_time, end_time))
-
-#                             if is_special:
-#                                 m[mrd_equipment[i[1]]][slot_special_index].append((start_time, end_time))
-
-#                             schedule_hua = True
-#                             break
-
-#                         if schedule_hua:
-#                             break
-
-#                 if not schedule_hua:
-#                     print(f"⚠ Could NOT schedule surgery {i[0]} (MRD {i[1]})")
-#                     unscheduled_result.append({'surgery': i[0], 'MRD': i[1]})
-
-#             return scheduled_surgeries, unscheduled_result
-            
-#         inp = pd.read_excel(tmp_path)
-#         input_surgeries = len(inp)
-
-#         # ── DIAGNOSTIC LOG ──────────────────────────────────────────
-#         print(f"[OTScheduler] Frontend sent {len(inp.columns)} columns: {list(inp.columns)}")
-#         print(f"[OTScheduler] Total rows received: {len(inp)}")
-#         for col in ['Bed No', 'Contact No']:
-#             if col in inp.columns:
-#                 print(f"[OTScheduler] '{col}' sample values: {inp[col].head(5).tolist()}")
-#             else:
-#                 print(f"[OTScheduler] WARNING: '{col}' column NOT FOUND in the received Excel!")
-#         # ────────────────────────────────────────────────────────────
-
-#         # check the Special Equipement column if any value is null then fill it as NA.
-#         inp['Special Request']= inp['Special Request'].fillna('NA')
-#         # Fill Bed No and Contact No nulls before the null-row removal check
-#         inp['Bed No'] = inp['Bed No'].fillna('NA')
-#         inp['Contact no'] = inp['Contact no'].fillna('NA')
-#         print(f"[OTScheduler] After fillna — Bed No: {inp['Bed No'].head(3).tolist()}, Contact No: {inp['Contact no'].head(3).tolist()}")
-
-#         # change date
-#         inp['DATE OF SURGERY'] = pd.to_datetime(inp['DATE OF SURGERY'])
-#         inp['DATE OF SURGERY'] = inp['DATE OF SURGERY'].dt.strftime('%m/%d/%Y')
-#         inp['DATE OF SURGERY'] = inp['DATE OF SURGERY'].astype(str)
-
-#         # checking the null values in the inp file in any null values then remove that row from the excel
-#         null_rows = inp[inp.isnull().any(axis=1)]
-#         if not null_rows.empty:
-#             inp = inp.dropna()
-#             print(f"Removed rows with null values. New number of rows: {len(inp)}")
-#             if len(inp) == 0:
-#                 return Response({"message": "All rows contained null values and have been removed."}, status=400, headers=headers)
-#         else:
-#             print("No null values found in the input data.")
-
-#         # Save the duration of each surgery in the excel(Aug 2022-Dec2023.xlsx) for save from 2407 row.
-#         # Step 1: Make dictionary of surgery name and duration from input file
-#         # surgery_duration = {}
-#         # for _, row in inp.iterrows():
-#         #     surgery_duration[row['SURGERY']] = row['Duration']
-#         # print(f"Duration dictionary created successfully.{surgery_duration}")
-
-#         # # Step 2: Read existing Excel file
-#         # file_path = assets_dir / "Aug 2022-Dec 2023.xlsx"
-#         # existing_df = pd.read_excel(file_path)
-#         # print("Existing data loaded successfully.")
-
-#         # # Step 3: Create FAST lookup set
-#         # existing_procedures = set(existing_df['Surgery'].astype(str).str.strip())
-
-#         # # Step 4: Filter new data (remove duplicates)
-#         # for surgery, duration in surgery_duration.items():
-#         #     surgery_clean = str(surgery).strip()
-
-#         #     # Check if surgery exists
-#         #     match = existing_df['Surgery'].str.strip() == surgery_clean
-#         #     if match.any():
-#         #         current_duration = existing_df.loc[match, 'Duration(Hrs)'].values[0]
-#         #         # Update ONLY if duration is different
-#         #         if float(current_duration) != float(duration):
-#         #             existing_df.loc[match, 'Duration(Hrs)'] = duration
-#         #             #print(f"Updated duration for {surgery_clean}")
-#         #         #else:
-#         #             #print(f"No change needed for {surgery_clean}")
-#         #     else:
-#         #         # Add new surgery
-#         #         new_row = pd.DataFrame([{
-#         #             "Surgery": surgery_clean,
-#         #             "Duration(Hrs)": duration
-#         #         }])
-#         #         existing_df = pd.concat([existing_df, new_row], ignore_index=True)
-#         #         #print(f"Added new surgery {surgery_clean}")
-
-#         # # Step 6: Save back to Excel
-#         # existing_df.to_excel(file_path, index=False)
-#         # print("Update completed. No duplicates inserted.")
-
-#         # Save the duration of each surgery in the excel(Aug 2022-Dec2023.xlsx) for save from 2407 row.
-#         # Step 1: Make dictionary of surgery name and duration from input file
-#         surgery_duration = {}
-#         for _, row in inp.iterrows():
-#             surgery_duration[row['SURGERY']] = row['Duration']
-#         print(f"Duration dictionary created successfully.{surgery_duration}")
-
-#         # Step 2: Read existing Excel file
-#         file_path = assets_dir / "Aug 2022-Dec 2023.xlsx"
-#         existing_df = pd.read_excel(file_path)
-#         print("Existing data loaded successfully.")
-
-#         # Step 3: Build index dict for O(1) lookup (surgery name -> row index)
-#         surgery_index = {}
-#         for idx, row in existing_df.iterrows():
-#             surgery_index[str(row['Surgery']).strip()] = idx
-
-#         # Step 4: Filter new data (remove duplicates)
-#         new_rows = []
-#         for surgery, duration in surgery_duration.items():
-#             surgery_clean = str(surgery).strip()
-
-#             if surgery_clean in surgery_index:
-#                 idx = surgery_index[surgery_clean]
-#                 current_duration = existing_df.at[idx, 'Duration(Hrs)']
-#                 # Update ONLY if duration is different
-#                 try:
-#                     if float(current_duration) != float(duration):
-#                         existing_df.at[idx, 'Duration(Hrs)'] = duration
-#                 except (ValueError, TypeError):
-#                     existing_df.at[idx, 'Duration(Hrs)'] = duration
-#             else:
-#                 # Collect new surgery for batch insert
-#                 new_rows.append({
-#                     "Surgery": surgery_clean,
-#                     "Duration(Hrs)": duration
-#                 })
-
-#         # Append all new rows at once
-#         if new_rows:
-#             existing_df = pd.concat([existing_df, pd.DataFrame(new_rows)], ignore_index=True)
-
-#         # Step 6: Save to temp file first, then replace original
-#         temp_path = file_path.with_suffix('.tmp.xlsx')
-#         existing_df.to_excel(temp_path, index=False)
-#         temp_path.replace(file_path)
-#         print("Update completed. No duplicates inserted.")
-
-        
-#         #clean_surgeries = len(inp)
-#         a = priority_surgery(inp,ot_data)
-#         print(f'Priority Function Executed Successfully. The output rows are{a.columns} & datatype are {a.dtypes} & {len(a)}')
-
-#         mapped_equipments = map_equipements(a,special_equipment)
-#         print(f'Equipment Mapping Completed{mapped_equipments.columns} & datatype are {mapped_equipments.dtypes} & {len(mapped_equipments)}')
-#         mapped_equipments['Count'] = mapped_equipments['Count'].fillna(0)
-#         mapped_equipments['Count'] = mapped_equipments['Count'].astype(int)
-
-#         # special Equipment map
-#         # It expands each equipment into multiple slots based on its count
-#         print(f"Special Equipment mapping started")
-#         l = []
-#         m = {}
-#         for i,j in special_equipment[['Equipment Name','Count']].iterrows():
-#             l.append(j.to_list())
-
-#         for i in l:
-#             l1 = []
-#             for j in range(0,i[1]):
-#                 a_equipment= []
-#                 l1.append(a_equipment)
-#             m[i[0]] = l1
-#         print(f"Special Equipment mapping completed")
-
-#         #print(f"Starting the scheduling of surgeries{mapped_equipments}")
-#         # mapped_equipments_df = pd.DataFrame(mapped_equipments)
-#         # mapped_equipments_df.to_excel(
-#         #     "mapped_equipments.xlsx",
-#         #     index=False
-#         # )
-
-#         # final_schedule_surgeries = pd.DataFrame(scheduled_procedure(mapped_equipments))
-        
-#         scheduled_list, unscheduled_list = scheduled_procedure(mapped_equipments, m)
-
-#         final_schedule_surgeries = pd.DataFrame(scheduled_list)
-#         unscheduled_df = pd.DataFrame(unscheduled_list)
-
-#         print(f"Scheduling of surgeries completed{final_schedule_surgeries.columns} and length are {len(final_schedule_surgeries)}")
-#         final_schedule_surgeries['Start_time'] = [f'{int(i // 60)}:{str(int(i % 60)).zfill(2)}' for i in final_schedule_surgeries['Start_time']]
-#         final_schedule_surgeries['End_time'] = [f'{int(i // 60)}:{str(int(i % 60)).zfill(2)}' for i in final_schedule_surgeries['End_time']]
-
-#         print(f"Checking the columns for the mapped_equipments before dropping unnecessary columns {mapped_equipments.columns} and length is {len(mapped_equipments)}")
-#         mapped_equipments.drop(['Duration','Preferred OT','Age','ot','number ots','processed_equipment', 'Equipment Name', 'Count','Processed_Procedures'],axis=1,inplace=True)
-#         print(f"mapped_equipments after dropping unnecessary columns {mapped_equipments.columns}")
-#         mapped_equipments.columns = ['Date of Surgery','Age/Sex','surgery','Surgeon','Department','Name of the Patient','Special Equipment','MRD','Bed No','Contact No']
-#         print(f"mapped_equipments are {mapped_equipments.columns} & number of rows are {len(mapped_equipments)}")
-
-#         ## Mapping nusre
-#         mapped_equipments['preprocess_dept'] = preprocess_equipments(mapped_equipments['Department'])
-#         nursing_technician_tl['preprocess_dept'] = preprocess_equipments(nursing_technician_tl['Department'])
-#         print(f"Checking the input before mapping nurse method. mapped_equipments columns are {mapped_equipments.columns} & datatype are {mapped_equipments.dtypes} & length are {len(mapped_equipments)}")
-#         print(f"nursing_technician_tl columns are {nursing_technician_tl.columns} & datatype are {nursing_technician_tl.dtypes} & length are {len(nursing_technician_tl)}")
-#         mapped_nurse = pd.merge(mapped_equipments,nursing_technician_tl,on='preprocess_dept',how='left')
-#         print(f"Merging for nursing mapping completed.checking the columns {mapped_nurse.columns} & datatype are {mapped_nurse.dtypes} and length are {len(mapped_nurse)}")
-#         mapped_nurse.drop(['preprocess_dept','Department_y'],axis=1,inplace=True)
-#         mapped_nurse.rename(columns={'Department_x':'Department'},inplace=True)
-#         print(f"mapped_nurse are completed{mapped_nurse.columns} and number of rows are {len(mapped_nurse)}")
-
-#         # Final Merge
-#         print(f"Starting the final merge between mapped_nurse {mapped_nurse.columns} and rows are {len(mapped_nurse)}")
-#         print(f"final_schedule_surgeries {final_schedule_surgeries.columns} and rows are {len(final_schedule_surgeries)}")
-#         result = pd.merge(mapped_nurse, final_schedule_surgeries, on='MRD', how='inner')
-#         print(f'Merge Done. The columns are {result.columns} and rows are {len(result)}')
-#         result.drop_duplicates(['Age/Sex','surgery_x','Surgeon','Name of the Patient'],inplace=True)
-#         result.drop(['Doctor','surgery_y','Special Equipment_y'],axis=1,inplace=True)
-#         result.columns = ['Date of Surgery', 'Age/Sex', 'surgery', 'Surgeon', 'Department','Name of the Patient', 'Special Equipment', 'MRD', 'Bed No', 'Contact No', 'Nursing T/L','Technicial T/L', 'OT','Start_time', 'End_time']
-#         result = result.astype('object')
-#         result = result.fillna('NA')
-#         print(f"Input surgeries: {input_surgeries}, Scheduled surgeries: {len(result)}")
-#         print(result)
-
-#         # Save result to Excel file
-#         output_dir = assets_dir / "outputs"
-#         os.makedirs(output_dir, exist_ok=True)
-#         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-#         output_path = output_dir / f"OT_Schedule_{timestamp}.xlsx"
-#         result.to_excel(output_path, index=False)
-#         print(f"Result saved to Excel: {output_path}")
-
-#         return Response(result.to_dict(), status=200, headers=headers)
-      
-
+from django.http import JsonResponse
+from django.db.models import Max
+from .models import Scheduled_Surgeries
 
 class OTSchedulerView(APIView):
-
     def post(self, request, *args, **kwargs):
         # Enable CORS
         headers = {
@@ -1909,78 +1441,77 @@ class OTSchedulerView(APIView):
             'Access-Control-Allow-Headers': 'Content-Type'
         }
 
-        if request.method == 'OPTIONS':
-            return ('', 204, headers)
-
         # Decode the base64 string
         request_json = request.data
         doc_data = request_json['doc']
+        # start_time = request_json['start_time']
+        # buffer_time = request_json['buffer_time']
         decoded_bytes = base64.b64decode(doc_data)
-        
+
         # Write the decoded bytes to a temporary Excel file
         with tempfile.NamedTemporaryFile(suffix='.xlsx', delete=False) as tmp:
             tmp.write(decoded_bytes)
             tmp_path = tmp.name
-        print(f"Temporary file created Successfully")
-        
-        assets_dir = settings.BASE_DIR / "OT_Scheduling" / "assets"
+        print(f'File Decoded Successfully{tmp_path}')
 
-        special_equipment = pd.read_excel(assets_dir / "Special Equipments.xlsx")
-        nursing_technician_tl = pd.read_excel(assets_dir / "Nurshing and Technician OT.xlsx")
-        ot_data = pd.read_excel(assets_dir / "OT preferences(1).xlsx")
-        print(f"All files are sucessfully attached")
+        # Load Past Surgery Duration Data (Read & Write)
+        print(f"Loading the Past Surgery Duration Data")
+        #previous_duration=pd.read_excel(r'C:\Users\guru.aswini\Desktop\OT-Scheduler-abhishek-pathfinder\OT-Scheduler-abhishek-pathfinder\OT_Scheduling\assets\Aug 2022-Dec 2023.xlsx');
+        previous_duration=pd.read_excel(r'C:\Users\abhis\Workspace\backend\OT-Scheduler\docs\Aug 2022-Dec 2023.xlsx');
+        print('Past Surgery Duration Data Loaded successfully')
+
+        # loading the Special Requirement file
+        print(f"Loading the Special Requirement Data")
+        #special_requirements = pd.read_excel(r'C:\Users\guru.aswini\Desktop\OT-Scheduler-abhishek-pathfinder\OT-Scheduler-abhishek-pathfinder\OT_Scheduling\assets\Special Equipments.xlsx')
+        special_requirements = pd.read_excel(r'C:\Users\abhis\Workspace\backend\OT-Scheduler\docs\Special Equipments (1).xlsx')
+        print('Special Requirement Data Loaded successfully')
+
+        # laoding the Nursing file
+        print(f"Loading the Nursing Preference Data")
+        #nursing_preferences = pd.read_excel(r'C:\Users\guru.aswini\Desktop\OT-Scheduler-abhishek-pathfinder\OT-Scheduler-abhishek-pathfinder\OT_Scheduling\assets\Nurshing and Technician OT.xlsx')
+        nursing_preferences = pd.read_excel(r'C:\Users\abhis\Workspace\backend\OT-Scheduler\docs\Nurshing and Technician OT (1).xlsx')
+        print('Nursing Preference Data Loaded successfully')
+
+        # loading the OT prefernce file
+        print(f"Loading the OT Preference Data")
+        #ot_preferences = pd.read_excel(r'C:\Users\guru.aswini\Desktop\OT-Scheduler-abhishek-pathfinder\OT-Scheduler-abhishek-pathfinder\OT_Scheduling\assets\OT preferences(1).xlsx')
+        ot_preferences = pd.read_excel(r'C:\Users\abhis\Workspace\backend\OT-Scheduler\docs\OT preferences(1) (1).xlsx')
+        print('OT Preference Data Loaded successfully')
 
         # Preprocessing Input
         def preprocessed_surgeries(data):
-            # Each surgery name, converts it to lowercase, and removes all spaces.Then it returns a list of these cleaned surgery strings
             q = []
             for i in data:
-                if pd.isna(i):
-                    q.append(None)
-                else:
-                    i = str(i).lower().replace(" ", "")
-                    q.append(i)
+                i = i.lower()
+                i = i.replace(' ', '')
+                q.append(i)
             return q
 
         # Preprocessing Equipments
-        # Removes all spaces and special characters from each equipment name, converts it to lowercase, and standardizes it.
         def preprocess_equipments(data):
             q = []
             for i in data:
                 a = ''.join(e for e in i if e.isalnum()).lower()
                 q.append(a)
             return q
+
+                # Sorting with the Priority
         
         # Sorting with the Priority & priority surgery function
-        def priority_surgery(input_file,ot):
-            #print(f"Priority surgery function started.")
-            print(f"Input file columns: {input_file.columns}, length: {len(input_file)}")
-            print(f"OT preferences columns: {ot.columns}, length: {len(ot)}")
-            input_file.columns = ['Date of Surgery','Age/Sex','Procedure','Surgeon','Department','Name of the Patient','Special Equipment','MRD','Duration','Bed No','Contact no']
+        def priority_surgery(knowledge_base,input_file,ot):
+            input_file.columns = ['Date of Surgery','Age/Sex','Procedure','Surgeon','Department','Name of the Patient','Special Equipment','MRD']
+            knowledge_base.columns = ['Procedure','Duration']
+            knowledge_base['Processed_Procedures'] = preprocessed_surgeries(knowledge_base['Procedure'])
             input_file['Processed_Procedures'] = preprocessed_surgeries(input_file['Procedure'])
 
             # for ot mapping
             input_file['Processed_Department'] = preprocessed_surgeries(input_file['Department'])
             ot['Processed_Department'] = preprocessed_surgeries(ot['Department'])
 
-            print(f"Preprocessing completed.")
-            print(f"Input file columns: {input_file.columns}, length: {len(input_file)}")
-            print(f"OT preferences columns: {ot.columns}, length: {len(ot)}")
-            # Bug fix: deduplicate OT prefs by department before merge so that
-            # a department with multiple rows in the preferences file does not
-            # multiply every input surgery (each extra row produces a phantom
-            # duplicate that the scheduler treats as an independent surgery).
-            ot = ot.drop_duplicates(subset='Processed_Department')
 
-            map_input = pd.merge(input_file,ot,on='Processed_Department',how='inner')
-            print(f"Merging OT preferences completed. {map_input.columns} and length {len(map_input)}")
-
-            # Safety net: if duplicates still sneak through, drop them now
-            # before any scheduling work begins.
-            map_input = map_input.drop_duplicates(subset=['MRD', 'Procedure'])
-
-            filter_map = map_input.drop(['Sr No','Department_y','Processed_Department'],axis=1)
-            print(f"Dropping unnecessary columns completed {filter_map.columns} and length {len(filter_map)}")
+            map_input = pd.merge(input_file,knowledge_base,how='inner',on='Processed_Procedures').drop_duplicates(['MRD'])
+            map_input = pd.merge(map_input,ot,on='Processed_Department',how='inner')
+            filter_map = map_input.drop(['Sr No','Procedure_y','Department_y','Processed_Department','Department_y'],axis=1)
 
             age = []
             for i in filter_map['Age/Sex']:
@@ -1988,392 +1519,221 @@ class OTSchedulerView(APIView):
                 age.append(float(i[0]))
 
             filter_map['Age'] = age
-            #print(f"Age extraction completed{filter_map.columns}")
- 
-            print(f"filter_map columns datatype are {filter_map.dtypes} and length {len(filter_map)}")
-            #print(f"checking the data {filter_map['Duration'].head(5)}")
+
             filter_a = filter_map[filter_map['Duration']>10.0].sort_values(by='Age',ascending=True)
-            #print(f"filter_a completed. Length {len(filter_a)}")
-            filter_b = filter_map[(filter_map['Duration']<=10.0) & (filter_map['Age']<12.0)].sort_values(by='Age',ascending=True)
-            #print(f"filter_b completed. Length {len(filter_b)}")
-            filter_c = filter_map[(filter_map['Duration']<=10.0)& (filter_map['Age']>=12.0)].sort_values(by='Duration',ascending=False)
-            #print(f"filter_c completed. Length {len(filter_c)}")
-            print(f"Filtering based on duration and age completed. Length of filter_a: {len(filter_a)}, filter_b: {len(filter_b)}, filter_c: {len(filter_c)}")
+            filter_b = filter_map[(filter_map['Duration']<10.0) & (filter_map['Age']<12.0)].sort_values(by='Age',ascending=True)
+            filter_c = filter_map[(filter_map['Duration']<10.0)& (filter_map['Age']>12.0)].sort_values(by='Duration',ascending=False)
+
             filter = pd.concat([filter_a,filter_b,filter_c],axis=0)
-            print(f"Sorting with priority completed {filter.columns} and length {len(filter)}")
-            
+
             ot = []
 
-            # for i in filter['Preferred OT']:
-                # i = str(i)
-                # i = i.replace(' ','')
-                # j = list(map(int,i.split(',')))
-                # ot.append(j)
-            
             for i in filter['Preferred OT']:
-                if not i:
-                    continue
-                i = str(i).strip()
-                # Case 1: pure string (Cath lab)
-                if not any(ch.isdigit() for ch in i):
-                    ot.append([i])
-                    continue
-                # Case 2: numbers separated by commas
-                values = [v.strip() for v in i.split(',')]
-                try:
-                    ot.append([int(v) for v in values])
-                except ValueError:
-                    # fallback safety (should rarely happen)
-                    ot.append([i])
+                i = str(i)
+                i = i.replace(' ','')
+                j = list(map(int,i.split(',')))
+                ot.append(j)
 
-            print(f"Preferred OT extraction completed {filter.columns} and length {len(filter)}")
             filter['ot'] = ot
             filter['number ots'] = [len(i) for i in filter['ot']]
             filter_1 = pd.concat([filter[filter['number ots']==1],filter[filter['number ots']!=1]],axis=0)
-            
+
             return filter_1
 
-        # Mapping Equipments function
+        # Mapping Equipments function  check 341 to 349 line code
         def map_equipements (df,special_equipment):
-            print(f"Mapping equipments function started.")
-            print(f"Input df columns: {df.columns}, length: {len(df)}")
-            print(f"Special equipment columns: {special_equipment.columns}, length: {len(special_equipment)}")
             df['processed_equipment'] = preprocess_equipments(df['Special Equipment'].to_list())
             special_equipment['processed_equipment'] = preprocess_equipments(special_equipment['Equipment Name'].to_list()) 
-            print(f"Preprocessing equipments completed {df.columns} and length {len(df)} and special equipment columns are {special_equipment.columns} and length {len(special_equipment)}")
-            merge = pd.merge(df,special_equipment,on='processed_equipment',how='left')
+            merge = pd.merge(a,special_equipment,on='processed_equipment',how='left')
             return merge
-        
-        def scheduled_procedure(surgeries,m):
-            print(f"Scheduling Algorithm function started {surgeries.columns} and length {len(surgeries)}")
 
-            filter_1 = surgeries.copy()
+        # Scheduling Algorithm
+        def scheduled_procedure(surgeries):
+            filter_1 = surgeries
 
-            # Longest first improves packing
-            filter_1 = filter_1.sort_values(by="Duration", ascending=False).reset_index(drop=True)
-
-            # Build per-row surgery list (preserves multiple surgeries for same MRD)
-            unscheduled_surgeries = []
-            for idx in range(len(filter_1)):
-                row = filter_1.iloc[idx]
-                unscheduled_surgeries.append({
-                    'procedure': row['Procedure'],
-                    'mrd': row['MRD'],
-                    'duration': int(row['Duration'] * 60),
-                    'ots': row['ot'],
-                    'doctor': row['Surgeon'],
-                    'equipment_name': row['Equipment Name'],
-                    'is_special': pd.notna(row['Equipment Name']),
-                })
-
+            surgery_duration = dict(zip(filter_1['Procedure_x'], filter_1['Duration']))
+            surgery_ot = dict(zip(filter_1['Procedure_x'], filter_1['ot']))
+            surgery_doctor = dict(zip(filter_1['Procedure_x'], filter_1['Surgeon']))
+            unscheduled_surgeries = [
+                [filter_1['Procedure_x'].iloc[i], filter_1["MRD"].iloc[i]]
+                for i in range(len(filter_1))
+            ]
             scheduled_surgeries = []
-            unscheduled_result = []
             OT_dict = {}
             doctors = {i: [] for i in filter_1['Surgeon']}
-            # Track patient slots so the same patient's surgeries don't overlap
-            patients = {}
-            for mrd in filter_1['MRD']:
-                if mrd not in patients:
-                    patients[mrd] = []
 
+            # Function to check if two slots overlap
             def check_overlap(slot1, slot2):
                 return slot1[0] < slot2[1] and slot2[0] < slot1[1]
 
+            # Function to find if the new slot is free and add it to the occupied slots if it is free
             def book_slot(occupied_slots, new_slot):
                 for slot in occupied_slots:
                     if check_overlap(slot, new_slot):
-                        return False
-                return True
+                        return False  # Slot is not free
+                if new_slot[1] > 1080 and len(occupied_slots) == 0 and int(new_slot[1] - new_slot[0]) < 600:
+                    return False
 
-            # =============================
-            # MAIN SCHEDULING LOOP
-            # =============================
+                return True  # Slot is successfully booked
 
-            for surg in unscheduled_surgeries:
-
-                ots = surg['ots']
-                duration = surg['duration']
-                doctor = surg['doctor']
-                mrd = surg['mrd']
-                is_special = surg['is_special']
-                equipment_name = surg['equipment_name']
-
+            for i in unscheduled_surgeries:
+                ots = surgery_ot[i[0]]
+                duration = surgery_duration[i[0]]
+                doctor = surgery_doctor[i[0]]
                 schedule_hua = False
-
-                # Two-phase scheduling: Day first, then night
-                for phase in [(480, 1080), (1080, 1440)]:
-
+                for ot in ots:
                     if schedule_hua:
                         break
+                    for j in range(0, 601):
+                        if ot in OT_dict:
+                            ot_duration = OT_dict[ot] + 30 + j
+                            ot_duration_end = ot_duration + (duration * 60) + j
+                            slots = book_slot(doctors[doctor], (ot_duration, ot_duration_end))
 
-                    phase_start, phase_end = phase
+                            if ot_duration_end > 1080 and duration > 10 and slots:
+                                scheduled_surgeries.append({
+                                    'surgery': i[0], 'OT': ot, 'Start_time': ot_duration,
+                                    'End_time': ot_duration_end, 'Doctor': doctor, 'MRD': i[1]
+                                })
+                                OT_dict[ot] = ot_duration_end
+                                doctors[doctor].append((ot_duration, ot_duration_end))
+                                schedule_hua = True
+                                break
 
-                    for ot in ots:
+                            elif ot_duration_end <= 1080 and slots:
+                                scheduled_surgeries.append({
+                                    'surgery': i[0], 'OT': ot, 'Start_time': ot_duration,
+                                    'End_time': ot_duration_end, 'Doctor': doctor, 'MRD': i[1]
+                                })
+                                OT_dict[ot] = ot_duration_end
+                                doctors[doctor].append((ot_duration, ot_duration_end))
+                                schedule_hua = True
+                                break
 
-                        base_start = max(OT_dict.get(ot, 480), phase_start)
-                        current_time = base_start
+                        else:
+                            ot_duration = 480 + j
+                            ot_duration_end = ot_duration + (duration * 60) + j
+                            slots = book_slot(doctors[doctor], (ot_duration, ot_duration_end))
+                            if ot_duration_end > 1080 and duration > 10.0 and slots:
+                                scheduled_surgeries.append({
+                                    'surgery': i[0], 'OT': ot, 'Start_time': ot_duration,
+                                    'End_time': ot_duration_end, 'Doctor': doctor, 'MRD': i[1]
+                                })
+                                OT_dict[ot] = ot_duration_end
+                                doctors[doctor].append((ot_duration, ot_duration_end))
+                                schedule_hua = True
+                                break
 
-                        while current_time + duration <= phase_end:
+                            elif ot_duration_end <= 1080 and slots:
+                                scheduled_surgeries.append({
+                                    'surgery': i[0], 'OT': ot, 'Start_time': ot_duration,
+                                    'End_time': ot_duration_end, 'Doctor': doctor, 'MRD': i[1]
+                                })
+                                OT_dict[ot] = ot_duration_end
+                                doctors[doctor].append((ot_duration, ot_duration_end))
+                                schedule_hua = True
+                                break
 
-                            start_time = current_time
-                            end_time = start_time + duration
+            return scheduled_surgeries
 
-                            # Doctor check
-                            if not book_slot(doctors[doctor], (start_time, end_time)):
-                                current_time += 5
-                                continue
+        # Function to get previous end times        
+        def get_previous_end_times(request):
+            # Get the date and time from the request parameters
+            date_string = request.GET.get('date')
+            time_string = request.GET.get('time')
 
-                            # Patient check — same patient cannot be in two surgeries at once
-                            if not book_slot(patients[mrd], (start_time, end_time)):
-                                current_time += 5
-                                continue
+            # Check if both date and time parameters are present and not empty
+            if date_string and time_string:
+                try:
+                    # Convert date string to datetime object
+                    input_date = datetime.strptime(date_string, "%Y-%m-%d")
+                    # Convert time string to datetime object
+                    input_time = datetime.strptime(time_string, "%H:%M:%S")
 
-                            # Equipment check
-                            slots_special = True
-                            slot_special_index = 0
+                    # Query to get the previous end time for each OT for the given date and time
+                    previous_end_times = Scheduled_Surgeries.objects.filter(
+                        surgery_date=input_date,
+                        surgery_end_time__lt=input_time
+                    ).values('ot_number').annotate(max_end_time=Max('surgery_end_time'))
 
-                            if is_special:
-                                slots_special = False
-                                for k in range(len(m[equipment_name])):
-                                    if book_slot(
-                                            m[equipment_name][k],
-                                            (start_time, end_time)
-                                    ):
-                                        slots_special = True
-                                        slot_special_index = k
-                                        break
+                    # Convert queryset to list for easier JSON serialization
+                    previous_end_times_list = list(previous_end_times)
 
-                            if not slots_special:
-                                current_time += 5
-                                continue
-
-                            # Schedule it
-                            scheduled_surgeries.append({
-                                'surgery': surg['procedure'],
-                                'OT': ot,
-                                'Start_time': start_time,
-                                'End_time': end_time,
-                                'Doctor': doctor,
-                                'MRD': mrd,
-                                "Special Equipment": equipment_name
-                            })
-
-                            OT_dict[ot] = end_time + 30
-                            doctors[doctor].append((start_time, end_time))
-                            patients[mrd].append((start_time, end_time))
-
-                            if is_special:
-                                m[equipment_name][slot_special_index].append((start_time, end_time))
-
-                            schedule_hua = True
-                            break
-
-                        if schedule_hua:
-                            break
-
-                if not schedule_hua:
-                    print(f"Could NOT schedule surgery {surg['procedure']} (MRD {mrd})")
-                    unscheduled_result.append({'surgery': surg['procedure'], 'MRD': mrd})
-
-            return scheduled_surgeries, unscheduled_result
-            
-        inp = pd.read_excel(tmp_path)
-        input_surgeries = len(inp)
-
-        # ── DIAGNOSTIC LOG ──────────────────────────────────────────
-        print(f"[OTScheduler] Frontend sent {len(inp.columns)} columns: {list(inp.columns)}")
-        print(f"[OTScheduler] Total rows received: {len(inp)}")
-        for col in ['Bed No', 'Contact No']:
-            if col in inp.columns:
-                print(f"[OTScheduler] '{col}' sample values: {inp[col].head(5).tolist()}")
+                    return JsonResponse(previous_end_times_list, safe=False)
+                except ValueError:
+                    # Handle ValueError if date or time format is incorrect
+                    return JsonResponse({'error': 'Invalid date or time format'}, status=400)
             else:
-                print(f"[OTScheduler] WARNING: '{col}' column NOT FOUND in the received Excel!")
-        # ────────────────────────────────────────────────────────────
+                # Handle case when date or time parameter is missing
+                return JsonResponse({'error': 'Date or time parameter is missing'}, status=400)
 
-        # check the Special Equipement column if any value is null then fill it as NA.
-        inp['Special Request']= inp['Special Request'].fillna('NA')
-        # Fill Bed No and Contact No nulls before the null-row removal check
-        inp['Bed No'] = inp['Bed No'].fillna('NA')
-        inp['Contact no'] = inp['Contact no'].fillna('NA')
-
-        NEW_COLS = ['Requirement ICU', 'Anaesthesiologist', 'PAC Status', 'FIC Clearance']
-        for col in NEW_COLS:
-            if col in inp.columns:
-                inp[col] = inp[col].fillna('NA')
-        print(f"[OTScheduler] After fillna — Bed No: {inp['Bed No'].head(3).tolist()}, Contact No: {inp['Contact no'].head(3).tolist()}")
-
+        inp = pd.read_excel(tmp_path)
         # change date
         inp['DATE OF SURGERY'] = pd.to_datetime(inp['DATE OF SURGERY'])
         inp['DATE OF SURGERY'] = inp['DATE OF SURGERY'].dt.strftime('%m/%d/%Y')
         inp['DATE OF SURGERY'] = inp['DATE OF SURGERY'].astype(str)
+        print(f'Input File Read{inp.columns}')
+ 
+        # Priority set up
+        a = priority_surgery(previous_duration,inp,ot_preferences)  # here ot is missing
+        a['Special Equipment'] = a['Special Equipment'].astype(str)
+        print(a['MRD'])
+        print('Priority Set')
 
-        # checking the null values in the inp file in any null values then remove that row from the excel
-        null_rows = inp[inp.isnull().any(axis=1)]
-        if not null_rows.empty:
-            inp = inp.dropna()
-            print(f"Removed rows with null values. New number of rows: {len(inp)}")
-            if len(inp) == 0:
-                return Response({"message": "All rows contained null values and have been removed."}, status=400, headers=headers)
-        else:
-            print("No null values found in the input data.")
-
-        # Save the duration of each surgery in the excel(Aug 2022-Dec2023.xlsx) for save from 2407 row.
-        # Step 1: Make dictionary of surgery name and duration from input file
-        surgery_duration = {}
-        for _, row in inp.iterrows():
-            surgery_duration[row['SURGERY']] = row['Duration']
-        print(f"Duration dictionary created successfully.{surgery_duration}")
-
-        # Step 2: Read existing Excel file
-        file_path = assets_dir / "Aug 2022-Dec 2023.xlsx"
-        existing_df = pd.read_excel(file_path)
-        print("Existing data loaded successfully.")
-
-        # Step 3: Build index dict for O(1) lookup (surgery name -> row index)
-        surgery_index = {}
-        for idx, row in existing_df.iterrows():
-            surgery_index[str(row['Surgery']).strip()] = idx
-
-        # Step 4: Filter new data (remove duplicates)
-        new_rows = []
-        for surgery, duration in surgery_duration.items():
-            surgery_clean = str(surgery).strip()
-
-            if surgery_clean in surgery_index:
-                idx = surgery_index[surgery_clean]
-                current_duration = existing_df.at[idx, 'Duration(Hrs)']
-                # Update ONLY if duration is different
-                try:
-                    if float(current_duration) != float(duration):
-                        existing_df.at[idx, 'Duration(Hrs)'] = duration
-                except (ValueError, TypeError):
-                    existing_df.at[idx, 'Duration(Hrs)'] = duration
-            else:
-                # Collect new surgery for batch insert
-                new_rows.append({
-                    "Surgery": surgery_clean,
-                    "Duration(Hrs)": duration
-                })
-
-        # Append all new rows at once
-        if new_rows:
-            existing_df = pd.concat([existing_df, pd.DataFrame(new_rows)], ignore_index=True)
-
-        # Step 6: Save to temp file first, then replace original
-        temp_path = file_path.with_suffix('.tmp.xlsx')
-        existing_df.to_excel(temp_path, index=False)
-        temp_path.replace(file_path)
-        print("Update completed. No duplicates inserted.")
-
-        # Drop new columns so priority_surgery gets the expected 11 columns (positional rename).
-        inp_sched = inp.drop(columns=[c for c in NEW_COLS if c in inp.columns])
-
-        # Build a (MRD, surgery) → {col: val} lookup using positional indices before the
-        # pipeline renames columns. Position 2 = surgery, position 7 = MRD.
-        extra_lookup = {}
-        for _, row in inp_sched.iterrows():
-            key = (str(row.iloc[7]), str(row.iloc[2]))
-            extra_lookup[key] = {
-                col: (inp.at[row.name, col] if col in inp.columns else 'NA')
-                for col in NEW_COLS
-            }
-
-        #clean_surgeries = len(inp)
-        a = priority_surgery(inp_sched, ot_data)
-        print(f'Priority Function Executed Successfully. The output rows are{a.columns} & datatype are {a.dtypes} & {len(a)}')
-
-        mapped_equipments = map_equipements(a,special_equipment)
-        print(f'Equipment Mapping Completed{mapped_equipments.columns} & datatype are {mapped_equipments.dtypes} & {len(mapped_equipments)}')
-        mapped_equipments['Count'] = mapped_equipments['Count'].fillna(0)
+        # Newly added code from gcp
+        mapped_equipments = map_equipements(a,special_requirements)
+        mapped_equipments['Count'].fillna(0,inplace=True)
         mapped_equipments['Count'] = mapped_equipments['Count'].astype(int)
 
-        # special Equipment map
-        # It expands each equipment into multiple slots based on its count
-        print(f"Special Equipment mapping started")
+        ###### not added
+        # speacial Equipment map
         l = []
         m = {}
-        for i,j in special_equipment[['Equipment Name','Count']].iterrows():
+        for i,j in special_requirements[['Equipment Name','Count']].iterrows():
             l.append(j.to_list())
 
         for i in l:
             l1 = []
             for j in range(0,i[1]):
-                a_equipment= []
-                l1.append(a_equipment)
+                a = []
+                l1.append(a)
             m[i[0]] = l1
-        print(f"Special Equipment mapping completed")
 
-        #print(f"Starting the scheduling of surgeries{mapped_equipments}")
-        # mapped_equipments_df = pd.DataFrame(mapped_equipments)
-        # mapped_equipments_df.to_excel(
-        #     "mapped_equipments.xlsx",
-        #     index=False
-        # )
-
-        # final_schedule_surgeries = pd.DataFrame(scheduled_procedure(mapped_equipments))
-        
-        scheduled_list, unscheduled_list = scheduled_procedure(mapped_equipments, m)
-
-        final_schedule_surgeries = pd.DataFrame(scheduled_list)
-        unscheduled_df = pd.DataFrame(unscheduled_list)
-
-        for col in NEW_COLS:
-            final_schedule_surgeries[col] = final_schedule_surgeries.apply(
-                lambda r: extra_lookup.get((str(r['MRD']), str(r['surgery'])), {}).get(col, 'NA'),
-                axis=1
-            )
-
-        print(f"Scheduling of surgeries completed{final_schedule_surgeries.columns} and length are {len(final_schedule_surgeries)}")
+        final_schedule_surgeries = pd.DataFrame(scheduled_procedure(a))
         final_schedule_surgeries['Start_time'] = [f'{int(i // 60)}:{str(int(i % 60)).zfill(2)}' for i in final_schedule_surgeries['Start_time']]
         final_schedule_surgeries['End_time'] = [f'{int(i // 60)}:{str(int(i % 60)).zfill(2)}' for i in final_schedule_surgeries['End_time']]
 
-        print(f"Checking the columns for the mapped_equipments before dropping unnecessary columns {mapped_equipments.columns} and length is {len(mapped_equipments)}")
+        print('Surgeries Scheduled')
+
         mapped_equipments.drop(['Duration','Preferred OT','Age','ot','number ots','processed_equipment', 'Equipment Name', 'Count','Processed_Procedures'],axis=1,inplace=True)
-        print(f"mapped_equipments after dropping unnecessary columns {mapped_equipments.columns}")
-        mapped_equipments.columns = ['Date of Surgery','Age/Sex','surgery','Surgeon','Department','Name of the Patient','Special Equipment','MRD','Bed No','Contact No']
-        print(f"mapped_equipments are {mapped_equipments.columns} & number of rows are {len(mapped_equipments)}")
+        mapped_equipments.columns = ['Date of Surgery','Age/Sex','surgery','Surgeon','Department','Name of the Patient','Special Equipment','MRD']
+        print(mapped_equipments)
 
         ## Mapping nusre
         mapped_equipments['preprocess_dept'] = preprocess_equipments(mapped_equipments['Department'])
-        nursing_technician_tl['preprocess_dept'] = preprocess_equipments(nursing_technician_tl['Department'])
-        print(f"Checking the input before mapping nurse method. mapped_equipments columns are {mapped_equipments.columns} & datatype are {mapped_equipments.dtypes} & length are {len(mapped_equipments)}")
-        print(f"nursing_technician_tl columns are {nursing_technician_tl.columns} & datatype are {nursing_technician_tl.dtypes} & length are {len(nursing_technician_tl)}")
-        mapped_nurse = pd.merge(mapped_equipments,nursing_technician_tl,on='preprocess_dept',how='left')
-        print(f"Merging for nursing mapping completed.checking the columns {mapped_nurse.columns} & datatype are {mapped_nurse.dtypes} and length are {len(mapped_nurse)}")
+        nursing_preferences['preprocess_dept'] = preprocess_equipments(nursing_preferences['Department'])
+
+        mapped_nurse = pd.merge(mapped_equipments,nursing_preferences,on='preprocess_dept',how='left')
         mapped_nurse.drop(['preprocess_dept','Department_y'],axis=1,inplace=True)
-        mapped_nurse.rename(columns={'Department_x':'Department'},inplace=True)
-        print(f"mapped_nurse are completed{mapped_nurse.columns} and number of rows are {len(mapped_nurse)}")
+        mapped_nurse.rename({'Department_x':'Department'},inplace=True)
 
-        # Final Merge
-        print(f"Starting the final merge between mapped_nurse {mapped_nurse.columns} and rows are {len(mapped_nurse)}")
-        print(f"final_schedule_surgeries {final_schedule_surgeries.columns} and rows are {len(final_schedule_surgeries)}")
-        # Merge on both MRD and surgery to avoid cartesian product for multi-surgery patients
-        result = pd.merge(mapped_nurse, final_schedule_surgeries, left_on=['MRD', 'surgery'], right_on=['MRD', 'surgery'], how='inner')
-        print(f'Merge Done. The columns are {result.columns} and rows are {len(result)}')
-        result.drop_duplicates(['MRD','surgery','Start_time'],inplace=True)
-        result.drop(['Doctor','Special Equipment_y'],axis=1,inplace=True)
-        result.columns = ['Date of Surgery', 'Age/Sex', 'surgery', 'Surgeon', 'Department', 'Name of the Patient', 'Special Equipment', 'MRD', 'Bed No', 'Contact No', 'Nursing T/L', 'Technicial T/L', 'OT', 'Start_time', 'End_time', 'Requirement ICU', 'Anaesthesiologist', 'PAC Status', 'FIC Clearance']
+        print(mapped_nurse)
 
+        result = pd.merge(mapped_nurse, final_schedule_surgeries, on='MRD', how='inner')
+        print(f'Merge Done{result}')
+        
+        result.drop_duplicates(['Age/Sex','surgery_x','Surgeon','Name of the Patient'],inplace=True)
+        result.drop(['Doctor','surgery_y','Special Equipment_y'],axis=1,inplace=True)
+        result.columns = ['Date of Surgery', 'Age/Sex', 'surgery', 'Surgeon', 'Department','Name of the Patient', 'Special Equipment', 'MRD','Nursing T/L','Technicial T/L', 'OT','Start_time', 'End_time']
+        #result.fillna('Null', inplace=True)
         result = result.astype('object')
-        result = result.fillna('NA')
-        print(f"Input surgeries: {input_surgeries}, Scheduled surgeries: {len(result)}")
+        result.fillna('NA', inplace=True)
         print(result)
 
-        # Save result to Excel file
-        output_dir = assets_dir / "outputs"
-        os.makedirs(output_dir, exist_ok=True)
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        output_path = output_dir / f"OT_Schedule_{timestamp}.xlsx"
-        result.to_excel(output_path, index=False)
-        print(f"Result saved to Excel: {output_path}")
-
         return Response(result.to_dict(), status=200, headers=headers)
-      
-
-
+    
 ## OT Staff analytics
 ## Count in the dashboard
-
 class OTstaffNumberCountAPI(APIView):
     def get(self, request):
         # Deserialize input data
@@ -2592,9 +1952,10 @@ class OTstaffAverageSurgeryDurationAPI(APIView):
             data.append({ot_staff_name: duration_str})
 
         # Construct the response
+        # Construct the response
         result = {"Average Surgery Duration per OT Staff": data} if data else "No data found for the specified dates."
-        return Response(result)''' 
-    
+        return Response(result)'''
+
 
 # checking the surgery name matching with the SOC file.
 
@@ -2684,7 +2045,7 @@ def normalize_value(value):
 class ExcelProcessingView(APIView):
     permission_classes = (permissions.AllowAny,)
 
-    # Class-level cache (loaded once)
+    # 🔥 Class-level cache (loaded once)
     _initialized = False
     standard_names = []
     standard_codes = []
@@ -2698,9 +2059,13 @@ class ExcelProcessingView(APIView):
 
         print("🚀 Initializing surgery matcher (ONE TIME)...")
 
-        assets_dir = settings.BASE_DIR / "OT_Scheduling" / "assets"
+        # df_standard = pd.read_excel(
+        #     r'C:\Users\guru.aswini\Desktop\OT-Scheduler-abhishek-pathfinder\OT-Scheduler-abhishek-pathfinder\OT_Scheduling\assets\Standard Surgery Names & Codes.xlsx'
+        # ).fillna("")
 
-        df_standard = pd.read_excel(assets_dir / "Standard Surgery Names & Codes.xlsx").fillna("")
+        df_standard = pd.read_excel(
+            r'C:\Users\abhis\Workspace\backend\OT-Scheduler\docs\Cash_SOC_Surgery.xlsx'
+        ).fillna("")
 
         self.__class__.standard_names = df_standard["Surgery Name"].tolist()
         self.__class__.standard_codes = df_standard["Surgery Code"].tolist()
@@ -2711,7 +2076,13 @@ class ExcelProcessingView(APIView):
 
         print(f"✅ Loaded {len(self.standard_names)} standard surgeries")
 
-        df_duration=pd.read_excel(assets_dir/"Aug 2022-Dec 2023.xlsx").fillna("")
+        # df_duration=pd.read_excel(
+        #     r'C:\Users\guru.aswini\Desktop\OT-Scheduler-abhishek-pathfinder\OT-Scheduler-abhishek-pathfinder\OT_Scheduling\assets\Aug 2022-Dec 2023.xlsx'
+        # ).fillna("")
+
+        df_duration=pd.read_excel(
+            r'C:\Users\abhis\Workspace\backend\OT-Scheduler\docs\Aug 2022-Dec 2023.xlsx'
+        ).fillna("")
 
         self.__class__._duration_map = dict(
             zip(
@@ -2876,12 +2247,6 @@ class ExcelProcessingView(APIView):
                     "Special Request": normalize_value(row.get("Special Request")),
                     "Mrd Number": normalize_value(row.get("Mrd Number")),
                     "duration":self.process_duration(surgery_names),
-                    "Contact no":row.get("Contact No"),
-                    "Bed No":row.get("Bed No"),
-                    "Requirement ICU": normalize_value(row.get("Requirement ICU")),
-                    "Anaesthesiologist": normalize_value(row.get("Anaesthesiologist")),
-                    "PAC Status": normalize_value(row.get("PAC Status")),
-                    "FIC Clearance": normalize_value(row.get("FIC Clearance")),
                 })
 
             # Replace NaN with None (which becomes null in JSON) to avoid JSON serialization errors
@@ -2893,26 +2258,3 @@ class ExcelProcessingView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-
-class SurgeryDurationAPI(APIView):
-    permission_classes = (permissions.AllowAny,)
-
-    def get(self, request, *args, **kwargs):
-        surgery_name = request.query_params.get('surgery_name')
-        if not surgery_name:
-            return Response({"error": "surgery_name query parameter is required"}, status=status.HTTP_400_BAD_REQUEST)
-
-        standardized_name = surgery_name.replace("+", " ").strip()
-        print(f"Received surgery name: {surgery_name}, standardized to: {standardized_name}")
-        
-        assets_dir = settings.BASE_DIR / "OT_Scheduling" / "assets"
-        df_timestamps = pd.read_excel(assets_dir / "Aug 2022-Dec 2023.xlsx").fillna("")
-
-        # check the surgery name in the df_timestamps and return the duration if found
-        for _, row in df_timestamps.iterrows():
-            if str(row['Surgery']).strip().lower() == standardized_name.lower():
-                duration = row['Duration(Hrs)']
-                print(f"Found duration for surgery '{standardized_name}': {duration} hours")
-                return Response({"surgery_name": standardized_name, "estimated_duration": duration}, status=status.HTTP_200_OK)
-        print(f"No duration found for surgery '{standardized_name}'")
-        return Response({"error": "No matching surgery found."},status=status.HTTP_404_NOT_FOUND)
