@@ -11,7 +11,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:my_flutter_app/OTSchedule/OTScheduleListScreen.dart';
 import 'package:my_flutter_app/OTSchedule/SchedulerOutput.dart';
 import 'package:my_flutter_app/OTSchedule/pastSurgeries.dart';
 import 'package:my_flutter_app/OTSchedule/ListConfirmation.dart';
@@ -555,9 +554,7 @@ class _SchedulerInputState extends State<SchedulerInput> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) =>
-            //OTScheduleListScreen(scheduleData: jsonResponse),
-            SchedulerOutput(scheduleData: jsonResponse),
+            builder: (context) => SchedulerOutput(scheduleData: jsonResponse),
           ),
         );
 
@@ -982,9 +979,7 @@ class _SchedulerInputState extends State<SchedulerInput> {
       Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (context) =>
-            //OTScheduleListScreen(scheduleData: jsonResponse),
-            PastSurgeries(previousScheduledData, selectedDate)),
+            builder: (context) => PastSurgeries(previousScheduledData, selectedDate)),
       );
     } else {
       showDialog(

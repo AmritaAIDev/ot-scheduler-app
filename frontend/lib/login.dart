@@ -3,12 +3,8 @@ import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:my_flutter_app/Dashboards/Dashboard.dart';
 import 'package:my_flutter_app/Dashboards/Dashboard2.dart';
-import 'package:my_flutter_app/MenuPage.dart';
 import 'package:my_flutter_app/OTSchedule/SchedulerInput.dart';
-import 'package:my_flutter_app/TimeMonitoring/PatientListScreen.dart';
-import 'package:my_flutter_app/OTSchedule/OTScheduleScreen.dart';
 import 'package:my_flutter_app/config/constants.dart';
 import 'package:my_flutter_app/register.dart';
 import 'package:http/http.dart' as http;
@@ -158,9 +154,7 @@ class _LoginState extends State<Login> {
                       // Navigate to PatientListScreen for other usernames
                       Navigator.push(
                         context,
-                         //MaterialPageRoute(builder: (context) => MenuPage()),
                         MaterialPageRoute(builder: (context) => SchedulerInput()),
-                        //MaterialPageRoute(builder: (context) => Dashboard2()),
                       );
                     }
 
@@ -179,7 +173,6 @@ class _LoginState extends State<Login> {
                                 patientCount: patientCount,
                                 otStaffCount: otstaffCount,
                                 dateRangeMap: dateRangeMap))
-                        //MaterialPageRoute(builder: (context) => Dashboard(otCount: otCount, doctorsCount: doctorsCount, departmentCount: departmentCount, patientCount: patientCount, procedureCount: procedureCount, otStaffCount: otStaffCount, dateRangeMap: dateRangeMap)),
                       );
                     }
 

@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:my_flutter_app/Dashboards/Dashboard.dart';
-import 'package:my_flutter_app/MenuPage.dart';
 import 'package:my_flutter_app/login.dart';
 
 
@@ -23,9 +21,7 @@ class MyApp extends StatelessWidget {
       home: Scaffold(
         //appBar: AppBar(title: const Text(_title)),
         body: Login(),
-        //body: MenuPage(),
       ),
-      //home: Dashboard(),
     );
   }
 }
