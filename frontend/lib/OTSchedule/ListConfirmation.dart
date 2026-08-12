@@ -41,6 +41,7 @@ class _ListConfirmationState extends State<ListConfirmation> {
   String selectedFilterSpeciality = '';
   List<SurgeryMasterItem> allMasterItems = [];
   bool isLoading = true;
+
   //String baseUrl = 'http://127.0.0.1:8000/api';
   String baseUrl = Constants.baseURL;
   final ScrollController _horizontalController = ScrollController();
@@ -302,6 +303,7 @@ class _ListConfirmationState extends State<ListConfirmation> {
           pacStatus: pacStatus,
           ficClearance: ficClearance,
         ));
+        _canonicalizeSurgery(tableRows.last);
       }
     }
   }
@@ -349,6 +351,7 @@ class _ListConfirmationState extends State<ListConfirmation> {
             tableRows.last.surgeryCode = surgeryMasterData[currentSurgery]?.code ?? '';
             // Also update speciality if matches master? User said Default value = value from generated Excel.
           }
+          _canonicalizeSurgery(tableRows.last);
         }
       }
     }
@@ -393,6 +396,64 @@ class _ListConfirmationState extends State<ListConfirmation> {
       case 'Urology': return Constants.urologyMap;
       case 'Vascular & Endovascular': return Constants.vascularEndovascularProceduresMap;
       default: return {};
+    }
+  }
+
+  // Normalizes case, whitespace, and punctuation so names/codes that only
+  // differ by spacing, capitalization, dashes ('-' vs '–'/'—'), curly vs
+  // straight quotes, or '&' vs 'and' still match the known surgery maps
+  // below (e.g. from the uploaded Excel or the backend's fuzzy-matcher).
+  String _normalizeForMatch(String s) {
+    var normalized = s.trim().toLowerCase().replaceAll('&', ' and ');
+    normalized = normalized.replaceAll(RegExp(r'[^a-z0-9\s]'), ' ');
+    return normalized.replaceAll(RegExp(r'\s+'), ' ').trim();
+  }
+
+  // Finds the entry in [options] that matches [value] ignoring case and
+  // extra whitespace, returning the canonical (correctly-cased) option so
+  // it can be used directly as a DropdownSearch selectedItem/list item.
+  String? _findCanonicalValue(Iterable<String> options, String value) {
+    if (value.trim().isEmpty) return null;
+    final target = _normalizeForMatch(value);
+    for (final option in options) {
+      if (_normalizeForMatch(option) == target) return option;
+    }
+    return null;
+  }
+
+  // Reconciles a parsed row's speciality/surgery/code against the known
+  // department list and surgery maps, so values that only differ by
+  // whitespace or capitalization (e.g. from the uploaded Excel) are
+  // recognized instead of showing up as unselected in their dropdowns.
+  void _canonicalizeSurgery(ConfirmationRow row) {
+    final canonicalSpeciality =
+        _findCanonicalValue(specialityList, row.speciality);
+    if (canonicalSpeciality != null) {
+      row.speciality = canonicalSpeciality;
+    }
+
+    if (row.speciality.isEmpty) return;
+    final map = _getSurgeryMap(row.speciality);
+    if (map.isEmpty) return;
+
+    final canonicalName = _findCanonicalValue(map.values, row.surgery);
+    if (canonicalName != null) {
+      row.surgery = canonicalName;
+      if (row.surgeryCode.isEmpty) {
+        for (final entry in map.entries) {
+          if (entry.value == canonicalName) {
+            row.surgeryCode = entry.key;
+            break;
+          }
+        }
+      }
+      return;
+    }
+
+    final canonicalCode = _findCanonicalValue(map.keys, row.surgeryCode);
+    if (canonicalCode != null) {
+      row.surgeryCode = canonicalCode;
+      row.surgery = map[canonicalCode] ?? row.surgery;
     }
   }
 
@@ -594,6 +655,17 @@ class _ListConfirmationState extends State<ListConfirmation> {
               ),
             ),
             SizedBox(height: 20),
+            if (tableRows.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Text(
+                  'Surgery Date: ${tableRows.first.date}',
+                  style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.blueGrey[800]),
+                ),
+              ),
             Text(
               'SPECIALITY',
               style: TextStyle(
@@ -744,11 +816,7 @@ class _ListConfirmationState extends State<ListConfirmation> {
                       },
                       columns: [
                         DataColumn(
-                            label: Text('Date',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold))),
-                        DataColumn(
-                            label: Text('Age/Sex',
+                            label: Text('Speciality',
                                 style: TextStyle(
                                     fontWeight: FontWeight.bold))),
                         DataColumn(
@@ -760,7 +828,7 @@ class _ListConfirmationState extends State<ListConfirmation> {
                                 style: TextStyle(
                                     fontWeight: FontWeight.bold))),
                         DataColumn(
-                            label: Text('Speciality',
+                            label: Text('Duration (Hrs)',
                                 style: TextStyle(
                                     fontWeight: FontWeight.bold))),
                         DataColumn(
@@ -772,11 +840,11 @@ class _ListConfirmationState extends State<ListConfirmation> {
                                 style: TextStyle(
                                     fontWeight: FontWeight.bold))),
                         DataColumn(
-                            label: Text('MRD',
+                            label: Text('Age/Sex',
                                 style: TextStyle(
                                     fontWeight: FontWeight.bold))),
                         DataColumn(
-                            label: Text('Duration (Hrs)',
+                            label: Text('MRD',
                                 style: TextStyle(
                                     fontWeight: FontWeight.bold))),
                         DataColumn(
@@ -807,8 +875,41 @@ class _ListConfirmationState extends State<ListConfirmation> {
                             },
                           ),
                           cells: [
-                            DataCell(Text(row.date)),
-                            DataCell(Text(row.ageSex)),
+                            DataCell(
+                              SizedBox(
+                                width: 200,
+                                child: DropdownSearch<String>(
+                                  popupProps: PopupProps.menu(
+                                    showSearchBox: true,
+                                    searchFieldProps: TextFieldProps(
+                                      decoration: InputDecoration(
+                                        hintText: "Search Speciality...",
+                                        border: OutlineInputBorder(),
+                                      ),
+                                    ),
+                                  ),
+                                  items: specialityList,
+                                  dropdownDecoratorProps:
+                                  DropDownDecoratorProps(
+                                    dropdownSearchDecoration:
+                                    InputDecoration(
+                                      hintText: "Select Speciality",
+                                      border: InputBorder.none,
+                                    ),
+                                  ),
+                                  onChanged: (newValue) {
+                                    if (newValue == null) return;
+                                    setState(() {
+                                      row.speciality = newValue;
+                                      row.surgery = '';
+                                      row.surgeryCode = '';
+                                    });
+                                  },
+                                  selectedItem: _findCanonicalValue(
+                                      specialityList, row.speciality),
+                                ),
+                              ),
+                            ),
                             DataCell(
                               SizedBox(
                                 width: 250,
@@ -849,11 +950,9 @@ class _ListConfirmationState extends State<ListConfirmation> {
                                     });
                                     _fetchAndUpdateDuration(row, newValue);
                                   },
-                                  selectedItem:
-                                  _getSurgeryMap(row.speciality)
-                                      .containsValue(row.surgery)
-                                      ? row.surgery
-                                      : null,
+                                  selectedItem: _findCanonicalValue(
+                                      _getSurgeryMap(row.speciality).values,
+                                      row.surgery),
                                 ),
                               ),
                             ),
@@ -898,55 +997,12 @@ class _ListConfirmationState extends State<ListConfirmation> {
                                       _fetchAndUpdateDuration(row, surgeryName!);
                                     }
                                   },
-                                  selectedItem:
-                                  _getSurgeryMap(row.speciality)
-                                      .containsKey(
-                                      row.surgeryCode)
-                                      ? row.surgeryCode
-                                      : null,
+                                  selectedItem: _findCanonicalValue(
+                                      _getSurgeryMap(row.speciality).keys,
+                                      row.surgeryCode),
                                 ),
                               ),
                             ),
-                            DataCell(
-                              SizedBox(
-                                width: 200,
-                                child: DropdownSearch<String>(
-                                  popupProps: PopupProps.menu(
-                                    showSearchBox: true,
-                                    searchFieldProps: TextFieldProps(
-                                      decoration: InputDecoration(
-                                        hintText: "Search Speciality...",
-                                        border: OutlineInputBorder(),
-                                      ),
-                                    ),
-                                  ),
-                                  items: specialityList,
-                                  dropdownDecoratorProps:
-                                  DropDownDecoratorProps(
-                                    dropdownSearchDecoration:
-                                    InputDecoration(
-                                      hintText: "Select Speciality",
-                                      border: InputBorder.none,
-                                    ),
-                                  ),
-                                  onChanged: (newValue) {
-                                    if (newValue == null) return;
-                                    setState(() {
-                                      row.speciality = newValue;
-                                      row.surgery = '';
-                                      row.surgeryCode = '';
-                                    });
-                                  },
-                                  selectedItem: specialityList
-                                      .contains(row.speciality)
-                                      ? row.speciality
-                                      : null,
-                                ),
-                              ),
-                            ),
-                            DataCell(Text(row.surgeon)),
-                            DataCell(Text(row.patientName)),
-                            DataCell(Text(row.mrdNumber)),
                             DataCell(TextFormField(
                               controller: row.durationController,
                               onChanged: (val) {
@@ -957,6 +1013,10 @@ class _ListConfirmationState extends State<ListConfirmation> {
                               decoration:
                               InputDecoration(border: InputBorder.none),
                             )),
+                            DataCell(Text(row.surgeon)),
+                            DataCell(Text(row.patientName)),
+                            DataCell(Text(row.ageSex)),
+                            DataCell(Text(row.mrdNumber)),
                             DataCell(Text(row.specialRequest)),
                             DataCell(
                               IconButton(
