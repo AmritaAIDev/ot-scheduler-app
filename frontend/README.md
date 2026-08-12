@@ -1,41 +1,83 @@
-# my_flutter_app
+# OT Scheduler — Frontend
 
-A new Flutter project.
+Flutter client for the OT Scheduler application. It lets OT/surgical staff upload surgery lists, generate and review OT schedules, monitor OT progress in real time, and view scheduling analytics dashboards.
 
-## Getting Started
+See the repository-level [README](../README.md) for how this project fits into the monorepo, and [docs/architecture.md](../docs/architecture.md) for how it talks to the [backend](../backend) API.
 
-This project is a starting point for a Flutter application.
+> Note: the Flutter package is internally named `my_flutter_app` (see `pubspec.yaml`); the product is OT Scheduler.
 
-A few resources to get you started if this is your first Flutter project:
+## Technology Stack
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- **Language:** Dart
+- **Framework:** Flutter (SDK `>=3.1.4 <4.0.0`), version-pinned via [FVM](https://fvm.app/) to Flutter `3.19.0` (`.fvmrc`)
+- **Platforms:** Web, Android, iOS, Windows (platform folders present in this directory)
+- **Key libraries:** `http` (API calls), `syncfusion_flutter_charts` / `pie_chart` (analytics charts), `excel` / `csv` (import/export), `table_calendar`, `dropdown_search`, `file_picker`, `shared_preferences`
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Full dependency list: [`pubspec.yaml`](pubspec.yaml).
 
-## How to run ?
+## Prerequisites
 
-### Input sheet correction
-1. prepare the input sheet -sample input sheet attached in assets folder
-2. make sure to write age/sex column as '62Y/M' otherwise the scheduled output won't get stored in database.
+- [Flutter SDK](https://docs.flutter.dev/get-started/install) (this project is built against Flutter `3.19.0`)
+- [FVM](https://fvm.app/) recommended if you have multiple Flutter versions installed locally (`.fvmrc` pins the version for this project)
+- A running instance of the [backend](../backend) API (local or remote)
 
-### Terminal commands
-1. this project is made using flutter version - 3.19.0.
+## Configuration
 
-![img_1.png](img_1.png)
+The API base URL is set in `lib/config/constants.dart` (`baseURL`). It must point at a reachable backend instance — update it before running against a non-default backend host.
 
-2. So, if you have multiple flutter versions then you should run as below:
-    * `fvm flutter run`
-    * then chose chrome or other browser
+## Running Locally
 
-### Existing users and credentials
-* otadmin@gmail.com
-* demonurse@gmail.com
-* demomanager@gmail.com 
-* password- admin
+```bash
+cd frontend
 
+# If you have multiple Flutter versions installed:
+fvm flutter run
+# then choose Chrome or another target device/browser
+
+# Otherwise, with a single Flutter install matching .fvmrc:
+flutter run
+```
+
+### Input Sheet Preparation
+
+When preparing a surgery-list Excel file to upload for scheduling:
+
+1. Use the sample input sheet in `assets/docs/` as a reference format.
+2. The Age/Sex column must be formatted like `62Y/M` — otherwise the scheduled output will not be stored in the database.
+
+### Existing Test Users
+
+| Email | Password |
+|---|---|
+| otadmin@gmail.com | admin |
+| demonurse@gmail.com | admin |
+| demomanager@gmail.com | admin |
+
+## Running Tests
+
+A widget test scaffold exists at `test/widget_test.dart`, but it is currently empty.
+
+```bash
+flutter test
+```
+
+## Project Structure
+
+```
+frontend/
+├── lib/
+│   ├── main.dart            # App entry point
+│   ├── config/               # App config, constants (incl. API base URL), themes
+│   ├── Dashboards/           # Analytics dashboard screens
+│   ├── OTSchedule/           # Scheduling upload/review screens
+│   ├── TimeMonitoring/       # OT progress monitoring screens
+│   ├── utils/                 # Shared utilities
+│   ├── login.dart, register.dart, register2.dart, MenuPage.dart
+├── assets/                    # Images and sample/reference spreadsheets
+├── android/, ios/, windows/, web/   # Platform-specific projects
+├── test/                      # Flutter tests
+└── pubspec.yaml
+```
 
 ---
 
@@ -44,14 +86,16 @@ samples, guidance on mobile development, and a full API reference.
 ### For a Flutter Web App
 
 #### Build the Web App
-   Open your terminal in the project root and run the build command. This creates a compiled, production-ready version of your web app with all the static files. 
+Open your terminal in the project root and run the build command. This creates a compiled, production-ready version of your web app with all the static files.
 
-    ```flutter build web```
+```
+flutter build web
+```
 
-   This command generates a `build/web` directory in your project folder. This folder contains all the static files (HTML, CSS, JS, assets) needed to run your app.
+This command generates a `build/web` directory in your project folder. This folder contains all the static files (HTML, CSS, JS, assets) needed to run your app.
 
 #### Copy Files to the Server
-Copy the entire contents of your `build/web` folder to the web root directory of your server .
+Copy the entire contents of your `build/web` folder to the web root directory of your server.
 
 **Using SCP (Secure Copy)**
 ```
@@ -150,13 +194,9 @@ sudo nginx -t
 sudo systemctl reload nginx
 ```
 
-
-
 #### Access the App
 On any computer within your office network, open a web browser and navigate to your server's IP address alongwith port number.
 ` http://your-server-ip:PORT_NUMBER `
-
-
 
 #### Local Deployment
 
@@ -281,5 +321,3 @@ ssh souvik@10.125.50.200 "ls -la /usr/share/nginx/html/ot-scheduler/"
 Since it's a Flutter web app, users might need to clear their browser cache to see the updated version:
   * Chrome/Firefox/Edge: Ctrl+Shift+R (or Ctrl+F5) for hard refresh 
   * You can also ask users to clear cache manually
----
-
