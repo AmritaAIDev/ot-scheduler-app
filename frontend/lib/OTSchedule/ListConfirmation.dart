@@ -415,6 +415,43 @@ class _ListConfirmationState extends State<ListConfirmation> {
     }
   }
 
+  void _deleteRows(List<ConfirmationRow> rowsToDelete) {
+    if (rowsToDelete.isEmpty) return;
+    setState(() {
+      for (final row in rowsToDelete) {
+        row.durationController.dispose();
+        tableRows.remove(row);
+        displayedRows.remove(row);
+      }
+    });
+  }
+
+  Future<void> _confirmAndDeleteRows(
+      List<ConfirmationRow> rowsToDelete, String message) async {
+    if (rowsToDelete.isEmpty) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+            rowsToDelete.length == 1 ? 'Delete Row' : 'Delete Rows'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      _deleteRows(rowsToDelete);
+    }
+  }
+
   Future<void> _handleScheduleButtonPress() async {
     setState(() {
       isLoading = true;
@@ -647,6 +684,33 @@ class _ListConfirmationState extends State<ListConfirmation> {
                 //     style: TextStyle(color: Colors.white),
                 //   ),
                 // ),
+                Spacer(),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red[300],
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15)),
+                    padding: EdgeInsets.symmetric(
+                        horizontal: 15, vertical: 12),
+                  ),
+                  onPressed: displayedRows.any((row) => row.selected)
+                      ? () {
+                    final selectedRows = displayedRows
+                        .where((row) => row.selected)
+                        .toList();
+                    _confirmAndDeleteRows(
+                      selectedRows,
+                      'Delete ${selectedRows.length} selected '
+                          '${selectedRows.length == 1 ? 'entry' : 'entries'}?',
+                    );
+                  }
+                      : null,
+                  icon: Icon(Icons.delete_outline, color: Colors.white),
+                  label: Text(
+                    'Delete Selected',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
               ],
             ),
             SizedBox(height: 25),
@@ -671,6 +735,13 @@ class _ListConfirmationState extends State<ListConfirmation> {
                         controller: _verticalController,
                         child: DataTable(
                       dividerThickness: 1.5,
+                      onSelectAll: (selectAll) {
+                        setState(() {
+                          for (final row in displayedRows) {
+                            row.selected = selectAll ?? false;
+                          }
+                        });
+                      },
                       columns: [
                         DataColumn(
                             label: Text('Date',
@@ -712,11 +783,21 @@ class _ListConfirmationState extends State<ListConfirmation> {
                             label: Text('Request',
                                 style: TextStyle(
                                     fontWeight: FontWeight.bold))),
+                        DataColumn(
+                            label: Text('Actions',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold))),
                       ],
                       rows: displayedRows.map((row) {
                         bool isMissingData = row.surgery.isEmpty ||
                             row.duration.isEmpty || row.surgeryCode.isEmpty;
                         return DataRow(
+                          selected: row.selected,
+                          onSelectChanged: (isSelected) {
+                            setState(() {
+                              row.selected = isSelected ?? false;
+                            });
+                          },
                           color:
                           MaterialStateProperty.resolveWith<Color?>(
                                 (Set<MaterialState> states) {
@@ -877,6 +958,16 @@ class _ListConfirmationState extends State<ListConfirmation> {
                               InputDecoration(border: InputBorder.none),
                             )),
                             DataCell(Text(row.specialRequest)),
+                            DataCell(
+                              IconButton(
+                                icon: Icon(Icons.delete_outline,
+                                    color: Colors.red),
+                                tooltip: 'Delete row',
+                                onPressed: () => _confirmAndDeleteRows(
+                                    [row],
+                                    'Delete this surgery entry?'),
+                              ),
+                            ),
                           ],
                         );
                       }).toList(),
@@ -942,6 +1033,7 @@ class ConfirmationRow {
   String anaesthesiologist;
   String pacStatus;
   String ficClearance;
+  bool selected = false;
   late final TextEditingController durationController;
 
   ConfirmationRow({
