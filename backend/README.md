@@ -89,7 +89,6 @@ backend/
 │   ├── views.py            # API views (auth, CRUD, analytics, scheduler, Excel processing)
 │   ├── serializers.py      # DRF serializers
 │   ├── urls.py              # /api/ route definitions
-│   ├── algorithm.py        # OT scheduling algorithm
 │   ├── permissions.py      # DRF permission classes
 │   ├── migrations/         # Django migrations
 │   └── assets/              # Reference screenshots/assets used in this README
@@ -105,7 +104,7 @@ The full API reference — every endpoint, request/response examples, and the er
 
 Quick facts:
 - **Base URL:** `http://<host>/api/`
-- **Auth:** JWT Bearer token, except endpoints explicitly marked public in the catalogue
+- **Auth:** JWT is issued at `/api/login/` and would be validated as a Bearer token if sent, but enforcement is currently disabled on every endpoint except `UserUpdateView` (`permission_classes` commented out repo-wide, no `DEFAULT_PERMISSION_CLASSES` set) — see [`docs/PRD.md`](../docs/PRD.md) §3/§5, Gap #1/#2, for the verified finding.
 - **Date format:** `YYYY-MM-DD` for query params; `MM/DD/YYYY` for surgery/patient dates in request/response bodies
 
 ## Scheduling Algorithm Notes
@@ -123,7 +122,7 @@ Earlier project notes describe running the scheduling algorithm as a GCP Cloud R
 ![alt text](OT_Scheduling/assets/image-1.png)
 ![alt text](OT_Scheduling/assets/image-2.png)
 
-This repository's current backend runs the scheduling algorithm in-process (`OT_Scheduling/algorithm.py`, invoked via `/api/ot-schedule/`) rather than as a separate cloud function; the screenshots above are kept for historical reference.
+This repository's current backend runs the scheduling algorithm in-process, inline inside `OTSchedulerView.post()` (`OT_Scheduling/views.py`, invoked via `/api/ot-schedule/`) rather than as a separate cloud function. An older, GCP-Cloud-Storage-based `algorithm.py` implementation existed alongside it for a time but was never imported/called by the live views and has since been removed; the screenshots above are kept for historical reference.
 
 ## Useful Links
 
