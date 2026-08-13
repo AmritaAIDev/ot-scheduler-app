@@ -56,9 +56,6 @@ class OTs(models.Model):
     ot_number = models.CharField(max_length = 50,null=True,blank=True)
     department = models.CharField(max_length=50,null=True,blank=True)
 
-    #class Meta:
-        #unique_together = ('ot_number', 'department')  # Ensuring uniqueness across these fields
-
 class Patients(models.Model):
     patient_id = models.AutoField(primary_key=True)
     patient_name = models.CharField(max_length=50)
@@ -101,8 +98,6 @@ class Scheduled_Surgeries(models.Model):
     surgery_start_time = models.TimeField(null=True, blank=True)
     surgery_end_time = models.TimeField(null=True, blank=True)
     status = models.CharField(max_length=50,null=True, blank=True)
-    # for emergency, add on, or preplanned
-    #surgery_type = models.CharField(max_length=1000, null=True,blank=True, default='Pre-planned')
     # For OT Staff
     ot_staff_id = models.ForeignKey(OTstaff,on_delete=models.CASCADE,null=True, blank=True)
     technician_tl = models.CharField(max_length=1000,null=True,blank=True)
@@ -114,7 +109,6 @@ class Scheduled_Surgeries(models.Model):
 class Monitoring(models.Model):
     surgery_date = models.DateField(null=True, blank=True)
     scheduled_surgery_id = models.ForeignKey(Scheduled_Surgeries,on_delete=models.CASCADE,null=True,blank=True)
-    #ot_id = models.ForeignKey(OTs,on_delete=models.CASCADE)
     ot_number = models.CharField(max_length=1000, blank=True, null=True)
     user_id = models.ForeignKey(CustomUser,on_delete=models.CASCADE, null=True,blank=True)
     patient_received_in_pre_op_time = models.TimeField(null=True,blank=True)

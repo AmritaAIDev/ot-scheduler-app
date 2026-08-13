@@ -10,8 +10,6 @@ from .models import CustomUser, Doctors, OTs, Patients, Procedures, Scheduled_Su
 from rest_framework import generics, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
-from django_otp.plugins.otp_totp.models import TOTPDevice
-from django_otp.util import random_hex
 import random
 from rest_framework.decorators import action
 from .permissions import IsOwner
@@ -295,59 +293,6 @@ class ScheduleListCreateView(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
         fields_to_update = request.data  # Data provided by the user
-
-        '''# Exclude User_id field from the update
-        scheduled_surgery_id = 'scheduled_surgery_id'
-        patient_name = 'patient_name'
-        doctor_name = 'doctor_name'
-        ot_number = 'ot_number'
-        procedure_name = 'procedure_name'
-        user_id = 'user_id'
-        surgery_date = 'surgery_date'
-        surgery_start_time = 'surgery_start_time'
-        surgery_end_time = 'surgery_end_time'
-        mrd = 'mrd'
-        
-        if scheduled_surgery_id in fields_to_update:
-            return Response({'error': f"{scheduled_surgery_id} cannot be updated"},
-                        status=status.HTTP_400_BAD_REQUEST)
-        
-        if patient_name in fields_to_update:
-            return Response({'error': f"{patient_name} cannot be updated"},
-                        status=status.HTTP_400_BAD_REQUEST)
-        
-        if doctor_name in fields_to_update:
-            return Response({'error': f"{doctor_name} cannot be updated"},
-                        status=status.HTTP_400_BAD_REQUEST)
-        
-        if ot_number in fields_to_update:
-            return Response({'error': f"{ot_number} cannot be updated"},
-                        status=status.HTTP_400_BAD_REQUEST)
-        
-        if procedure_name in fields_to_update:
-            return Response({'error': f"{procedure_name} cannot be updated"},
-                        status=status.HTTP_400_BAD_REQUEST)
-        
-        if user_id in fields_to_update:
-            return Response({'error': f"{user_id} cannot be updated"},
-                        status=status.HTTP_400_BAD_REQUEST)
-        
-        if surgery_date in fields_to_update:
-            return Response({'error': f"{surgery_date} cannot be updated"},
-                        status=status.HTTP_400_BAD_REQUEST)
-        
-        if surgery_start_time in fields_to_update:
-            return Response({'error': f"{surgery_start_time} cannot be updated"},
-                        status=status.HTTP_400_BAD_REQUEST)
-        
-        if surgery_end_time in fields_to_update:
-            return Response({'error': f"{surgery_end_time} cannot be updated"},
-                        status=status.HTTP_400_BAD_REQUEST)
-        
-        if mrd in fields_to_update:
-            return Response({'error': f"{mrd} cannot be updated"},
-                        status=status.HTTP_400_BAD_REQUEST)'''
-
 
         # Iterate through the provided data to update instance fields
         for field, value in fields_to_update.items():
