@@ -9,6 +9,7 @@ media/
 
 # Virtualenv
 venv/
+.venv/
 
 # Migrations (optional — only if you regenerate often)
 # Comment out if you want to track migrations
