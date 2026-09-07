@@ -21,8 +21,6 @@ from sklearn.metrics.pairwise import cosine_similarity
 from django.conf import settings
 import logging
 
-logger = logging.getLogger(__name__)
-
 User = get_user_model()
 
 class UserCreate(APIView):
@@ -2554,12 +2552,6 @@ SPELLING_THRESHOLD = 0.65
 LCS_THRESHOLD = 0.55
 TOP_K = 5
 
-# When multiple candidates clear a threshold, accept the top-scoring one
-# anyway (instead of treating it as ambiguous) if it dominates the runner-up
-# by either of these margins.
-DOMINANCE_MIN_SCORE = 0.9
-DOMINANCE_MIN_LEAD = 0.15
-
 from rapidfuzz.distance import Levenshtein
 
 # Helper Functions
@@ -2655,7 +2647,6 @@ class ExcelProcessingView(APIView):
     std_cleaned = []
     std_vectors = None
     _duration_map = None
-    exact_match_index = {}
 
     def _initialize_matcher(self):
         if self.__class__._initialized:
@@ -2670,15 +2661,6 @@ class ExcelProcessingView(APIView):
         self.__class__.standard_names = df_standard["Surgery Name"].tolist()
         self.__class__.standard_codes = df_standard["Surgery Code"].tolist()
         self.__class__.std_cleaned = [clean_text(s) for s in self.standard_names]
-
-        # Index cleaned standard names -> row indices, so an exact textual
-        # match (e.g. "Tendon Transfer") can be resolved directly instead of
-        # being dropped as ambiguous when near-duplicate rows (e.g. "Tendon
-        # Transfer Complex") also clear the cosine-similarity threshold.
-        exact_match_index = {}
-        for i, cleaned in enumerate(self.std_cleaned):
-            exact_match_index.setdefault(cleaned, []).append(i)
-        self.__class__.exact_match_index = exact_match_index
 
         self.__class__.std_vectors = vectorizer.fit_transform(self.std_cleaned)
         self.__class__._initialized = True
@@ -2707,19 +2689,8 @@ class ExcelProcessingView(APIView):
         for sub in split_procedure(surgery_name):
             
             cleaned_input = clean_text(sub)
-
+            
             if not cleaned_input:
-                continue
-
-            # Exact-match short-circuit: if the cleaned input is identical to
-            # a standard name, use it directly rather than weighing it
-            # against near-duplicate candidates (e.g. "Tendon Transfer" vs
-            # "Tendon Transfer Complex") that would otherwise make the
-            # cosine-similarity cascade below treat it as ambiguous.
-            exact_indices = class_name.exact_match_index.get(cleaned_input, [])
-            if len(exact_indices) == 1:
-                i = exact_indices[0]
-                all_surgery_names.append((class_name.standard_names[i], class_name.standard_codes[i]))
                 continue
 
             # Vectorize input
@@ -2802,21 +2773,10 @@ class ExcelProcessingView(APIView):
             # Final decision
             final_results = sorted(final_results, key=lambda x: x[2], reverse=True)[:TOP_K]
 
+            
             if len(final_results) == 1:
                 name,code = final_results[0][0], final_results[0][1]
                 all_surgery_names.append((name, code))
-            elif len(final_results) > 1:
-                top, runner_up = final_results[0], final_results[1]
-                # Multiple candidates cleared the threshold, but the top one
-                # clearly dominates the runner-up (e.g. a near-exact spelling
-                # variant vs an unrelated partial match) -- treat it as a
-                # confident match rather than discarding it as ambiguous.
-                # Only truly close scores (e.g. two equally-plausible
-                # candidates) are left as unresolved.
-                if top[2] >= DOMINANCE_MIN_SCORE or (top[2] - runner_up[2]) >= DOMINANCE_MIN_LEAD:
-                    all_surgery_names.append((top[0], top[1]))
-                else:
-                    all_surgery_names.append((None, None))
             else:
                 all_surgery_names.append((None, None))
 
@@ -2843,33 +2803,16 @@ class ExcelProcessingView(APIView):
     def post(self, request, *args, **kwargs):
         self._initialize_matcher()
         file = request.FILES.get('file')
-
-        other_fields = {k: v for k, v in request.data.items() if k != 'file'}
-        logger.info(
-            "ExcelProcessingView request payload: file=%s content_type=%s size=%s bytes, other_fields=%s",
-            getattr(file, 'name', None),
-            getattr(file, 'content_type', None),
-            getattr(file, 'size', None),
-            other_fields,
-        )
-
         if not file:
-            logger.warning("ExcelProcessingView: no file uploaded")
+            print(f" No file uploaded")
             return Response({"error": "No file uploaded"}, status=status.HTTP_400_BAD_REQUEST)
-
+        
         try:
             print(f"Got the excel file")
             df = pd.read_excel(file)
-            # Replace NaN with None (which becomes null in JSON) to avoid JSON serialization errors
-            df = df.where(pd.notnull(df), None)
 
-            logger.info(
-                "ExcelProcessingView request payload rows (%d): %s",
-                len(df),
-                df.to_dict(orient='records'),
-            )
-
-            # Get the duration of the surgery from the excel
+            # Get the duration of the surgery from the excel 
+            
             response_data = []
             print(f"Processing each row for the response data")
             for _, row in df.iterrows():                
@@ -2901,14 +2844,13 @@ class ExcelProcessingView(APIView):
                     "FIC Clearance": normalize_value(row.get("FIC Clearance")),
                 })
 
-            logger.info(
-                "ExcelProcessingView response payload: %d row(s): %s",
-                len(response_data),
-                response_data,
-            )
+            # Replace NaN with None (which becomes null in JSON) to avoid JSON serialization errors
+            df = df.where(pd.notnull(df), None)
+            data = df.to_dict(orient='records')
+            
+            logging.debug(f"checking the response data{response_data}")
             return Response(response_data, status=status.HTTP_200_OK)
         except Exception as e:
-            logger.exception("ExcelProcessingView failed while processing uploaded file")
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
