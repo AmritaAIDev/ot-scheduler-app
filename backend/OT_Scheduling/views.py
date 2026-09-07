@@ -2137,9 +2137,11 @@ class OTSchedulerView(APIView):
 
         # check the Special Equipement column if any value is null then fill it as NA.
         inp['Special Request']= inp['Special Request'].fillna('NA')
-        # Fill Bed No and Contact No nulls before the null-row removal check
-        inp['Bed No'] = inp['Bed No'].fillna('NA')
-        inp['Contact no'] = inp['Contact no'].fillna('NA')
+        # Fill Bed No and Contact No nulls with 'N/A' before the null-row removal check below,
+        # so a missing Bed/Contact value doesn't cause the whole surgery row to be dropped,
+        # and the final output sheet shows 'N/A' instead of a blank/failed row.
+        inp['Bed No'] = inp['Bed No'].fillna('N/A')
+        inp['Contact no'] = inp['Contact no'].fillna('N/A')
 
         NEW_COLS = ['Requirement ICU', 'Anaesthesiologist', 'PAC Status', 'FIC Clearance']
         for col in NEW_COLS:
@@ -2819,6 +2821,10 @@ class ExcelProcessingView(APIView):
                 surgery_names = [name for name, code in standardized_name]
                 surgery_codes = [code for name, code in standardized_name]
                 print(f"Surgery names: {surgery_names}, Surgery codes: {surgery_codes}")
+                # Missing Bed/Contact must not break processing: raw NaN here would fail
+                # JSON serialization (DRF's STRICT_JSON rejects NaN), so fall back to 'N/A'.
+                contact_no = normalize_value(row.get("Contact No"))
+                bed_no = normalize_value(row.get("Bed No"))
                 response_data.append({
                     "DATE OF SURGERY": normalize_value(row.get("DATE OF SURGERY")),
                     "AGE/SEX": normalize_value(row.get("AGE/SEX")),
@@ -2830,8 +2836,8 @@ class ExcelProcessingView(APIView):
                     "Special Request": normalize_value(row.get("Special Request")),
                     "Mrd Number": normalize_value(row.get("Mrd Number")),
                     "duration":self.process_duration(surgery_names),
-                    "Contact no":row.get("Contact No"),
-                    "Bed No":row.get("Bed No"),
+                    "Contact no": contact_no if contact_no is not None else "N/A",
+                    "Bed No": bed_no if bed_no is not None else "N/A",
                     "Requirement ICU": normalize_value(row.get("Requirement ICU")),
                     "Anaesthesiologist": normalize_value(row.get("Anaesthesiologist")),
                     "PAC Status": normalize_value(row.get("PAC Status")),
