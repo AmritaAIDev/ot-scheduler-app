@@ -5,8 +5,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import UserSerializer
-from .serializers import UserSerializer, UserUpdateSerializer, DoctorSerializer, OTSerializer, PatientSerializer, ProcedureSerializer, ScheduleSerializer, MonitorSerializer, OTstaffSerializer
-from .models import CustomUser, Doctors, OTs, Patients, Procedures, Scheduled_Surgeries, Monitoring, OTstaff
+from .serializers import UserSerializer, UserUpdateSerializer, DepartmentSerializer, DoctorSerializer, OTSerializer, PatientSerializer, ProcedureSerializer, ScheduleSerializer, MonitorSerializer, OTstaffSerializer
+from .models import CustomUser, Department, Doctors, OTs, Patients, Procedures, Scheduled_Surgeries, Monitoring, OTstaff
 from rest_framework import generics, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -85,6 +85,10 @@ from django.http import HttpResponse
 def home(request):
     return HttpResponse("Hi,Welcome to the OT Scheduling App!")
 
+class DepartmentListCreateView(viewsets.ModelViewSet):
+    queryset = Department.objects.all()
+    serializer_class = DepartmentSerializer
+
 class DoctorListCreateView(viewsets.ModelViewSet):
     #permission_classes = [IsAuthenticated]
     queryset = Doctors.objects.all()
@@ -97,19 +101,28 @@ class DoctorListCreateView(viewsets.ModelViewSet):
         if doctor_id:
             queryset = queryset.filter(doctor_id=doctor_id)
         if department:
-            queryset = queryset.filter(department=department)
-        return queryset
-    
+            # Accept either a Department id or its canonical name.
+            if department.isdigit():
+                queryset = queryset.filter(departments__id=department)
+            else:
+                queryset = queryset.filter(departments__name=department)
+        return queryset.distinct()
+
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        # Check if the entry already exists in the database
+        # Check if the entry already exists in the database. Emp ID is the reliable identifier
+        # (two different real doctors can share a display name - see confirmation-screen-population
+        # -issues.md); fall back to name+department only when no emp_id was supplied.
         doctor_name = serializer.validated_data.get('doctor_name')
-        department = serializer.validated_data.get('department')
-        if Doctors.objects.filter(doctor_name=doctor_name, department=department).exists():
+        emp_id = serializer.validated_data.get('emp_id')
+        departments = serializer.validated_data.get('departments') or []
+        if emp_id and Doctors.objects.filter(emp_id=emp_id).exists():
+            return Response({'detail': 'Doctor with this Employee ID already exists.'}, status=status.HTTP_409_CONFLICT)
+        if not emp_id and departments and Doctors.objects.filter(doctor_name=doctor_name, departments__in=departments).exists():
             return Response({'detail': 'Doctor with this Name and department already exists.'}, status=status.HTTP_409_CONFLICT)
-        
+
         # If not exists, save the new entry
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
@@ -225,28 +238,53 @@ class ProcedureListCreateView(viewsets.ModelViewSet):
         queryset = super().get_queryset()
         procedure_id = self.request.query_params.get('procedure_id')
         procedure_name = self.request.query_params.get('procedure_name')
+        code = self.request.query_params.get('code')
         department = self.request.query_params.get('department')
         estimated_duration = self.request.query_params.get('estimated_duration')
         if procedure_id:
             queryset = queryset.filter(procedure_id=procedure_id)
         if procedure_name:
             queryset = queryset.filter(procedure_name=procedure_name)
+        if code:
+            queryset = queryset.filter(code=code)
         if department:
-            queryset = queryset.filter(department=department)
+            # Accept either a Department id or its canonical name.
+            if department.isdigit():
+                queryset = queryset.filter(departments__id=department)
+            else:
+                queryset = queryset.filter(departments__name=department)
         if estimated_duration:
             queryset = queryset.filter(estimated_duration=estimated_duration)
-        return queryset
-    
+        return queryset.distinct()
+
+    @action(methods=['get'], detail=False, url_path='search')
+    def search(self, request):
+        """Fuzzy-match a free-text surgery name against the Procedures table.
+        Replaces the old in-memory matcher over Standard Surgery Names & Codes.xlsx -
+        same algorithm, now backed by the DB (see SurgeryMatcher in this module)."""
+        query = request.query_params.get('q', '')
+        if not query.strip():
+            return Response({"error": "q query parameter is required"}, status=status.HTTP_400_BAD_REQUEST)
+        matcher = SurgeryMatcher.get_instance()
+        results = matcher.match(query)
+        return Response([
+            {"procedure_id": pid, "name": name, "code": code}
+            for pid, name, code in results
+        ], status=status.HTTP_200_OK)
+
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         # Check if the entry already exists in the database
         procedure_name = serializer.validated_data.get('procedure_name')
-        department = serializer.validated_data.get('department')
-        if Procedures.objects.filter(procedure_name=procedure_name, department=department).exists():
+        code = serializer.validated_data.get('code')
+        departments = serializer.validated_data.get('departments') or []
+        if code and Procedures.objects.filter(code=code).exists():
+            return Response({'detail': 'Procedure with this code already exists.'}, status=status.HTTP_409_CONFLICT)
+        if not code and departments and Procedures.objects.filter(procedure_name=procedure_name, departments__in=departments).exists():
             return Response({'detail': 'Procedure with this department already exists.'}, status=status.HTTP_409_CONFLICT)
-        
+
         # If not exists, save the new entry
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
@@ -2645,214 +2683,183 @@ def normalize_surgery_key(text):
     return re.sub(r"\s+", " ", normalized).strip()
 
 
-class ExcelProcessingView(APIView):
-    permission_classes = (permissions.AllowAny,)
+class SurgeryMatcher:
+    """Fuzzy-matches a free-text surgery name against Procedures (code + name), replacing the
+    old matcher that read Standard Surgery Names & Codes.xlsx directly. Same multi-stage
+    matching cascade as before - only the data source changed (DB instead of Excel), so a
+    surgery's code and name now travel together with its duration (Procedures.estimated_duration)
+    on one record instead of three independently-maintained sources."""
 
-    # Class-level cache (loaded once)
-    _initialized = False
-    standard_names = []
-    standard_codes = []
-    std_cleaned = []
-    std_vectors = None
-    _duration_map = None
-    exact_match_index = {}
+    _instance = None
 
-    def _initialize_matcher(self):
-        if self.__class__._initialized:
-            return
+    def __init__(self):
+        procedures = list(
+            Procedures.objects
+            .exclude(code__isnull=True).exclude(code='')
+            .exclude(procedure_name__isnull=True).exclude(procedure_name='')
+            .values_list('procedure_id', 'procedure_name', 'code')
+        )
+        self.std_ids = [p[0] for p in procedures]
+        self.std_names = [p[1] for p in procedures]
+        self.std_codes = [p[2] for p in procedures]
+        self.std_cleaned = [clean_text(s) for s in self.std_names]
 
-        print("🚀 Initializing surgery matcher (ONE TIME)...")
-
-        assets_dir = settings.BASE_DIR / "OT_Scheduling" / "assets"
-
-        df_standard = pd.read_excel(assets_dir / "Standard Surgery Names & Codes.xlsx").fillna("")
-
-        self.__class__.standard_names = df_standard["Surgery Name"].tolist()
-        self.__class__.standard_codes = df_standard["Surgery Code"].tolist()
-        self.__class__.std_cleaned = [clean_text(s) for s in self.standard_names]
-
-        # Index cleaned standard names -> row indices, so an exact textual
-        # match (e.g. "Tendon Transfer") can be resolved directly instead of
-        # being dropped as ambiguous when near-duplicate rows (e.g. "Tendon
-        # Transfer Complex") also clear the cosine-similarity threshold.
         exact_match_index = {}
         for i, cleaned in enumerate(self.std_cleaned):
             exact_match_index.setdefault(cleaned, []).append(i)
-        self.__class__.exact_match_index = exact_match_index
+        self.exact_match_index = exact_match_index
 
-        self.__class__.std_vectors = vectorizer.fit_transform(self.std_cleaned)
-        self.__class__._initialized = True
+        self.std_vectors = vectorizer.fit_transform(self.std_cleaned) if self.std_cleaned else None
 
-        print(f"✅ Loaded {len(self.standard_names)} standard surgeries")
+    @classmethod
+    def get_instance(cls):
+        if cls._instance is None:
+            cls._instance = cls()
+        return cls._instance
 
-        df_duration=pd.read_excel(assets_dir/"Aug 2022-Dec 2023.xlsx").fillna("")
+    @classmethod
+    def refresh(cls):
+        """Force a reload from the DB - call after re-seeding/editing Procedures."""
+        cls._instance = None
 
-        self.__class__._duration_map = dict(
-            zip(
-                df_duration["Surgery"].astype(str).map(normalize_surgery_key),
-                df_duration["Duration(Hrs)"]
-            )
-        )
+    def match(self, surgery_name):
+        """Returns a list of (procedure_id, name, code) triples, one per '+'/'&'/','-separated
+        sub-procedure in surgery_name. An unmatched sub-procedure comes back as (None, None, None)."""
+        if not surgery_name or not self.std_ids:
+            return [(None, None, None)]
 
-        print(f"✅ Loaded {len(self.__class__._duration_map)} surgeries for duration")
-
-    def process_surgery_name(self, surgery_name):
-        print(f"Process_surgery_name method is called!!. the input surgery name is : {surgery_name}")
-        class_name=self.__class__
-
-        # intializing the list for the multiple surgery names
-        all_surgery_names=[]
-
-        # Clean input
+        all_matches = []
         for sub in split_procedure(surgery_name):
-            
             cleaned_input = clean_text(sub)
-            
             if not cleaned_input:
                 continue
 
-            # Exact-match short-circuit: if the cleaned input is identical to
-            # a standard name, use it directly rather than weighing it
-            # against near-duplicate candidates (e.g. "Tendon Transfer" vs
-            # "Tendon Transfer Complex") that would otherwise make the
-            # cosine-similarity cascade below treat it as ambiguous.
-            exact_indices = class_name.exact_match_index.get(cleaned_input, [])
+            # Exact-match short-circuit (see the old matcher's identical comment): if the
+            # cleaned input is identical to exactly one standard name, use it directly.
+            exact_indices = self.exact_match_index.get(cleaned_input, [])
             if len(exact_indices) == 1:
                 i = exact_indices[0]
-                all_surgery_names.append((class_name.standard_names[i], class_name.standard_codes[i]))
+                all_matches.append((self.std_ids[i], self.std_names[i], self.std_codes[i]))
                 continue
 
-            # Vectorize input
             input_vec = vectorizer.transform([cleaned_input])
-            cosine_scores = cosine_similarity(input_vec, class_name.std_vectors)[0]
+            cosine_scores = cosine_similarity(input_vec, self.std_vectors)[0]
 
-            final_results = []
+            final_results = []  # (id, name, code, score, reason)
             is_short = (len(cleaned_input.split()) == 1 and len(cleaned_input) <= 5)
 
-            # 1️⃣ Abbreviation / Exact dominance
+            # 1) Abbreviation / exact dominance
             for i, cos in enumerate(cosine_scores):
-                if is_short and re.search(rf"\b{cleaned_input}\b", class_name.std_cleaned[i]):
-                    final_results.append((
-                        class_name.standard_names[i],
-                        class_name.standard_codes[i],
-                        max(0.7, cos),
-                        "Abbreviation dominance"
-                    ))
+                if is_short and re.search(rf"\b{cleaned_input}\b", self.std_cleaned[i]):
+                    final_results.append((self.std_ids[i], self.std_names[i], self.std_codes[i], max(0.7, cos), "Abbreviation dominance"))
 
-            # 2️⃣ Cosine similarity
+            # 2) Cosine similarity
             if not final_results:
                 for i, cos in enumerate(cosine_scores):
                     if cos < COSINE_THRESHOLD:
                         continue
+                    overlap = token_overlap(cleaned_input, self.std_cleaned[i])
+                    score = 0.7 * cos + 0.3 * overlap / max(len(cleaned_input.split()), 3)
+                    final_results.append((self.std_ids[i], self.std_names[i], self.std_codes[i], round(score, 3), "Cosine similarity"))
 
-                    overlap = token_overlap(cleaned_input, class_name.std_cleaned[i])
-                    score = 0.7 * cos + 0.3 * overlap / max(len(cleaned_input.split()),3)
-
-                    final_results.append((
-                        self.standard_names[i],
-                        self.standard_codes[i],
-                        round(score, 3),
-                        "Cosine similarity"
-                    ))
-
-            # 3️⃣ Word overlap
+            # 3) Word overlap
             if not final_results:
-                for i, cand_clean in enumerate(class_name.std_cleaned):
+                for i, cand_clean in enumerate(self.std_cleaned):
                     wo_score = word_overlap_score(cleaned_input, cand_clean)
                     if wo_score >= WORD_OVERLAP_THRESHOLD:
-                        final_results.append((
-                            self.standard_names[i],
-                            self.standard_codes[i],
-                            round(wo_score, 3),
-                            "Word overlap"
-                        ))
+                        final_results.append((self.std_ids[i], self.std_names[i], self.std_codes[i], round(wo_score, 3), "Word overlap"))
 
-            # 4️⃣ Spelling / Root fallback
+            # 4) Spelling / root fallback
             if not final_results:
-                for i, cand_clean in enumerate(class_name.std_cleaned):
+                for i, cand_clean in enumerate(self.std_cleaned):
                     if not is_single_long_word(cleaned_input) and token_overlap(cleaned_input, cand_clean) == 0:
                         continue
                     if not root_stem_overlap(cleaned_input, cand_clean):
                         continue
-
                     ratio = char_overlap_ratio(cleaned_input, cand_clean)
                     if ratio >= SPELLING_THRESHOLD:
-                        final_results.append((
-                            self.standard_names[i],
-                            self.standard_codes[i],
-                            round(ratio, 3),
-                            "Spelling/root"
-                        ))
+                        final_results.append((self.std_ids[i], self.std_names[i], self.std_codes[i], round(ratio, 3), "Spelling/root"))
 
-            # 5️⃣ LCS fallback
+            # 5) LCS fallback
             if not final_results and len(cleaned_input.replace(" ", "")) >= 6:
-                for i, cand_clean in enumerate(class_name.std_cleaned):
+                for i, cand_clean in enumerate(self.std_cleaned):
                     if not is_single_long_word(cleaned_input) and token_overlap(cleaned_input, cand_clean) == 0:
                         continue
-
                     ratio = lcs_ratio(cleaned_input, cand_clean)
                     if ratio >= LCS_THRESHOLD:
-                        final_results.append((
-                            self.standard_names[i],
-                            self.standard_codes[i],
-                            round(ratio, 3),
-                            "LCS"
-                        ))
+                        final_results.append((self.std_ids[i], self.std_names[i], self.std_codes[i], round(ratio, 3), "LCS"))
 
-            # Final decision
-            final_results = sorted(final_results, key=lambda x: x[2], reverse=True)[:TOP_K]
+            final_results = sorted(final_results, key=lambda x: x[3], reverse=True)[:TOP_K]
 
-            
             if len(final_results) == 1:
-                name,code = final_results[0][0], final_results[0][1]
-                all_surgery_names.append((name, code))
-
+                pid, name, code = final_results[0][0], final_results[0][1], final_results[0][2]
+                all_matches.append((pid, name, code))
             elif len(final_results) > 1:
                 top, runner_up = final_results[0], final_results[1]
-                # Multiple candidates cleared the threshold, but the top one
-                # clearly dominates the runner-up (e.g. a near-exact spelling
-                # variant vs an unrelated partial match) -- treat it as a
-                # confident match rather than discarding it as ambiguous.
-                # Only truly close scores (e.g. two equally-plausible
-                # candidates) are left as unresolved.
-                if top[2] >= DOMINANCE_MIN_SCORE or (top[2] - runner_up[2]) >= DOMINANCE_MIN_LEAD:
-                    all_surgery_names.append((top[0], top[1]))
+                # Multiple candidates cleared the threshold, but the top one clearly dominates
+                # the runner-up -- treat it as a confident match rather than discarding it as
+                # ambiguous. Only truly close scores are left as unresolved.
+                if top[3] >= DOMINANCE_MIN_SCORE or (top[3] - runner_up[3]) >= DOMINANCE_MIN_LEAD:
+                    all_matches.append((top[0], top[1], top[2]))
                 else:
-                    all_surgery_names.append((None, None))
+                    all_matches.append((None, None, None))
             else:
-                all_surgery_names.append((None, None))
+                all_matches.append((None, None, None))
 
-        if not surgery_name:    
-            return [(None, None)]
-        
-        return list(all_surgery_names)
-    
-    def process_duration(self, surgery_names):
-        print("Process_duration method is called. Input surgery names:", surgery_names)
+        return all_matches or [(None, None, None)]
 
-        durations = []
-        duration_map = self.__class__._duration_map
 
-        for surgery_name in surgery_names:
-            if not surgery_name:
-                durations.append(None)
-            else:
-                lookup_key = normalize_surgery_key(surgery_name.split("(")[0])
-                durations.append(duration_map.get(lookup_key, None))
-            
-        return durations
-    
+class ExcelProcessingView(APIView):
+    permission_classes = (permissions.AllowAny,)
+
+    def _initialize_matcher(self):
+        # Matching now lives in SurgeryMatcher, backed by Procedures instead of the Excel
+        # sheet - this just ensures it's loaded (get_instance() is a lazy singleton).
+        SurgeryMatcher.get_instance()
+
+    def process_surgery_name(self, surgery_name):
+        # Delegates to SurgeryMatcher; keeps this method's (name, code) contract for callers
+        # below that don't need the procedure_id.
+        return [(name, code) for _, name, code in SurgeryMatcher.get_instance().match(surgery_name)]
+
+    def process_duration(self, surgery_codes):
+        """Looks up duration directly off the matched Procedures record by code - duration,
+        name and code now all live on the same row, so this can never disagree with what was
+        actually matched (previously a separate exact-string lookup against a different
+        spreadsheet, Aug 2022-Dec 2023.xlsx, which only covered ~9% of procedures)."""
+        print("Process_duration method is called. Input surgery codes:", surgery_codes)
+        codes = [c for c in surgery_codes if c]
+        duration_by_code = dict(
+            Procedures.objects.filter(code__in=codes).values_list('code', 'estimated_duration')
+        )
+        return [duration_by_code.get(c) if c else None for c in surgery_codes]
+
     def post(self, request, *args, **kwargs):
         self._initialize_matcher()
         file = request.FILES.get('file')
+
+        other_fields = {k: v for k, v in request.data.items() if k != 'file'}
+        logger.info(
+            "ExcelProcessingView request payload: file=%s content_type=%s size=%s bytes, other_fields=%s",
+            getattr(file, 'name', None),
+            getattr(file, 'content_type', None),
+            getattr(file, 'size', None),
+            other_fields,
+        )
         if not file:
             print(f" No file uploaded")
+            logger.warning("ExcelProcessingView: no file uploaded")
             return Response({"error": "No file uploaded"}, status=status.HTTP_400_BAD_REQUEST)
         
         try:
             print(f"Got the excel file")
             df = pd.read_excel(file)
-
+            df = df.where(pd.notnull(df), None)
+            logger.info(
+                "ExcelProcessingView request payload rows (%d): %s",
+                len(df),
+                df.to_dict(orient='records'),
+            )
             # Get the duration of the surgery from the excel 
             
             response_data = []
@@ -2877,7 +2884,7 @@ class ExcelProcessingView(APIView):
                     "Name of the Patient": normalize_value(row.get("Name of the Patient")),
                     "Special Request": normalize_value(row.get("Special Request")),
                     "Mrd Number": normalize_value(row.get("Mrd Number")),
-                    "duration":self.process_duration(surgery_names),
+                    "duration":self.process_duration(surgery_codes),
                     "Contact no": contact_no if contact_no is not None else "N/A",
                     "Bed No": bed_no if bed_no is not None else "N/A",
                     "Requirement ICU": normalize_value(row.get("Requirement ICU")),
@@ -2886,6 +2893,12 @@ class ExcelProcessingView(APIView):
                     "FIC Clearance": normalize_value(row.get("FIC Clearance")),
                 })
 
+            logger.info(
+                "ExcelProcessingView response payload: %d row(s): %s",
+                len(response_data),
+                response_data,
+            )
+
             # Replace NaN with None (which becomes null in JSON) to avoid JSON serialization errors
             df = df.where(pd.notnull(df), None)
             data = df.to_dict(orient='records')
@@ -2893,6 +2906,7 @@ class ExcelProcessingView(APIView):
             logging.debug(f"checking the response data{response_data}")
             return Response(response_data, status=status.HTTP_200_OK)
         except Exception as e:
+            logger.exception("ExcelProcessingView failed while processing uploaded file")
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 

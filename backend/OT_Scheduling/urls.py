@@ -2,12 +2,13 @@ from django.urls import path
 from .views import UserCreate, LoginView
 from rest_framework_simplejwt.views import TokenRefreshView
 from . import views
-from .views import UserCreate, UserUpdateView, LoginView, DoctorListCreateView,OTListCreateView, PatientListCreateView, ProcedureListCreateView, ScheduleListCreateView, MonitorListCreateView, OTstaffListCreateView, OTSchedulerView, OTNumberCountAPI, OTSurgeriesCountAPI, OTTimeSlotUsageAPI, AvgMonitoringStepsAPIView, OTUtilizationAPIView, DoctorNumberCountAPI,DoctorSurgeriesCountAPI, DoctorTimeSlotUsageAPI, DoctorAverageSurgeryDurationAPI, DepartmentNumberCountAPI, DepartmentSurgeryCountAPI, ProcedureCountAPI, ProcedureTimeComparisonAPI, SurgeryTypePercentageAPI, SurgeryTimingPercentageAPI, PatientCountAPI, GenderDistributionAPI, AgeDistributionAPI, SurgeryDateAPI, AvgTimeDifferenceAPIView, UniqueDepartmentSurgeryCountAPI, OTstaffNumberCountAPI,OTstaffSurgeriesCountAPI, OTstaffAverageSurgeryDurationAPI, ExcelProcessingView, SurgeryDurationAPI
+from .views import UserCreate, UserUpdateView, LoginView, DepartmentListCreateView, DoctorListCreateView,OTListCreateView, PatientListCreateView, ProcedureListCreateView, ScheduleListCreateView, MonitorListCreateView, OTstaffListCreateView, OTSchedulerView, OTNumberCountAPI, OTSurgeriesCountAPI, OTTimeSlotUsageAPI, AvgMonitoringStepsAPIView, OTUtilizationAPIView, DoctorNumberCountAPI,DoctorSurgeriesCountAPI, DoctorTimeSlotUsageAPI, DoctorAverageSurgeryDurationAPI, DepartmentNumberCountAPI, DepartmentSurgeryCountAPI, ProcedureCountAPI, ProcedureTimeComparisonAPI, SurgeryTypePercentageAPI, SurgeryTimingPercentageAPI, PatientCountAPI, GenderDistributionAPI, AgeDistributionAPI, SurgeryDateAPI, AvgTimeDifferenceAPIView, UniqueDepartmentSurgeryCountAPI, OTstaffNumberCountAPI,OTstaffSurgeriesCountAPI, OTstaffAverageSurgeryDurationAPI, ExcelProcessingView, SurgeryDurationAPI
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework.routers import DefaultRouter
 
 
 router = DefaultRouter()
+router.register(r'departments', DepartmentListCreateView, basename='department-data-list-create')
 router.register(r'doctors', DoctorListCreateView, basename='docotr-data-list-create')
 router.register(r'OT', OTListCreateView, basename='OT-data-list-create')
 router.register(r'patient', PatientListCreateView, basename='patient-list-create')

@@ -1,0 +1,1256 @@
+[
+ {
+  "emp_id": "MC00836",
+  "name": "Dr Reshma",
+  "department_raw": "Anaesthesiology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00114",
+  "name": "Dr.(Prof)  Mukul Chandra Kapoor",
+  "department_raw": "Anaesthesiology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00123",
+  "name": "Dr.(Prof)  Shaloo Garg",
+  "department_raw": "Anaesthesiology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00132",
+  "name": "Dr.  Deepak Pahwa",
+  "department_raw": "Anaesthesiology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00142",
+  "name": "Dr.  Niti Batra Gulati",
+  "department_raw": "Anaesthesiology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00253",
+  "name": "Dr.  Vivek Chopra",
+  "department_raw": "Anaesthesiology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00274",
+  "name": "Dr.  Twinkle Patel",
+  "department_raw": "Anaesthesiology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00571",
+  "name": "Dr Mayank Karode",
+  "department_raw": "Anaesthesiology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00593",
+  "name": "Dr Ankita Solanki",
+  "department_raw": "Anaesthesiology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00597",
+  "name": "Dr Bushra Mohammad",
+  "department_raw": "Anaesthesiology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00679",
+  "name": "Dr Ridhima Bhatia",
+  "department_raw": "Anaesthesiology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00684",
+  "name": "Dr Gaurav Chaudhary",
+  "department_raw": "Anaesthesiology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00752",
+  "name": "Dr Megha Bajaj",
+  "department_raw": "Anaesthesiology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00789",
+  "name": "Dr Renu Dhamnani",
+  "department_raw": "Anaesthesiology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00794",
+  "name": "Dr Alan P Tom",
+  "department_raw": "Anaesthesiology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00800",
+  "name": "Dr Bunty Rani",
+  "department_raw": "Anaesthesiology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00811",
+  "name": "Dr Vikram Kumar Jangir",
+  "department_raw": "Anaesthesiology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00817",
+  "name": "Dr. Harsimran Manchanda",
+  "department_raw": "Anaesthesiology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "ME00108",
+  "name": "Dr.  Manjita Sony",
+  "department_raw": "Anaesthesiology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00838",
+  "name": "Dr. Tania Ghosh",
+  "department_raw": "Anaesthesiology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00134",
+  "name": "Dr.  Dheeraj Arora",
+  "department_raw": "Anaesthesiology (Cardiac)",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00311",
+  "name": "Dr. Shweta Kishor Panse",
+  "department_raw": "Anaesthesiology (Cardiac)",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00596",
+  "name": "Dr Rahul Maria",
+  "department_raw": "Anaesthesiology (Cardiac)",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00781",
+  "name": "Dr M.G. Rajesh",
+  "department_raw": "Anaesthesiology (Cardiac)",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00289",
+  "name": "Dr. Gaurav Kakkar",
+  "department_raw": "Anaesthesiology (Neuro)",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00495",
+  "name": "Dr. Anshul Yadav",
+  "department_raw": "Anaesthesiology (Neuro)",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00707",
+  "name": "Dr Sneha Amarkumar Pandit",
+  "department_raw": "Anaesthesiology (Neuro)",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00743",
+  "name": "Dr Sruthi Arunkumar",
+  "department_raw": "Anaesthesiology (Neuro)",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00172",
+  "name": "Dr.  Vandana Saluja",
+  "department_raw": "Anaesthesiology (Transplant)",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00174",
+  "name": "Dr.  Shankey Garg",
+  "department_raw": "Anaesthesiology (Transplant)",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00648",
+  "name": "Dr Chintakunta Manisha",
+  "department_raw": "Anaesthesiology (Transplant)",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00657",
+  "name": "Dr Arun SK",
+  "department_raw": "Anaesthesiology (Transplant)",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00663",
+  "name": "Dr Shubhina Gupta",
+  "department_raw": "Anaesthesiology (Transplant)",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00680",
+  "name": "Dr Vijay Kant Pandey",
+  "department_raw": "Anaesthesiology (Transplant)",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00865",
+  "name": "Dr. Ranganathan Ananthasubramanian",
+  "department_raw": "Anaesthesiology(Cardiac)",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00239",
+  "name": "Dr. Sameer Bhate",
+  "department_raw": "Cardiac Surgery - Adult - Package",
+  "department_canonical": "Cardiac Surgery - Adult"
+ },
+ {
+  "emp_id": "MC00844",
+  "name": "Dr. Sameer Lal",
+  "department_raw": "Cardiac Surgery - Adult - Package",
+  "department_canonical": "Cardiac Surgery - Adult"
+ },
+ {
+  "emp_id": "MC00219",
+  "name": "Dr.  Shivang Saxena",
+  "department_raw": "Cardiac Surgery - Paediatric - Package",
+  "department_canonical": "Cardiac Surgery - Paediatric"
+ },
+ {
+  "emp_id": "MC00277",
+  "name": "Dr.  Ashish Katewa",
+  "department_raw": "Cardiac Surgery - Paediatric - Package",
+  "department_canonical": "Cardiac Surgery - Paediatric"
+ },
+ {
+  "emp_id": "MC00166",
+  "name": "Dr.(Prof)   Vivek Chaturvedi",
+  "department_raw": "Cardiology (Adult)",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00297",
+  "name": "Dr. Dilip Kumar Das",
+  "department_raw": "Cardiology (Adult)",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00312",
+  "name": "Dr. Swarnika Srivastava",
+  "department_raw": "Cardiology (Adult)",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00524",
+  "name": "Dr. Vibhav Sharma",
+  "department_raw": "Cardiology (Adult)",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00618",
+  "name": "Dr Ashish Kumar",
+  "department_raw": "Cardiology (Adult)",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00824",
+  "name": "Dr Gautam Singhal",
+  "department_raw": "Cardiology (Adult)",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00178",
+  "name": "Dr.  Ripenmeet Salhotra",
+  "department_raw": "Critical Care Medicine",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00327",
+  "name": "Dr Aayush Chawla",
+  "department_raw": "Critical Care Medicine",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00465",
+  "name": "Dr. Sandeep Mangla",
+  "department_raw": "Critical Care Medicine",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00610",
+  "name": "Dr Narayanan Sarat",
+  "department_raw": "Critical Care Medicine",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00742",
+  "name": "Dr. Ancy Elizabeth Koshy",
+  "department_raw": "Dentistry - Orthodontics",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00284",
+  "name": "Dr. Divyam Girdhar",
+  "department_raw": "Dentistry-Endodontics",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00358",
+  "name": "Dr. Megha Jain",
+  "department_raw": "Dentistry-Pedodontics",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00124",
+  "name": "Dr. Shilpa Khullar Sood",
+  "department_raw": "Dentistry-Prosthodontics",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00108",
+  "name": "Dr.  Neena Khanna",
+  "department_raw": "Dermatology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00279",
+  "name": "Dr.  Bela Bhat",
+  "department_raw": "Dermatology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00290",
+  "name": "Dr. Sachin Gupta",
+  "department_raw": "Dermatology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00700",
+  "name": "Dr Rajesh Verma",
+  "department_raw": "Dermatology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00869",
+  "name": "Dr. Pankhuri Dudani",
+  "department_raw": "Dermatology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00129",
+  "name": "Dr.  Anshul Jain",
+  "department_raw": "Emergency Medicine",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00361",
+  "name": "Dr Indresh Kumar",
+  "department_raw": "Emergency Medicine",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00724",
+  "name": "Dr Ruchin Agrawal",
+  "department_raw": "Emergency Medicine",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00813",
+  "name": "Dr Jitesh Arora",
+  "department_raw": "Emergency Medicine",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "ME00138",
+  "name": "Dr.  Sumit Kaushik",
+  "department_raw": "Emergency Medicine",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00153",
+  "name": "Dr.(Prof)  Sachin Kumar Jain",
+  "department_raw": "Endocrinology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00803",
+  "name": "Dr Priyashri Katewa",
+  "department_raw": "Endocrinology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00130",
+  "name": "Dr.  Aparna H Mahajan",
+  "department_raw": "ENT",
+  "department_canonical": "ENT"
+ },
+ {
+  "emp_id": "MC00140",
+  "name": "Dr.(Prof)  Neeraj Narayan Mathur",
+  "department_raw": "ENT",
+  "department_canonical": "ENT"
+ },
+ {
+  "emp_id": "MC00835",
+  "name": "Dr Shefali Sharma",
+  "department_raw": "ENT",
+  "department_canonical": "ENT"
+ },
+ {
+  "emp_id": "MC00149",
+  "name": "Dr.(Prof)  Reema Bhatt",
+  "department_raw": "Fetal Medicine",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00611",
+  "name": "Dr Gaurav Juneja",
+  "department_raw": "Fetal Medicine",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00180",
+  "name": "Dr.  Suraj Bhagat",
+  "department_raw": "Gastroentrology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00181",
+  "name": "Dr.  Mahendra Singh Rajput",
+  "department_raw": "Gastroentrology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00185",
+  "name": "Dr.  Dharmendra Kumar",
+  "department_raw": "General Medicine",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00186",
+  "name": "Dr.  Hyacinth Peninnah Paljor",
+  "department_raw": "General Medicine",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00220",
+  "name": "Dr.  Veenu Gupta",
+  "department_raw": "General Medicine",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00223",
+  "name": "Dr.  Mohit Sharma",
+  "department_raw": "General Medicine",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00255",
+  "name": "Dr.  Sakshi Singh",
+  "department_raw": "General Medicine",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00317",
+  "name": "Dr. Sanjay Raina",
+  "department_raw": "General Medicine",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00683",
+  "name": "Dr Surabhi Dogra",
+  "department_raw": "General Medicine",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00754",
+  "name": "Dr Vidhi Vij",
+  "department_raw": "General Medicine",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00753",
+  "name": "Dr Bishnu Charan Pattnaik",
+  "department_raw": "General Medicine- MHC",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00694",
+  "name": "Dr Jatin Kumar Punia",
+  "department_raw": "General Surgery",
+  "department_canonical": "General Surgery"
+ },
+ {
+  "emp_id": "MC00698",
+  "name": "Dr Jayadatta Gurudatta Pawar",
+  "department_raw": "General Surgery",
+  "department_canonical": "General Surgery"
+ },
+ {
+  "emp_id": "MC00715",
+  "name": "Dr Agnishikha Bhatt",
+  "department_raw": "General Surgery",
+  "department_canonical": "General Surgery"
+ },
+ {
+  "emp_id": "MC00411",
+  "name": "Dr. Yagyavalik Sharma",
+  "department_raw": "General Surgery",
+  "department_canonical": "General Surgery"
+ },
+ {
+  "emp_id": "MC00429",
+  "name": "Dr. Bhanu Prakash Sharma",
+  "department_raw": "General Surgery",
+  "department_canonical": "General Surgery"
+ },
+ {
+  "emp_id": "MC00638",
+  "name": "Dr Arun Kumar Gupta",
+  "department_raw": "General Surgery",
+  "department_canonical": "General Surgery"
+ },
+ {
+  "emp_id": "MC00787",
+  "name": "Dr Deepak Udapudi",
+  "department_raw": "General Surgery",
+  "department_canonical": "General Surgery"
+ },
+ {
+  "emp_id": "MC00372",
+  "name": "Dr. Shiveta Razdan",
+  "department_raw": "General Surgery",
+  "department_canonical": "General Surgery"
+ },
+ {
+  "emp_id": "MC00275",
+  "name": "Dr. Puneet Dhar",
+  "department_raw": "Gastrointestinal Surgery",
+  "department_canonical": "Gastrointestinal Surgery"
+ },
+ {
+  "emp_id": "MC00298",
+  "name": "Dr. Jaya Agarwal",
+  "department_raw": "Gastrointestinal Surgery",
+  "department_canonical": "Gastrointestinal Surgery"
+ },
+ {
+  "emp_id": "MC00341",
+  "name": "Dr Saleem Naik",
+  "department_raw": "Gastrointestinal Surgery",
+  "department_canonical": "Gastrointestinal Surgery"
+ },
+ {
+  "emp_id": "MC00382",
+  "name": "Dr. Neha Kumar",
+  "department_raw": "Gynaecological Oncology",
+  "department_canonical": "Gynecologic Oncology"
+ },
+ {
+  "emp_id": "MC00822",
+  "name": "Dr Sonal Kumari Agrawal",
+  "department_raw": "Gynaecological Oncology",
+  "department_canonical": "Gynecologic Oncology"
+ },
+ {
+  "emp_id": "MC00473",
+  "name": "Dr. Shikhar Sawhney",
+  "department_raw": "Head & Neck Surgery & Oncology",
+  "department_canonical": "Head and Neck"
+ },
+ {
+  "emp_id": "MC00831",
+  "name": "Dr Tripti Mukherjee",
+  "department_raw": "Head & Neck Surgery & Oncology",
+  "department_canonical": "Head and Neck"
+ },
+ {
+  "emp_id": "ME00135",
+  "name": "Dr.  Neha Suri",
+  "department_raw": "Head & Neck Surgery & Oncology",
+  "department_canonical": "Head and Neck"
+ },
+ {
+  "emp_id": "MC00151",
+  "name": "Dr.  Rohit Mehtani",
+  "department_raw": "Hepatology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00631",
+  "name": "Dr Shaleen Agarwal",
+  "department_raw": "HPB & Liver Tranplant",
+  "department_canonical": "Liver Transplant"
+ },
+ {
+  "emp_id": "MC00644",
+  "name": "Dr Ravindra Budhwani",
+  "department_raw": "HPB & Liver Tranplant",
+  "department_canonical": "Liver Transplant"
+ },
+ {
+  "emp_id": "MC00744",
+  "name": "Dr Madhur M Pardasani",
+  "department_raw": "HPB & Liver Tranplant",
+  "department_canonical": "Liver Transplant"
+ },
+ {
+  "emp_id": "MC00821",
+  "name": "Dr Rakesh Roshan",
+  "department_raw": "HPB & Liver Tranplant",
+  "department_canonical": "Liver Transplant"
+ },
+ {
+  "emp_id": "MC00188",
+  "name": "Dr.  Rohit Kumar Garg",
+  "department_raw": "Infectious Diseases",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00792",
+  "name": "Dr Ruchi Girotra",
+  "department_raw": "Infectious Diseases",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00121",
+  "name": "Dr.  Saphalta Baghmar",
+  "department_raw": "Medical Oncology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00703",
+  "name": "Dr Anshul Jain",
+  "department_raw": "Medical Oncology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00460",
+  "name": "Dr. Vidit Kapoor",
+  "department_raw": "Medical Oncology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00146",
+  "name": "Dr.(Prof)  Pravas Chandra Mishra",
+  "department_raw": "Medical Oncology/Adult Haemato Oncology/BMT",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00120",
+  "name": "Dr.  Prashant Mehta",
+  "department_raw": "Medical Oncology/Haemato Oncology/BMT",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00213",
+  "name": "Dr.  Rajesh Gulati",
+  "department_raw": "Medical Oncology/Haemato Oncology/BMT",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00203",
+  "name": "Dr.  Hemant Sharma",
+  "department_raw": "Neonatology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00670",
+  "name": "Dr Prachi Singh",
+  "department_raw": "Neonatology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00708",
+  "name": "Dr Priyanshu Saraswat",
+  "department_raw": "Neonatology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00808",
+  "name": "Dr Pratyush Kumar Gupta",
+  "department_raw": "Neonatology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00823",
+  "name": "Dr Satvika Taneja",
+  "department_raw": "Neonatology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00672",
+  "name": "Dr Harsha Mandadi Varadaraju",
+  "department_raw": "Nephrology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00113",
+  "name": "Dr.  Urmila Anandh",
+  "department_raw": "Nephrology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00169",
+  "name": "Dr.  Kunal Gandhi",
+  "department_raw": "Nephrology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00112",
+  "name": "Dr.(Prof)  Sanjay Pandey",
+  "department_raw": "Neurology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00164",
+  "name": "Dr.  Amit Kumar Agarwal",
+  "department_raw": "Neurology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00190",
+  "name": "Dr.  Deepak Yadav",
+  "department_raw": "Neurology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00880",
+  "name": "Dr. Akansha Jain",
+  "department_raw": "Neurology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00104",
+  "name": "Dr. Anandh Balasubramaniam",
+  "department_raw": "Neurosurgery",
+  "department_canonical": "Neurosurgery"
+ },
+ {
+  "emp_id": "MC00122",
+  "name": "Dr.  Satyakam Baruah",
+  "department_raw": "Neurosurgery",
+  "department_canonical": "Neurosurgery"
+ },
+ {
+  "emp_id": "MC00167",
+  "name": "Dr.  Pradeep Sharma",
+  "department_raw": "Neurosurgery",
+  "department_canonical": "Neurosurgery"
+ },
+ {
+  "emp_id": "MC00202",
+  "name": "Dr.  Meghana Prabhu S",
+  "department_raw": "Nuclear Medicine",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00249",
+  "name": "Dr.  Abhishek Behera",
+  "department_raw": "Nuclear Medicine",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00101",
+  "name": "Dr.  Deepti Sharma",
+  "department_raw": "Obstetrics & Gynaecology",
+  "department_canonical": "Obstetrics & Gynaecology"
+ },
+ {
+  "emp_id": "MC00192",
+  "name": "Dr.  Namrata Seth",
+  "department_raw": "Obstetrics & Gynaecology",
+  "department_canonical": "Obstetrics & Gynaecology"
+ },
+ {
+  "emp_id": "MC00540",
+  "name": "Dr Gargi Agarwal",
+  "department_raw": "Obstetrics & Gynaecology",
+  "department_canonical": "Obstetrics & Gynaecology"
+ },
+ {
+  "emp_id": "MC00614",
+  "name": "Dr Hina",
+  "department_raw": "Obstetrics & Gynaecology",
+  "department_canonical": "Obstetrics & Gynaecology"
+ },
+ {
+  "emp_id": "MC00619",
+  "name": "Dr Deepika Gulati",
+  "department_raw": "Obstetrics & Gynaecology",
+  "department_canonical": "Obstetrics & Gynaecology"
+ },
+ {
+  "emp_id": "MC00624",
+  "name": "Dr Oindrila Roy",
+  "department_raw": "Obstetrics & Gynaecology",
+  "department_canonical": "Obstetrics & Gynaecology"
+ },
+ {
+  "emp_id": "MC00637",
+  "name": "Dr Mansi Kumar",
+  "department_raw": "Obstetrics & Gynaecology",
+  "department_canonical": "Obstetrics & Gynaecology"
+ },
+ {
+  "emp_id": "MC00639",
+  "name": "Dr Aditya Vikram",
+  "department_raw": "Obstetrics & Gynaecology",
+  "department_canonical": "Obstetrics & Gynaecology"
+ },
+ {
+  "emp_id": "MC00642",
+  "name": "Dr Shrishty Shrivatsava",
+  "department_raw": "Obstetrics & Gynaecology",
+  "department_canonical": "Obstetrics & Gynaecology"
+ },
+ {
+  "emp_id": "MC00647",
+  "name": "Dr Pooja Goel",
+  "department_raw": "Obstetrics & Gynaecology",
+  "department_canonical": "Obstetrics & Gynaecology"
+ },
+ {
+  "emp_id": "MC00777",
+  "name": "Dr Poornaveni Mohan",
+  "department_raw": "Obstetrics & Gynaecology",
+  "department_canonical": "Obstetrics & Gynaecology"
+ },
+ {
+  "emp_id": "MC00837",
+  "name": "Dr. Diksha Gupta",
+  "department_raw": "Obstetrics & Gynaecology",
+  "department_canonical": "Obstetrics & Gynaecology"
+ },
+ {
+  "emp_id": "MC00126",
+  "name": "Dr.  Amrita Kapoor Chaturvedi",
+  "department_raw": "Ophthalmology",
+  "department_canonical": "Ophthalmology"
+ },
+ {
+  "emp_id": "MC00148",
+  "name": "Dr.  Rashmi Mittal",
+  "department_raw": "Ophthalmology",
+  "department_canonical": "Ophthalmology"
+ },
+ {
+  "emp_id": "MC00264",
+  "name": "Dr.  Meenakshi Yadav Dhar",
+  "department_raw": "Ophthalmology",
+  "department_canonical": "Ophthalmology"
+ },
+ {
+  "emp_id": "MC00359",
+  "name": "Dr Chitralekha De",
+  "department_raw": "Ophthalmology",
+  "department_canonical": "Ophthalmology"
+ },
+ {
+  "emp_id": "MC00780",
+  "name": "Dr Sajad Ahmad Wani",
+  "department_raw": "Orthopaedic",
+  "department_canonical": "Orthopaedic"
+ },
+ {
+  "emp_id": "MC00820",
+  "name": "Dr Shivam Madan",
+  "department_raw": "Orthopaedic",
+  "department_canonical": "Orthopaedic"
+ },
+ {
+  "emp_id": "MC00147",
+  "name": "Dr.  Priyadarshi Amit",
+  "department_raw": "Orthopaedic",
+  "department_canonical": "Orthopaedic"
+ },
+ {
+  "emp_id": "MC00154",
+  "name": "Dr.  Sahil Gaba",
+  "department_raw": "Orthopaedic",
+  "department_canonical": "Orthopaedic"
+ },
+ {
+  "emp_id": "MC00828",
+  "name": "Dr Prince Agrawal",
+  "department_raw": "Orthopaedic",
+  "department_canonical": "Orthopaedic"
+ },
+ {
+  "emp_id": "MC00561",
+  "name": "Dr Pritish Singh",
+  "department_raw": "Orthopaedic",
+  "department_canonical": "Orthopaedic"
+ },
+ {
+  "emp_id": "MC00623",
+  "name": "Dr Pranav Sharma",
+  "department_raw": "Orthopaedic",
+  "department_canonical": "Orthopaedic"
+ },
+ {
+  "emp_id": "MC00691",
+  "name": "Dr Neel Kamal Sourav",
+  "department_raw": "Orthopaedic",
+  "department_canonical": "Orthopaedic"
+ },
+ {
+  "emp_id": "MC00307",
+  "name": "Dr. (Prof) Tarun Suri",
+  "department_raw": "Orthopaedic",
+  "department_canonical": "Orthopaedic"
+ },
+ {
+  "emp_id": "MC00718",
+  "name": "Dr Arjun Maria",
+  "department_raw": "Paediatric Gastroenterology/Hepatology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00786",
+  "name": "Dr Sakshi Ojha",
+  "department_raw": "Paediatric Neurology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00845",
+  "name": "Dr. Geeta Gathwala",
+  "department_raw": "Paediatrics",
+  "department_canonical": "Paediatric"
+ },
+ {
+  "emp_id": "MC00846",
+  "name": "Dr. Namrata Das",
+  "department_raw": "Paediatrics",
+  "department_canonical": "Paediatric"
+ },
+ {
+  "emp_id": "MC00502",
+  "name": "Dr. Charu Singh",
+  "department_raw": "Palliative Medicine",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00282",
+  "name": "Dr. Sushil Azad",
+  "department_raw": "Pediatric Cardiology and Adult Congenital Cardiac Disease",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00283",
+  "name": "Dr. Radhakrishnan Sitaraman",
+  "department_raw": "Pediatric Cardiology and Adult Congenital Cardiac Disease",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00373",
+  "name": "Dr. Savita Krishnamurty Guin",
+  "department_raw": "Pediatric Cardiology and Adult Congenital Cardiac Disease",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00377",
+  "name": "Dr Shashikapoor Dubbar Yadav",
+  "department_raw": "Pediatric Cardiology and Adult Congenital Cardiac Disease",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00564",
+  "name": "Dr Akanksha Jain",
+  "department_raw": "Pediatric Critical Care",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00195",
+  "name": "Dr.  Maninder Dhaliwal",
+  "department_raw": "Pediatric Critical Care, Pediatric Emergency and Pediatric Respiratory Medicine",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00196",
+  "name": "Dr.  Veena Raghunathan",
+  "department_raw": "Pediatric Critical Care, Pediatric Emergency and Pediatric Respiratory Medicine",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00304",
+  "name": "Dr Dhirendra Pratap Singh",
+  "department_raw": "Pediatric Critical Care, Pediatric Emergency and Pediatric Respiratory Medicine",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00686",
+  "name": "Dr Shubham Dutta",
+  "department_raw": "Pediatric Critical Care, Pediatric Emergency and Pediatric Respiratory Medicine",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00198",
+  "name": "Dr.  Anurag Sharma",
+  "department_raw": "Pediatric Neurosurgery",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00199",
+  "name": "Dr.  Sachin Gupta",
+  "department_raw": "Pediatric Neurosurgery",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00484",
+  "name": "Dr. Nitin Jain",
+  "department_raw": "Pediatric Surgery",
+  "department_canonical": "Paediatric"
+ },
+ {
+  "emp_id": "MC00558",
+  "name": "Dr Hemant Tahilramani",
+  "department_raw": "Pediatrics",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00666",
+  "name": "Dr Papiya Mistry",
+  "department_raw": "Pediatrics",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00115",
+  "name": "Dr.  Aparna Chakravarty",
+  "department_raw": "Pediatrics",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00118",
+  "name": "Dr.  Pooja Khanna",
+  "department_raw": "Pediatrics",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00152",
+  "name": "Dr.  Ruchi Gaba",
+  "department_raw": "Pediatrics",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00826",
+  "name": "Dr Nitish Dhiman",
+  "department_raw": "Physical Medicine",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00100",
+  "name": "Dr. Mohit Sharma",
+  "department_raw": "Plastic and Reconstructive Surgery",
+  "department_canonical": "Plastic & Reconstructive"
+ },
+ {
+  "emp_id": "MC00103",
+  "name": "Dr.  Devajyoti Guin",
+  "department_raw": "Plastic and Reconstructive Surgery",
+  "department_canonical": "Plastic & Reconstructive"
+ },
+ {
+  "emp_id": "MC00281",
+  "name": "Dr. Vasundhra Jain",
+  "department_raw": "Plastic and Reconstructive Surgery",
+  "department_canonical": "Plastic & Reconstructive"
+ },
+ {
+  "emp_id": "MC00286",
+  "name": "Dr. Anil Kumar Murarka",
+  "department_raw": "Plastic and Reconstructive Surgery",
+  "department_canonical": "Plastic & Reconstructive"
+ },
+ {
+  "emp_id": "MC00287",
+  "name": "Dr. Arun Sharma",
+  "department_raw": "Plastic and Reconstructive Surgery",
+  "department_canonical": "Plastic & Reconstructive"
+ },
+ {
+  "emp_id": "MC00445",
+  "name": "Dr. Shikha Gupta",
+  "department_raw": "Plastic and Reconstructive Surgery",
+  "department_canonical": "Plastic & Reconstructive"
+ },
+ {
+  "emp_id": "MC00723",
+  "name": "Dr Preeth Hathi",
+  "department_raw": "Plastic and Reconstructive Surgery",
+  "department_canonical": "Plastic & Reconstructive"
+ },
+ {
+  "emp_id": "MC00842",
+  "name": "Dr. Rounak Kumar",
+  "department_raw": "Plastic and Reconstructive Surgery",
+  "department_canonical": "Plastic & Reconstructive"
+ },
+ {
+  "emp_id": "MC00138",
+  "name": "Dr.  Meenakshi Jain",
+  "department_raw": "Psychiatry",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00513",
+  "name": "Dr. Sonali Aggarwal",
+  "department_raw": "Psychiatry",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00535",
+  "name": "Dr Rakesh Kumar Chadda",
+  "department_raw": "Psychiatry",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00116",
+  "name": "Dr.  Arjun Khanna",
+  "department_raw": "Pulmonary Medicine",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00157",
+  "name": "Dr.  Sourabh Pahuja",
+  "department_raw": "Pulmonary Medicine",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00407",
+  "name": "Dr. Pradeep Bajad",
+  "department_raw": "Pulmonary Medicine",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00810",
+  "name": "Dr Suman M.S.",
+  "department_raw": "Pulmonary Medicine",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00102",
+  "name": "Dr. D Manigandan",
+  "department_raw": "Radiation Oncology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00745",
+  "name": "Dr Sarath KV",
+  "department_raw": "Radiation Oncology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00105",
+  "name": "Dr.Bhaskar Vishwanathan",
+  "department_raw": "Radiation Oncology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00107",
+  "name": "Dr. Deepak Thaper",
+  "department_raw": "Radiation Oncology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00110",
+  "name": "Dr.  Rishabh Kumar",
+  "department_raw": "Radiation Oncology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00111",
+  "name": "Dr. Rose Kamal",
+  "department_raw": "Radiation Oncology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00843",
+  "name": "Dr. Urvashi Gupta",
+  "department_raw": "Radiation Oncology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00242",
+  "name": "Dr.  Madhuritu Banerjee",
+  "department_raw": "Radiology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00271",
+  "name": "Dr.  Mudit Gupta",
+  "department_raw": "Radiology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00291",
+  "name": "Dr. Sundeep Malla",
+  "department_raw": "Radiology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00294",
+  "name": "Dr. (Prof) Raghunandan Prasad",
+  "department_raw": "Radiology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00704",
+  "name": "Dr Kanav Goyal",
+  "department_raw": "Radiology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00739",
+  "name": "Dr Naveen",
+  "department_raw": "Radiology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00873",
+  "name": "Dr Ishika Yadav",
+  "department_raw": "Radiology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00442",
+  "name": "Dr. Rahul Tanwar",
+  "department_raw": "Radiology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00480",
+  "name": "Dr. Surabhi Kaushik",
+  "department_raw": "Radiology",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00440",
+  "name": "Dr. Arvind Nanda",
+  "department_raw": "Radiology-Neuro intervention",
+  "department_canonical": null
+ },
+ {
+  "emp_id": "MC00150",
+  "name": "Dr.  Ritesh Goel",
+  "department_raw": "Urology",
+  "department_canonical": "Urology"
+ },
+ {
+  "emp_id": "MC00285",
+  "name": "Dr. Manav Suryavanshi",
+  "department_raw": "Urology",
+  "department_canonical": "Urology"
+ }
+]

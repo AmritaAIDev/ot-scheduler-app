@@ -1,0 +1,200 @@
+[
+ {
+  "name": "Breast Oncology",
+  "aliases": [
+   "BREAST Oncology"
+  ]
+ },
+ {
+  "name": "Cardiac Surgery - Adult",
+  "aliases": [
+   "Cardiac Surgery - Adult - Package"
+  ]
+ },
+ {
+  "name": "Cardiac Surgery - Paediatric",
+  "aliases": [
+   "Cardiac Surgery - Paediatric - Package"
+  ]
+ },
+ {
+  "name": "Cardiac Surgery - Robotic Surgery",
+  "aliases": [
+   "Cardiac Surgery - Robotic Surgery (Package)"
+  ]
+ },
+ {
+  "name": "Cardiology - Other Cath Procedure",
+  "aliases": [
+   "Cardiology - Other Cath Procedure - Package"
+  ]
+ },
+ {
+  "name": "Cardiology - Paediatric",
+  "aliases": [
+   "Cardiology - Paediatric - Package"
+  ]
+ },
+ {
+  "name": "Cardiology - Valve Replacement/Implantation",
+  "aliases": [
+   "Cardiology - Valve Replacement/Implantation - Package"
+  ]
+ },
+ {
+  "name": "Cardiology -Angiography",
+  "aliases": [
+   "Cardiology -Angiography - Package"
+  ]
+ },
+ {
+  "name": "Cardiology -Angioplasty",
+  "aliases": [
+   "Cardiology -Angioplasty - Package"
+  ]
+ },
+ {
+  "name": "Cardiology -EPS Lab",
+  "aliases": [
+   "Cardiology -EPS Lab - Package"
+  ]
+ },
+ {
+  "name": "Cardiology -Pacemaker and ICD",
+  "aliases": [
+   "Cardiology -Pacemaker and ICD - Package",
+   "Cardiology Procedure -Pacemaker and ICD"
+  ]
+ },
+ {
+  "name": "Division of Spine",
+  "aliases": [
+   "Division of Spine - Packages"
+  ]
+ },
+ {
+  "name": "ENT",
+  "aliases": [
+   "ENT Surgery",
+   "ENT Surgery - Package"
+  ]
+ },
+ {
+  "name": "Gastrointestinal Surgery",
+  "aliases": [
+   "Gastrointestinal Surgery ",
+   "Gastrointestinal Surgery - Package"
+  ]
+ },
+ {
+  "name": "General Surgery",
+  "aliases": []
+ },
+ {
+  "name": "Gynecologic Oncology",
+  "aliases": [
+   "Gynaecological Oncology"
+  ]
+ },
+ {
+  "name": "Head and Neck",
+  "aliases": [
+   "Head and Neck Surgery",
+   "Head and Neck Surgery - Package",
+   "Head & Neck Surgery & Oncology"
+  ]
+ },
+ {
+  "name": "Heart Transplant",
+  "aliases": [
+   "Heart Transplant - Package"
+  ]
+ },
+ {
+  "name": "Interventional Radiology",
+  "aliases": []
+ },
+ {
+  "name": "Kidney Transplant",
+  "aliases": [
+   "Kidney Transplant - Package"
+  ]
+ },
+ {
+  "name": "Liver Transplant",
+  "aliases": [
+   "Liver Transplant - Package",
+   "HPB & Liver Tranplant"
+  ]
+ },
+ {
+  "name": "Neurosurgery",
+  "aliases": []
+ },
+ {
+  "name": "Neurosurgery- DSA Lab",
+  "aliases": [
+   "Neurosurgery- DSA Lab (Package)"
+  ]
+ },
+ {
+  "name": "Obstetrics & Gynaecology",
+  "aliases": [
+   "Obstetrics & Gynaecology - Package",
+   "Obstetrics & Gynaecology -Surgery"
+  ]
+ },
+ {
+  "name": "Ophthalmology",
+  "aliases": [
+   "Ophthalmology - Package",
+   "Ophthalmology - Procedure"
+  ]
+ },
+ {
+  "name": "Orthopaedic",
+  "aliases": [
+   "Orthopaedic - Surgery",
+   "Orthopaedic- Packages",
+   "Orthopaedic- Procedure Charges",
+   "Orthopaedic- Robotic Charges",
+   "Orthopaedics"
+  ]
+ },
+ {
+  "name": "Paediatric",
+  "aliases": [
+   "Paediatric- Surgery",
+   "Paediatrics",
+   "Pediatric Surgery"
+  ]
+ },
+ {
+  "name": "Plastic & Reconstructive",
+  "aliases": [
+   "Plastic & Reconstructive Surgery",
+   "Plastic & Reconstructive Surgery - Packages",
+   "Plastic and Reconstructive Surgery - Package",
+   "Plastic and Reconstructive Surgery",
+   "Plastic and Surgery"
+  ]
+ },
+ {
+  "name": "Thoracic Surgery",
+  "aliases": []
+ },
+ {
+  "name": "Urology",
+  "aliases": [
+   "Urology - Package"
+  ]
+ },
+ {
+  "name": "Vascular & Endovascular",
+  "aliases": [
+   "Vascular & Endovascular - Package",
+   "Vascular & Endovascular Procedure",
+   "Vascular & Endovascular Surgery"
+  ]
+ }
+]

@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from .models import CustomUser, Doctors, OTs, Patients, Procedures, Scheduled_Surgeries, Monitoring, OTstaff
+from .models import CustomUser, Department, Doctors, OTs, Patients, Procedures, Scheduled_Surgeries, Monitoring, OTstaff
 from rest_framework import serializers
 from django.contrib.auth.hashers import make_password
 
@@ -13,6 +13,11 @@ class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return User.objects.create_user(**validated_data)
+
+class DepartmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Department
+        fields = '__all__'
 
 class DoctorSerializer(serializers.ModelSerializer):
     class Meta:
