@@ -59,7 +59,7 @@ class _SchedulerInputState extends State<SchedulerInput> {
   @override
   void initState() {
     super.initState();
-    //_loadDoctorSpecialties();
+    _loadDoctorSpecialties();
   }
 
   Future<void> _loadDoctorSpecialties() async {
@@ -104,10 +104,17 @@ class _SchedulerInputState extends State<SchedulerInput> {
              if (row.length > doctorColIndex && row.length > targetDeptCol) {
                String doctorName = row[doctorColIndex]?.value?.toString().trim() ?? '';
                String specialty = row[targetDeptCol]?.value?.toString().trim() ?? '';
-               
+
                if (doctorName.isNotEmpty && specialty.isNotEmpty) {
-                 // Store normalized name for case-insensitive lookup
-                 _doctorSpecialtyMap[doctorName.toLowerCase()] = specialty;
+                 // Store under the same normalized key format used by the
+                 // lookup in determineSpecialty(), so "Dr.  Sachin Gupta",
+                 // "Dr Sachin Gupta", etc. all resolve to one entry.
+                 // Note: the roster has a handful of doctors who share the
+                 // same name across different departments (e.g. two
+                 // different "Sachin Gupta" entries) -- a name-only key
+                 // can't tell those apart, so whichever row appears last in
+                 // the sheet wins for that name.
+                 _doctorSpecialtyMap[_normalizeDoctorName(doctorName)] = specialty;
                }
              }
            }
@@ -122,6 +129,22 @@ class _SchedulerInputState extends State<SchedulerInput> {
     } catch (e) {
       print('Error loading Doctors List Excel: $e');
     }
+  }
+
+  // Normalizes a doctor name for lookup: lowercases, strips "Dr"/"Dr."/
+  // "(Prof)" prefixes, and collapses repeated/trailing whitespace, so
+  // spacing and capitalization differences between the uploaded schedule
+  // and the doctors-list Excel (e.g. "Dr.  Sachin Gupta" vs "Sachin Gupta")
+  // still resolve to the same map entry.
+  String _normalizeDoctorName(String raw) {
+    String doctor = raw.toLowerCase().trim();
+    doctor = doctor
+        .replaceAll(RegExp(r'^dr\.?\s*'), '')
+        .replaceAll(RegExp(r'\(prof\)\s*'), '')
+        .trim();
+    doctor = doctor.replaceAll(RegExp(r'\s+dr\.?\s*'), ' ');
+    doctor = doctor.replaceAll(RegExp(r'\s+'), ' ');
+    return doctor.trim();
   }
 
   @override
@@ -279,7 +302,12 @@ class _SchedulerInputState extends State<SchedulerInput> {
 
   //
   Future<void> _pickFile() async {
-    
+    // Guard against picking a file before the async doctor-list load
+    // kicked off in initState() has finished.
+    if (!_isDoctorMapLoaded) {
+      await _loadDoctorSpecialties();
+    }
+
     print("filepicker:${FilePicker.platform}");
     try {
       print("[DEBUG] Attempting to open file picker for spreadsheet files (v8.x cleaner API)");
@@ -1012,19 +1040,11 @@ class _SchedulerInputState extends State<SchedulerInput> {
 
   String determineSpecialty(String surgeon, String surgery) {
 
-    //print("surgeon: '$surgeon'");
-    String doctor = surgeon.toLowerCase().trim();
-
-    // Remove "Dr.", "Dr", "Dr.", "(Prof)", etc. prefixes
-    doctor = doctor.replaceAll(RegExp(r'^dr\.?\s*'), '')
-        .replaceAll(RegExp(r'\(prof\)\s*'), '')
-        .trim();
-
-    // Also remove any trailing "Dr." in the middle
-    doctor = doctor.replaceAll(RegExp(r'\s+dr\.?\s*'), ' ');
-
-    // Normalize multiple spaces to single space
-    doctor = doctor.replaceAll(RegExp(r'\s+'), ' ');
+    // Lookup now comes from the Doctors List Excel (_doctorSpecialtyMap,
+    // loaded in _loadDoctorSpecialties()) instead of the hardcoded
+    // Constants.doctorSpecialtyMap, so department changes/new hires only
+    // require updating the roster file, not the app code.
+    String doctor = _normalizeDoctorName(surgeon);
 
     //if the doctor name contains multiple doctors
     if (doctor.contains('/')) {
@@ -1032,17 +1052,20 @@ class _SchedulerInputState extends State<SchedulerInput> {
       List<String> doctors = doctor.split('/').map((d) => d.trim()).toList();
       for (String doc in doctors) {
         print("doctor lookup key: '$doc'");
-        print("speciality: ${Constants.doctorSpecialtyMap[doc]}");
-        String specialty = Constants.doctorSpecialtyMap[doc] ?? '';
+        print("speciality: ${_doctorSpecialtyMap[doc]}");
+        // String specialty = Constants.doctorSpecialtyMap[doc] ?? '';
+        String specialty = _doctorSpecialtyMap[doc] ?? '';
         if (specialty.isNotEmpty) return specialty;
       }
-      return Constants.doctorSpecialtyMap[doctors[0]] ?? '';
+      // return Constants.doctorSpecialtyMap[doctors[0]] ?? '';
+      return _doctorSpecialtyMap[doctors[0]] ?? '';
     }
 
     print("doctor lookup key: '$doctor'");
-    print("speciality: ${Constants.doctorSpecialtyMap[doctor]}");
+    print("speciality: ${_doctorSpecialtyMap[doctor]}");
 
-    return Constants.doctorSpecialtyMap[doctor] ?? '';
+    // return Constants.doctorSpecialtyMap[doctor] ?? '';
+    return _doctorSpecialtyMap[doctor] ?? '';
   }
 
   String normalizeAge(String rawAge) {
