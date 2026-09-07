@@ -233,6 +233,7 @@ class Constants {
     'GEGS00023 Incision and Drainage of Medium Abscess',
     'GEGS00024 Incision and Drainage of Small/Superficial Abscess',
     'GEGS00025 Laparoscopic Appendectomy',
+    'GAGI00048 Laparoscopic Cholecystectomy',
     'GEGS00026 Laparoscopic Femoral Hernia Repair B/L',
     'GEGS00027 Laparoscopic Femoral Hernia Repair U/L',
     'GEGS00028 Laparoscopic Ipom',
@@ -997,7 +998,8 @@ class Constants {
     'CTVA00603 - Thrombin Injection For Peripheral Aneurysm',
     'CTVA00604 - Ultrasonic Assisted Wound Debridement',
     'CTVA00605 - Vein Mapping',
-    'CTVA00606 - Wound Healing Therapy Charges Per Hour'
+    'CTVA00606 - Wound Healing Therapy Charges Per Hour',
+    'CTVA00608 - A.V.Fistula'
   ];
   static const List<String> vascularEndovascularSurgery = ['CTVA00607 - Other Arterial Bypass Surgery Using Synthetic Graft',
     'CTVA00608 - A.V.Fistula',
@@ -3378,6 +3380,7 @@ class Constants {
     'SOOR00013 Full face Transplant',
     'SOOR00014 Partial Face Transplant',
     'SOOR00015 Penile Transplant',
+    'CTVA00608 - A.V.Fistula',
   ];
   static const List<String> heartTransplant = ['SOHE00001	Heart Transplant'];
   static const List<String> liverTransplant = ['SOLI00004 Cadaveric Liver Transplant',
@@ -3389,6 +3392,7 @@ class Constants {
     'SOLI00010 Liver Transplant Recipient - Adult',
     'SOLI00011 Liver Transplant Recipient High Risk - Adult',
     'SOLI00018 Robotic Charges - Liver Transplant',
+    'GAGI00048 Laparoscopic Cholecystectomy',
   ];
   static const List<String> kidneyTransplant = ['SORE00023	Kidney Transplant Recipient - Related',
     'SORE00022	Kidney Transplant Recipient - Unrelated',
@@ -3592,6 +3596,7 @@ class Constants {
     'URUR00196 Flexible URS Charges',
     'URUR00197 Clot Evacuation',
     'URUR00198 Robotic Charges with Vessel Sealer - Urology',
+    'CTVA00608 - A.V.Fistula',
   ];
 
   static const Map<String, List<String>> surgeryMap = {
@@ -3732,10 +3737,10 @@ class Constants {
     // 'ravindra budhwani': 'HPB & Liver Tranplant',
     // 'madhur m pardasani': 'HPB & Liver Tranplant',
     // 'rakesh roshan': 'HPB & Liver Tranplant',
-    'shaleen agarwal': 'Liver Tranplant',
-    'ravindra budhwani': 'Liver Tranplant',
-    'madhur m pardasani': 'Liver Tranplant',
-    'rakesh roshan': 'Liver Tranplant',
+    'shaleen agarwal': 'Liver Transplant',
+    'ravindra budhwani': 'Liver Transplant',
+    'madhur m pardasani': 'Liver Transplant',
+    'rakesh roshan': 'Liver Transplant',
     // 'rohit kumar garg': 'Infectious Diseases',
     // 'ruchi girotra': 'Infectious Diseases',
     // 'saphalta baghmar': 'Medical Oncology',
@@ -3809,14 +3814,14 @@ class Constants {
     'pooja khanna': 'Paediatric',
     'ruchi gaba': 'Paediatric',
     'nitish dhiman': 'Physical Medicine',
-    'mohit sharma': 'Plastic and Reconstructive',
-    'devajyoti guin': 'Plastic and Reconstructive',
-    'vasundhra jain': 'Plastic and Reconstructive',
-    'anil kumar murarka': 'Plastic and Reconstructive',
-    'arun sharma': 'Plastic and Reconstructive',
-    'shikha gupta': 'Plastic and Reconstructive',
-    'preeth hathi': 'Plastic and Reconstructive',
-    'rounak kumar': 'Plastic and Reconstructive',
+    'mohit sharma': 'Plastic & Reconstructive',
+    'devajyoti guin': 'Plastic & Reconstructive',
+    'vasundhra jain': 'Plastic & Reconstructive',
+    'anil kumar murarka': 'Plastic & Reconstructive',
+    'arun sharma': 'Plastic & Reconstructive',
+    'shikha gupta': 'Plastic & Reconstructive',
+    'preeth hathi': 'Plastic & Reconstructive',
+    'rounak kumar': 'Plastic & Reconstructive',
     // 'meenakshi jain': 'Psychiatry',
     // 'sonali aggarwal': 'Psychiatry',
     // 'rakesh kumar chadda': 'Psychiatry',
@@ -4260,6 +4265,7 @@ class Constants {
     'SOOR00013': 'Full face Transplant',
     'SOOR00014': 'Partial Face Transplant',
     'SOOR00015': 'Penile Transplant',
+    'CTVA00608': 'A.V.Fistula',
   };
   static const Map<String, String> urologyMap = {
     'URUR00001': 'Prostate Fusion Biopsy',
@@ -4460,6 +4466,7 @@ class Constants {
     'URUR00196': 'Flexible URS Charges',
     'URUR00197': 'Clot Evacuation',
     'URUR00198': 'Robotic Charges with Vessel Sealer - Urology',
+    'CTVA00608': 'A.V.Fistula',
   };
   static const Map<String, String> kidneyTransplantMap = {
     'SORE00023': 'Kidney Transplant Recipient - Related',
@@ -4477,6 +4484,7 @@ class Constants {
     'SOLI00010': 'Liver Transplant Recipient - Adult',
     'SOLI00011': 'Liver Transplant Recipient High Risk - Adult',
     'SOLI00018': 'Robotic Charges - Liver Transplant',
+    'GAGI00048': 'Laparoscopic Cholecystectomy',
   };
   static const Map<String, String> paediatricSurgeryMap = {
     'PAPS00004': 'Skin Prick - Eight Allergent Milk with Egg with Gluten with Peanut with Wheat with Fish with Baker Yeast with Chana Dal',
@@ -6720,6 +6728,7 @@ class Constants {
     'GEGS00023': 'Incision and Drainage of Medium Abscess',
     'GEGS00024': 'Incision and Drainage of Small/Superficial Abscess',
     'GEGS00025': 'Laparoscopic Appendectomy',
+    'GAGI00048': 'Laparoscopic Cholecystectomy',
     'GEGS00026': 'Laparoscopic Femoral Hernia Repair B/L',
     'GEGS00027': 'Laparoscopic Femoral Hernia Repair U/L',
     'GEGS00028': 'Laparoscopic Ipom',
@@ -7489,6 +7498,7 @@ class Constants {
     'CTVA00604': 'Ultrasonic Assisted Wound Debridement',
     'CTVA00605': 'Vein Mapping',
     'CTVA00606': 'Wound Healing Therapy Charges Per Hour',
+    'CTVA00608': 'A.V.Fistula',
   };
 
 
