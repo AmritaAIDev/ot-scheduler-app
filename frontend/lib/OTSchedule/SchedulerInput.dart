@@ -17,6 +17,7 @@ import 'package:my_flutter_app/OTSchedule/ListConfirmation.dart';
 import 'package:my_flutter_app/config/constants.dart';
 import 'package:my_flutter_app/config/customThemes/MyAppBar.dart';
 import 'package:my_flutter_app/config/customThemes/elevatedButtonTheme.dart';
+import 'package:my_flutter_app/services/department_data_service.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import '../utils/surgery_models.dart';
@@ -50,78 +51,14 @@ class _SchedulerInputState extends State<SchedulerInput> {
   String baseUrl = Constants.baseURL;
   List<dynamic> previousScheduledData = [];
 
-  // Doctor Specialty Map
-  Map<String, String> _doctorSpecialtyMap = {};
-  bool _isDoctorMapLoaded = false;
+  final DepartmentDataService _dataService = DepartmentDataService.instance;
 
   var uploadButton;
 
   @override
   void initState() {
     super.initState();
-    //_loadDoctorSpecialties();
-  }
-
-  Future<void> _loadDoctorSpecialties() async {
-    try {
-      final bytes = await rootBundle.load('assets/docs/DoctorsList-31-01-2026.xlsx');
-      final excel = Excel.decodeBytes(List<int>.from(bytes.buffer.asUint8List()));
-
-      if (excel.tables.keys.isNotEmpty) {
-        final table = excel.tables.values.first; // Use first sheet
-        
-        // Find header row
-        int headerRowIndex = -1;
-        int doctorColIndex = -1;
-        int specialtyColIndex = -1;
-        int departmentColIndex = -1;
-
-        for (int i = 0; i < 20 && i < table.rows.length; i++) {
-          final row = table.rows[i];
-          for (int j = 0; j < row.length; j++) {
-            final cellValue = row[j]?.value?.toString().toLowerCase() ?? '';
-             if (cellValue.contains('doctor') || cellValue.contains('name') || cellValue.contains('surgeon')) {
-               doctorColIndex = j;
-             }
-             if (cellValue.contains('speciality') || cellValue.contains('specialty')) {
-               specialtyColIndex = j;
-             }
-             if (cellValue.contains('department')) {
-               departmentColIndex = j;
-             }
-          }
-          if (doctorColIndex != -1 && (specialtyColIndex != -1 || departmentColIndex != -1)) {
-            headerRowIndex = i;
-            break;
-          }
-        }
-
-        if (headerRowIndex != -1) {
-           int targetDeptCol = specialtyColIndex != -1 ? specialtyColIndex : departmentColIndex;
-           
-           for (int i = headerRowIndex + 1; i < table.rows.length; i++) {
-             final row = table.rows[i];
-             if (row.length > doctorColIndex && row.length > targetDeptCol) {
-               String doctorName = row[doctorColIndex]?.value?.toString().trim() ?? '';
-               String specialty = row[targetDeptCol]?.value?.toString().trim() ?? '';
-               
-               if (doctorName.isNotEmpty && specialty.isNotEmpty) {
-                 // Store normalized name for case-insensitive lookup
-                 _doctorSpecialtyMap[doctorName.toLowerCase()] = specialty;
-               }
-             }
-           }
-           setState(() {
-             _isDoctorMapLoaded = true;
-           });
-           print('Loaded ${_doctorSpecialtyMap.length} doctors from Excel.');
-        } else {
-          print('Could not find headers in Doctors List Excel');
-        }
-      }
-    } catch (e) {
-      print('Error loading Doctors List Excel: $e');
-    }
+    _dataService.ensureLoaded();
   }
 
   @override
@@ -279,7 +216,10 @@ class _SchedulerInputState extends State<SchedulerInput> {
 
   //
   Future<void> _pickFile() async {
-    
+    // Guard against picking a file before the async department/doctor/procedure data kicked
+    // off in initState() has finished loading - generateSurgeryExcel() needs it synchronously.
+    await _dataService.ensureLoaded();
+
     print("filepicker:${FilePicker.platform}");
     try {
       print("[DEBUG] Attempting to open file picker for spreadsheet files (v8.x cleaner API)");
@@ -1010,72 +950,17 @@ class _SchedulerInputState extends State<SchedulerInput> {
     }
   }
 
-  // Matches a raw department string (e.g. from the uploaded Excel) against
-  // Constants.departmentList, tolerant of case, whitespace, punctuation, '&' vs
-  // 'and', and a simple trailing-'s' plural (e.g. "Orthopaedics" -> "Orthopaedic").
-  // Returns the canonical, correctly-spelled department name so it matches exactly
-  // what downstream screens (e.g. ListConfirmation's department dropdown and
-  // _getSurgeryMap's exact-match switch) expect - or null if nothing matches.
-  String? _canonicalDepartment(String raw) {
-    if (raw.trim().isEmpty) return null;
-    String normalize(String s) {
-      var n = s.trim().toLowerCase().replaceAll('&', ' and ');
-      n = n.replaceAll(RegExp(r'[^a-z0-9\s]'), ' ');
-      n = n.replaceAll(RegExp(r'\s+'), ' ').trim();
-      if (n.length > 1 && n.endsWith('s')) n = n.substring(0, n.length - 1);
-      return n;
-    }
+  // Matches a raw department string (e.g. from the uploaded Excel) against the backend's
+  // canonical department list + aliases (see DepartmentDataService), tolerant of case,
+  // whitespace, punctuation, '&' vs 'and', and a simple trailing-'s' plural (e.g.
+  // "Orthopaedics" -> "Orthopaedic"). Returns the canonical, correctly-spelled department
+  // name so it matches exactly what downstream screens expect, or null if nothing matches.
+  String? _canonicalDepartment(String raw) => _dataService.canonicalDepartment(raw);
 
-    final target = normalize(raw);
-    for (final dept in Constants.departmentList) {
-      if (normalize(dept) == target) return dept;
-    }
-    return null;
-  }
-
-  // Looks up a single doctor's specialty by name. Returns '' (unresolved) for names
-  // known to belong to more than one real doctor, since a name alone can't tell them
-  // apart - callers must fall back to another signal instead of guessing.
-  String _specialtyForDoctorName(String doctorName) {
-    if (Constants.ambiguousDoctorNames.contains(doctorName)) {
-      print("doctor lookup key: '$doctorName' is ambiguous (multiple doctors share this name); refusing to guess");
-      return '';
-    }
-    String specialty = Constants.doctorSpecialtyMap[doctorName] ?? '';
-    print("doctor lookup key: '$doctorName'");
-    print("speciality: $specialty");
-    return specialty;
-  }
-
-  String determineSpecialty(String surgeon, String surgery) {
-
-    //print("surgeon: '$surgeon'");
-    String doctor = surgeon.toLowerCase().trim();
-
-    // Remove "Dr.", "Dr", "Dr.", "(Prof)", etc. prefixes
-    doctor = doctor.replaceAll(RegExp(r'^dr\.?\s*'), '')
-        .replaceAll(RegExp(r'\(prof\)\s*'), '')
-        .trim();
-
-    // Also remove any trailing "Dr." in the middle
-    doctor = doctor.replaceAll(RegExp(r'\s+dr\.?\s*'), ' ');
-
-    // Normalize multiple spaces to single space
-    doctor = doctor.replaceAll(RegExp(r'\s+'), ' ');
-
-    //if the doctor name contains multiple doctors
-    if (doctor.contains('/')) {
-      // Try each doctor in the list
-      List<String> doctors = doctor.split('/').map((d) => d.trim()).toList();
-      for (String doc in doctors) {
-        String specialty = _specialtyForDoctorName(doc);
-        if (specialty.isNotEmpty) return specialty;
-      }
-      return _specialtyForDoctorName(doctors[0]);
-    }
-
-    return _specialtyForDoctorName(doctor);
-  }
+  // Looks up a doctor's specialty by name (handling a "/"-separated multi-doctor surgeon
+  // field). Backed by the live doctor roster instead of a hardcoded map - see
+  // DepartmentDataService.determineSpecialty for the ambiguous-name handling.
+  String determineSpecialty(String surgeon, String surgery) => _dataService.determineSpecialty(surgeon);
 
   String normalizeAge(String rawAge) {
       if (rawAge.isEmpty) return '';
@@ -1169,7 +1054,7 @@ class _SchedulerInputState extends State<SchedulerInput> {
         // exact "Orthopaedic" spelling downstream screens match on exactly). Only fall
         // back to the name-based lookup when the row doesn't specify a recognizable
         // department, since a surgeon name alone can be ambiguous (see
-        // Constants.ambiguousDoctorNames) and shouldn't override an explicit one.
+        // DepartmentDataService.departmentForDoctorName) and shouldn't override an explicit one.
         String speciality = _canonicalDepartment(department) ?? '';
         if (speciality.isEmpty) speciality = determineSpecialty(surgeon, procedure);
         if (speciality.isEmpty) speciality = department;

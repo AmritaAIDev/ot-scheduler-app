@@ -7,6 +7,7 @@ import 'package:excel/excel.dart' hide Border;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:my_flutter_app/config/customThemes/MyAppBar.dart';
 import 'package:my_flutter_app/config/constants.dart';
+import 'package:my_flutter_app/services/department_data_service.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 
 import '../config/customThemes/elevatedButtonTheme.dart';
@@ -33,7 +34,8 @@ class _ListConfirmationState extends State<ListConfirmation> {
   Map<String, SurgeryMasterItem> surgeryMasterData = {};
   List<String> surgeryNameList = [];
   List<String> surgeryCodeList = [];
-  List<String> specialityList = Constants.departmentList;
+  List<String> specialityList = [];
+  final DepartmentDataService _dataService = DepartmentDataService.instance;
 
   // Table Data
   List<ConfirmationRow> tableRows = [];
@@ -68,6 +70,8 @@ class _ListConfirmationState extends State<ListConfirmation> {
 
   Future<void> _loadData() async {
     try {
+      await _dataService.ensureLoaded();
+      specialityList = _dataService.departmentNames;
       //await _loadMasterData();
       if (widget.jsonData != null) {
         await _parseJsonData();
@@ -362,41 +366,10 @@ class _ListConfirmationState extends State<ListConfirmation> {
     return row[index]?.value.toString() ?? '';
   }
 
+  // code -> name map for procedures in [speciality], sourced from the backend's reconciled
+  // Procedures table instead of a hardcoded per-department Constants.<dept>Map.
   Map<String, String> _getSurgeryMap(String speciality) {
-    switch (speciality) {
-      case 'Breast Oncology': return Constants.breastOncologyMap;
-      case 'Cardiac Surgery - Adult': return Constants.cardiacSurgeryAdultMap;
-      case 'Cardiac Surgery - Paediatric': return Constants.cardiacSurgeryPediatricMap;
-      case 'Cardiac Surgery - Robotic Surgery': return Constants.cardiacSurgeryRoboticMap;
-      case 'Cardiology - Other Cath Procedure': return Constants.cardiologyOtherCarthProceduresMap;
-      case 'Cardiology - Paediatric': return Constants.cardiologyPediatricProceduresMap;
-      case 'Cardiology - Valve Replacement/Implantation': return Constants.cardiologyValveProceduresMap;
-      case 'Cardiology -Angiography': return Constants.cardiologyAngiographyMap;
-      case 'Cardiology -Angioplasty': return Constants.cardiologyAngioplastyProceduresMap;
-      case 'Cardiology -EPS Lab': return Constants.cardiologyEPSLabProceduresMap;
-      case 'Cardiology -Pacemaker and ICD': return Constants.cardiologyICDPacemakerMap;
-      case 'Cardiology Procedure -Pacemaker and ICD': return Constants.cardiologyICDPacemakerMap;
-      case 'Division of Spine': return Constants.divisionOfSpineMap;
-      case 'ENT': return Constants.entSurgeriesMap;
-      case 'Gastrointestinal Surgery': return Constants.gastroIntestinalSurgeryMap;
-      case 'General Surgery': return Constants.generalSurgeryMap;
-      case 'Gynecologic Oncology': return Constants.gynecologicOncologyMap;
-      case 'Head and Neck': return Constants.headAndNeckSurgeryMap;
-      case 'Interventional Radiology': return Constants.interventionalRadiologyMap;
-      case 'Kidney Transplant': return Constants.kidneyTransplantMap;
-      case 'Liver Transplant': return Constants.liverTransplantMap;
-      case 'Neurosurgery': return Constants.neuroSurgeryMap;
-      case 'Neurosurgery- DSA Lab': return Constants.neuroSurgeryDsalabMap;
-      case 'Obstetrics & Gynaecology': return Constants.obstetricsGynaecologyMap;
-      case 'Orthopaedic': return Constants.orthopaedicSurgeryMap;
-      case 'Ophthalmology': return Constants.ophthalmologySurgeryMap;
-      case 'Paediatric': return Constants.paediatricSurgeryMap;
-      case 'Plastic & Reconstructive': return Constants.plasticSurgeryMap;
-      case 'Thoracic Surgery': return Constants.thoracicSurgeryMap;
-      case 'Urology': return Constants.urologyMap;
-      case 'Vascular & Endovascular': return Constants.vascularEndovascularProceduresMap;
-      default: return {};
-    }
+    return _dataService.surgeryMapForDepartment(speciality);
   }
 
   // Normalizes case, whitespace, and punctuation so names/codes that only
@@ -421,13 +394,32 @@ class _ListConfirmationState extends State<ListConfirmation> {
     return null;
   }
 
-  // Reconciles a parsed row's speciality/surgery/code against the known
-  // department list and surgery maps, so values that only differ by
-  // whitespace or capitalization (e.g. from the uploaded Excel) are
-  // recognized instead of showing up as unselected in their dropdowns.
+  // Reconciles a parsed row's speciality/surgery/code against the backend's reconciled data,
+  // so values that only differ by whitespace or capitalization (e.g. from the uploaded Excel)
+  // are recognized instead of showing up as unselected in their dropdowns.
+  //
+  // If the row already has a surgery code (from the backend's DB-backed matcher - see
+  // SurgeryMatcher in backend/OT_Scheduling/views.py), that code is resolved *globally* first,
+  // across all departments, rather than only within whatever department the row happens to be
+  // tagged with. This is the fix for the case where a procedure's code lives in a different
+  // department than the row's stated speciality (e.g. a spine procedure tagged "Orthopaedic"
+  // whose code actually belongs to "Division of Spine") - previously that mismatch left the
+  // surgery dropdown empty even though the backend had already matched a valid code.
   void _canonicalizeSurgery(ConfirmationRow row) {
+    if (row.surgeryCode.isNotEmpty) {
+      final proc = _dataService.procedureForCode(row.surgeryCode);
+      if (proc != null) {
+        row.surgery = proc.name;
+        final owningDepartments = _dataService.departmentsForCode(row.surgeryCode);
+        if (owningDepartments.isNotEmpty && !owningDepartments.contains(row.speciality)) {
+          row.speciality = owningDepartments.first;
+        }
+        return;
+      }
+    }
+
     final canonicalSpeciality =
-        _findCanonicalValue(specialityList, row.speciality);
+        _findCanonicalValue(specialityList, row.speciality) ?? _dataService.canonicalDepartment(row.speciality);
     if (canonicalSpeciality != null) {
       row.speciality = canonicalSpeciality;
     }
