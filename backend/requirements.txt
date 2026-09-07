@@ -12,5 +12,3 @@ python-dateutil
 pytz
 sqlparse
 tzdata
-rapidfuzz
-scikit-learn
