@@ -3850,6 +3850,16 @@ class Constants {
     'manav suryavanshi': 'Urology',
   };
 
+  // Doctor names known to belong to more than one real doctor with different
+  // specialties (e.g. two different "Sachin Gupta"s). doctorSpecialtyMap can only
+  // hold one specialty per name, so for these names a name-only lookup must not be
+  // trusted - callers should fall back to another signal (e.g. the department
+  // already stated on the input row) instead of guessing.
+  static const Set<String> ambiguousDoctorNames = {
+    'sachin gupta',
+    'mohit sharma',
+  };
+
   static const Map<String, String> plasticSurgeryMap = {
     'PLPS00326': 'Alopecia Correction - Grade 1',
     'PLPS00327': 'Alopecia Correction - Grade 2',

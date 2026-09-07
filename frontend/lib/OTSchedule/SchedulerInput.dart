@@ -1010,6 +1010,43 @@ class _SchedulerInputState extends State<SchedulerInput> {
     }
   }
 
+  // Matches a raw department string (e.g. from the uploaded Excel) against
+  // Constants.departmentList, tolerant of case, whitespace, punctuation, '&' vs
+  // 'and', and a simple trailing-'s' plural (e.g. "Orthopaedics" -> "Orthopaedic").
+  // Returns the canonical, correctly-spelled department name so it matches exactly
+  // what downstream screens (e.g. ListConfirmation's department dropdown and
+  // _getSurgeryMap's exact-match switch) expect - or null if nothing matches.
+  String? _canonicalDepartment(String raw) {
+    if (raw.trim().isEmpty) return null;
+    String normalize(String s) {
+      var n = s.trim().toLowerCase().replaceAll('&', ' and ');
+      n = n.replaceAll(RegExp(r'[^a-z0-9\s]'), ' ');
+      n = n.replaceAll(RegExp(r'\s+'), ' ').trim();
+      if (n.length > 1 && n.endsWith('s')) n = n.substring(0, n.length - 1);
+      return n;
+    }
+
+    final target = normalize(raw);
+    for (final dept in Constants.departmentList) {
+      if (normalize(dept) == target) return dept;
+    }
+    return null;
+  }
+
+  // Looks up a single doctor's specialty by name. Returns '' (unresolved) for names
+  // known to belong to more than one real doctor, since a name alone can't tell them
+  // apart - callers must fall back to another signal instead of guessing.
+  String _specialtyForDoctorName(String doctorName) {
+    if (Constants.ambiguousDoctorNames.contains(doctorName)) {
+      print("doctor lookup key: '$doctorName' is ambiguous (multiple doctors share this name); refusing to guess");
+      return '';
+    }
+    String specialty = Constants.doctorSpecialtyMap[doctorName] ?? '';
+    print("doctor lookup key: '$doctorName'");
+    print("speciality: $specialty");
+    return specialty;
+  }
+
   String determineSpecialty(String surgeon, String surgery) {
 
     //print("surgeon: '$surgeon'");
@@ -1031,18 +1068,13 @@ class _SchedulerInputState extends State<SchedulerInput> {
       // Try each doctor in the list
       List<String> doctors = doctor.split('/').map((d) => d.trim()).toList();
       for (String doc in doctors) {
-        print("doctor lookup key: '$doc'");
-        print("speciality: ${Constants.doctorSpecialtyMap[doc]}");
-        String specialty = Constants.doctorSpecialtyMap[doc] ?? '';
+        String specialty = _specialtyForDoctorName(doc);
         if (specialty.isNotEmpty) return specialty;
       }
-      return Constants.doctorSpecialtyMap[doctors[0]] ?? '';
+      return _specialtyForDoctorName(doctors[0]);
     }
 
-    print("doctor lookup key: '$doctor'");
-    print("speciality: ${Constants.doctorSpecialtyMap[doctor]}");
-
-    return Constants.doctorSpecialtyMap[doctor] ?? '';
+    return _specialtyForDoctorName(doctor);
   }
 
   String normalizeAge(String rawAge) {
@@ -1131,8 +1163,15 @@ class _SchedulerInputState extends State<SchedulerInput> {
         String normalizedSex = normalizeSex(rawSex);
         String ageSex = '$normalizedAge/$normalizedSex';
 
-        // speciality lookup or use department from file
-        String speciality = determineSpecialty(surgeon, procedure);
+        // Prefer the department the source file already states for this row - it's a
+        // per-row fact from the hospital's own data. Canonicalize it against the known
+        // department list first (raw text like "Orthopaedics" must resolve to the
+        // exact "Orthopaedic" spelling downstream screens match on exactly). Only fall
+        // back to the name-based lookup when the row doesn't specify a recognizable
+        // department, since a surgeon name alone can be ambiguous (see
+        // Constants.ambiguousDoctorNames) and shouldn't override an explicit one.
+        String speciality = _canonicalDepartment(department) ?? '';
+        if (speciality.isEmpty) speciality = determineSpecialty(surgeon, procedure);
         if (speciality.isEmpty) speciality = department;
 
         surgeries.add(SurgeryData(
