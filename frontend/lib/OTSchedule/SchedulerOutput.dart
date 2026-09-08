@@ -10,6 +10,7 @@ import 'package:excel/excel.dart' as _xl show Border, BorderStyle;
 import 'package:intl/intl.dart';
 import 'package:my_flutter_app/config/customThemes/MyAppBar.dart';
 import 'package:my_flutter_app/config/customThemes/utilities/Utilities.dart';
+import 'package:my_flutter_app/services/unsaved_changes_guard.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
@@ -29,6 +30,10 @@ class SchedulerOutput extends StatefulWidget {
 
 
 class _SchedulerOutputState extends State<SchedulerOutput> {
+  // This screen holds a generated schedule the user can still edit before
+  // "Save Changes" persists it — warn before a reload/close discards it.
+  final UnsavedChangesGuard _unsavedGuard = UnsavedChangesGuard();
+
   late List<MapEntry<String, dynamic>> sortedOTEntries;
 
   // Controllers for editable fields
@@ -73,6 +78,7 @@ class _SchedulerOutputState extends State<SchedulerOutput> {
   @override
   void initState() {
     super.initState();
+    _unsavedGuard.enable();
 
     print("scheduleData:${widget.scheduleData}");
 
@@ -267,6 +273,7 @@ class _SchedulerOutputState extends State<SchedulerOutput> {
 
   @override
   void dispose() {
+    _unsavedGuard.disable();
     _horizontalController.dispose();
     _verticalController.dispose();
     // Dispose controllers to free up resources

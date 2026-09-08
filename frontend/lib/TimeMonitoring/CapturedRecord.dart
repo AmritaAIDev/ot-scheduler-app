@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
 import '../config/constants.dart';
+import '../services/unsaved_changes_guard.dart';
 
 class CapturedRecord extends StatefulWidget {
   // int mrd;
@@ -58,6 +59,11 @@ class CapturedRecord extends StatefulWidget {
 }
 
 class _CapturedRecordState extends State<CapturedRecord> {
+  // All 12 timestamps captured here are only sent to the backend in a
+  // single POST at the very end (_submitForm) — a reload mid-capture would
+  // lose everything recorded so far, so warn before that can happen.
+  final UnsavedChangesGuard _unsavedGuard = UnsavedChangesGuard();
+
   String preOPStartTime = '';
   String prophylaxisStartTime = '';
   String wheelInOT = '';
@@ -3698,6 +3704,7 @@ class _CapturedRecordState extends State<CapturedRecord> {
 
   @override
   void initState() {
+    _unsavedGuard.enable();
     _isSurgeryDone(widget.surgeryId);
     //selectedSurgery = surgeryMap[selectedDepartment]!.first;
     otNumberController = TextEditingController(text: '${widget.otNumber}');
@@ -3753,6 +3760,12 @@ class _CapturedRecordState extends State<CapturedRecord> {
     };
 
   } //String baseUrl = 'https://9c79-2409-40d0-b5-dafe-c4cf-904e-59b2-3fd4.ngrok-free.app/api';
+
+  @override
+  void dispose() {
+    _unsavedGuard.disable();
+    super.dispose();
+  }
 
   String getCurrentTime() {
     // Get current time using DateTime class

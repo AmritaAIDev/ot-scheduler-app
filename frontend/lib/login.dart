@@ -10,6 +10,7 @@ import 'package:my_flutter_app/register.dart';
 import 'package:http/http.dart' as http;
 
 import 'TimeMonitoring/PatientListScreen2.dart';
+import 'services/session_manager.dart';
 
 
 class Login extends StatefulWidget {
@@ -226,6 +227,16 @@ class _LoginState extends State<Login> {
         if(jsonResponse.containsKey('user')){
           print(jsonResponse['user'].runtimeType);
           user_type = jsonResponse['user']['user_type'];
+          // Persist the session so a browser refresh can restore it instead
+          // of bouncing back to the login screen (see SessionManager).
+          await SessionManager.save(
+            accessToken: jsonResponse['access']?.toString() ?? '',
+            refreshToken: jsonResponse['refresh']?.toString() ?? '',
+            userType: user_type,
+            userName: jsonResponse['user']['name']?.toString() ?? '',
+            userEmail: jsonResponse['user']['email']?.toString() ?? '',
+            userId: jsonResponse['user']['id']?.toString() ?? '',
+          );
         }
       }
       else{

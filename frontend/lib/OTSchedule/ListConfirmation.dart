@@ -8,6 +8,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:my_flutter_app/config/customThemes/MyAppBar.dart';
 import 'package:my_flutter_app/config/constants.dart';
 import 'package:my_flutter_app/services/department_data_service.dart';
+import 'package:my_flutter_app/services/unsaved_changes_guard.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 
 import '../config/customThemes/elevatedButtonTheme.dart';
@@ -48,16 +49,21 @@ class _ListConfirmationState extends State<ListConfirmation> {
   String baseUrl = Constants.baseURL;
   final ScrollController _horizontalController = ScrollController();
   final ScrollController _verticalController = ScrollController();
+  // This whole screen is unconfirmed, unsaved data by definition — warn
+  // before a reload/close silently discards it (see UnsavedChangesGuard).
+  final UnsavedChangesGuard _unsavedGuard = UnsavedChangesGuard();
 
 
   @override
   void initState() {
     super.initState();
     _loadData();
+    _unsavedGuard.enable();
   }
 
   @override
   void dispose() {
+    _unsavedGuard.disable();
     _horizontalController.dispose();
     _verticalController.dispose();
     for (final row in tableRows) {

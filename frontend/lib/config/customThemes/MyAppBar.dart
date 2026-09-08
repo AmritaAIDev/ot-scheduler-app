@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:my_flutter_app/login.dart';
+import 'package:my_flutter_app/services/session_manager.dart';
 
 class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
 
@@ -15,7 +17,19 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
         TextButton.icon(onPressed: () {}, icon: Icon(Icons.list, color: Colors.blueGrey), label: Text("Patient List", style: TextStyle(fontSize: 16, color: Colors.black))),
         TextButton.icon(onPressed: () {}, icon: Icon(Icons.schedule_outlined, color: Colors.blueGrey), label: Text("Scheduler", style: TextStyle(fontSize: 16, color: Colors.black))),
         TextButton.icon(onPressed: () {}, icon: Icon(Icons.settings, color: Colors.blueGrey), label: Text("Settings", style: TextStyle(fontSize: 16, color: Colors.black))),
-
+        IconButton(
+          icon: const Icon(Icons.logout, color: Colors.blueGrey),
+          tooltip: 'Sign out',
+          onPressed: () async {
+            // Sessions now persist across a browser refresh (SessionManager),
+            // so there needs to be a deliberate way to end one.
+            await SessionManager.clear();
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (_) => const Scaffold(body: Login())),
+              (route) => false,
+            );
+          },
+        ),
       ],
       backgroundColor: Colors.grey[100],
       // bottom:  PreferredSize(
