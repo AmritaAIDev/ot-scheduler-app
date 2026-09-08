@@ -152,14 +152,6 @@
   "duration": null
  },
  {
-  "code": "GAGI00019",
-  "name": "Excision of MLTPL Cysts",
-  "departments": [
-   "Gastrointestinal Surgery"
-  ],
-  "duration": null
- },
- {
   "code": "GAGI00020",
   "name": "Feeding Jejunostomy",
   "departments": [
@@ -8860,14 +8852,6 @@
   "duration": null
  },
  {
-  "code": "ENES00078",
-  "name": "Biopsy - ENT",
-  "departments": [
-   "ENT"
-  ],
-  "duration": null
- },
- {
   "code": "ENES00079",
   "name": "Bleeding Polypus Septum Removal",
   "departments": [
@@ -9437,9 +9421,10 @@
  },
  {
   "code": "ENES00153",
-  "name": "Hemi - Thyroidectomy",
+  "name": "Hemi Thyroidectomy",
   "departments": [
-   "ENT"
+   "ENT",
+   "Head and Neck"
   ],
   "duration": 3.15
  },
@@ -9959,7 +9944,8 @@
   "code": "ENES00218",
   "name": "Orbital Exenteration",
   "departments": [
-   "ENT"
+   "ENT",
+   "Ophthalmology"
   ],
   "duration": null
  },
@@ -11306,14 +11292,6 @@
    "Head and Neck"
   ],
   "duration": 8.0
- },
- {
-  "code": "HEHN00052",
-  "name": "Hemi Thyroidectomy",
-  "departments": [
-   "Head and Neck"
-  ],
-  "duration": 3.15
  },
  {
   "code": "HEHN00054",
@@ -28484,14 +28462,6 @@
   "duration": 1.0
  },
  {
-  "code": "OPPH00053",
-  "name": "Orbital Exenteration",
-  "departments": [
-   "Ophthalmology"
-  ],
-  "duration": null
- },
- {
   "code": "OPPH00069",
   "name": "Tarasorraphy - One Eye Permanent",
   "departments": [
@@ -28918,14 +28888,6 @@
  {
   "code": "OPPH00355",
   "name": "Goniotomy Surgery",
-  "departments": [
-   "Ophthalmology"
-  ],
-  "duration": null
- },
- {
-  "code": "OPPH00331",
-  "name": "Intracameral C3F8 Gas Injection Under LA",
   "departments": [
    "Ophthalmology"
   ],

@@ -2603,6 +2603,10 @@ from rapidfuzz.distance import Levenshtein
 # Helper Functions
 def clean_text(text):
     text = text.lower()
+    # Preserve '<'/'>' as distinct tokens before stripping punctuation - otherwise
+    # e.g. "<1 Cm Stone" and ">1 Cm Stone" both collapse to "1 cm stone" and become
+    # indistinguishable (and clinically opposite) procedures.
+    text = text.replace("<", " lt ").replace(">", " gt ")
     text = re.sub(r"[^a-z0-9\s]", " ", text)
     tokens = [w for w in text.split() if w not in STOP_WORDS]
     return " ".join(tokens)
@@ -2679,6 +2683,8 @@ def normalize_value(value):
 # straight quotes, or '&' vs 'and' still match.
 def normalize_surgery_key(text):
     normalized = str(text).strip().lower().replace("&", " and ")
+    # Preserve '<'/'>' as distinct tokens - see clean_text() for why.
+    normalized = normalized.replace("<", " lt ").replace(">", " gt ")
     normalized = re.sub(r"[^a-z0-9\s]", " ", normalized)
     return re.sub(r"\s+", " ", normalized).strip()
 
