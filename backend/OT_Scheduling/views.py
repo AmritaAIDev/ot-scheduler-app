@@ -2611,6 +2611,26 @@ def clean_text(text):
     tokens = [w for w in text.split() if w not in STOP_WORDS]
     return " ".join(tokens)
 
+# Abbreviations that have no standalone Procedures record of their own - they only appear
+# embedded in combined-procedure names (e.g. "TKR - Unilateral with THR Unilateral"), so a
+# plain input like "TKR - Unilateral" has nothing to exact-match against even though the
+# spelled-out form ("Total Knee Replacement - Unilateral") exists as its own record. Used
+# only as a fallback when the unexpanded input doesn't exact-match anything, so it can't
+# change behavior for abbreviations that already have their own record (e.g. "UKA", "ACL").
+ABBREVIATION_EXPANSIONS = {
+    "tkr": "total knee replacement",
+    "thr": "total hip replacement",
+}
+
+def expand_abbreviation(cleaned_text):
+    """If cleaned_text starts with a known abbreviation (whole word), returns the text with
+    that abbreviation expanded to its spelled-out form. Returns None otherwise."""
+    first_word, _, rest = cleaned_text.partition(" ")
+    expansion = ABBREVIATION_EXPANSIONS.get(first_word)
+    if expansion is None:
+        return None
+    return f"{expansion} {rest}".strip()
+
 SPLIT_DELIM_PATTERN = re.compile(r"\+|&|,|\band\b", flags=re.I)
 
 # Above this many delimiter occurrences in one surgery name, skip the partition search
@@ -2809,6 +2829,19 @@ class SurgeryMatcher:
                 i = exact_indices[0]
                 all_matches.append((self.std_ids[i], self.std_names[i], self.std_codes[i]))
                 continue
+
+            # No exact match on the raw input - try again with a known abbreviation
+            # (e.g. "tkr") expanded to its spelled-out form (see ABBREVIATION_EXPANSIONS).
+            # Only reached when the unexpanded input already failed, so this can't change
+            # behavior for abbreviations that already have their own standalone record.
+            if not exact_indices:
+                expanded = expand_abbreviation(cleaned_input)
+                if expanded:
+                    expanded_indices = self.exact_match_index.get(expanded, [])
+                    if len(expanded_indices) == 1:
+                        i = expanded_indices[0]
+                        all_matches.append((self.std_ids[i], self.std_names[i], self.std_codes[i]))
+                        continue
 
             input_vec = vectorizer.transform([cleaned_input])
             cosine_scores = cosine_similarity(input_vec, self.std_vectors)[0]
