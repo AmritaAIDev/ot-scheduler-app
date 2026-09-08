@@ -861,9 +861,16 @@ class _ListConfirmationState extends State<ListConfirmation> {
                           color:
                           MaterialStateProperty.resolveWith<Color?>(
                                 (Set<MaterialState> states) {
+                              // Always resolve to a concrete, opaque color (never null).
+                              // DataTable animates color changes via Color.lerp, and lerp
+                              // treats null as fully-transparent black rather than "the
+                              // table's default" — flipping straight to null here caused a
+                              // visible black flash mid-transition instead of a clean fade
+                              // to white, which only resolved once something else (e.g.
+                              // clicking the row) forced a fresh, non-mid-lerp paint.
                               if (isMissingData)
                                 return Colors.blue[50];
-                              return null;
+                              return Colors.white;
                             },
                           ),
                           cells: [
