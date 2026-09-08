@@ -2611,15 +2611,21 @@ def clean_text(text):
     tokens = [w for w in text.split() if w not in STOP_WORDS]
     return " ".join(tokens)
 
-# Abbreviations that have no standalone Procedures record of their own - they only appear
-# embedded in combined-procedure names (e.g. "TKR - Unilateral with THR Unilateral"), so a
-# plain input like "TKR - Unilateral" has nothing to exact-match against even though the
-# spelled-out form ("Total Knee Replacement - Unilateral") exists as its own record. Used
-# only as a fallback when the unexpanded input doesn't exact-match anything, so it can't
-# change behavior for abbreviations that already have their own record (e.g. "UKA", "ACL").
+# Abbreviations the raw exact-match can't reach on its own, mapped to whatever form the
+# matching Procedures record's cleaned name actually uses. Two different reasons a mapping
+# ends up here:
+#  - no standalone record exists at all, only the spelled-out form (e.g. "tkr"/"thr" -
+#    "Total Knee/Hip Replacement - Unilateral" exists, "TKR/THR - Unilateral" doesn't);
+#  - a record exists but is written as separated initials ("A.V.Fistula" / "A - V fistula
+#    creation" both clean to "a v ..."), so the common joined-abbreviation spelling ("AV
+#    Fistula") doesn't clean to the same string.
+# Used only as a fallback when the unexpanded input doesn't exact-match anything, so it
+# can't change behavior for abbreviations that already have their own matching record
+# (e.g. "UKA", "ACL", "AV Canal Repair Paed").
 ABBREVIATION_EXPANSIONS = {
     "tkr": "total knee replacement",
     "thr": "total hip replacement",
+    "av": "a v",
 }
 
 def expand_abbreviation(cleaned_text):
