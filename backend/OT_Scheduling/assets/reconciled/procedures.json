@@ -15743,7 +15743,7 @@
  },
  {
   "code": "OBOS00088",
-  "name": "Laproscopic & Hysteroscopy Diagnostic Hystero",
+  "name": "Laparoscopic & Hysteroscopy Diagnostic Hystero",
   "departments": [
    "Obstetrics & Gynaecology"
   ],
@@ -15751,7 +15751,7 @@
  },
  {
   "code": "OBOS00089",
-  "name": "Laproscopic Ablation of Endometrioti\nSpots",
+  "name": "Laparoscopic Ablation of Endometrioti\nSpots",
   "departments": [
    "Obstetrics & Gynaecology"
   ],
@@ -15759,7 +15759,7 @@
  },
  {
   "code": "OBOS00090",
-  "name": "Laproscopic Adhesiolysis",
+  "name": "Laparoscopic Adhesiolysis",
   "departments": [
    "Obstetrics & Gynaecology"
   ],
@@ -15767,7 +15767,7 @@
  },
  {
   "code": "OBOS00091",
-  "name": "Laproscopic Assisted Vagina Hysterectomy LAVH",
+  "name": "Laparoscopic Assisted Vagina Hysterectomy LAVH",
   "departments": [
    "Obstetrics & Gynaecology"
   ],
@@ -15775,7 +15775,7 @@
  },
  {
   "code": "OBOS00092",
-  "name": "Laproscopic Assisted Vaginal Hysterectomy with Adhes LAVH",
+  "name": "Laparoscopic Assisted Vaginal Hysterectomy with Adhes LAVH",
   "departments": [
    "Obstetrics & Gynaecology"
   ],
@@ -15783,7 +15783,7 @@
  },
  {
   "code": "OBOS00093",
-  "name": "Laproscopic Assisted Vaginal Hysterectomy with BSO",
+  "name": "Laparoscopic Assisted Vaginal Hysterectomy with BSO",
   "departments": [
    "Obstetrics & Gynaecology"
   ],
@@ -15791,7 +15791,7 @@
  },
  {
   "code": "OBOS00094",
-  "name": "Laproscopic Assisted Vaginal Hysterectomy with Rectocele",
+  "name": "Laparoscopic Assisted Vaginal Hysterectomy with Rectocele",
   "departments": [
    "Obstetrics & Gynaecology"
   ],
@@ -15799,7 +15799,7 @@
  },
  {
   "code": "OBOS00095",
-  "name": "Laproscopic Burch Repair",
+  "name": "Laparoscopic Burch Repair",
   "departments": [
    "Obstetrics & Gynaecology"
   ],
@@ -15807,7 +15807,7 @@
  },
  {
   "code": "OBOS00096",
-  "name": "Laproscopic Corpus Lutial Haemotoma",
+  "name": "Laparoscopic Corpus Lutial Haemotoma",
   "departments": [
    "Obstetrics & Gynaecology"
   ],
@@ -15815,7 +15815,7 @@
  },
  {
   "code": "OBOS00097",
-  "name": "Laproscopic Cystectomy Multiple",
+  "name": "Laparoscopic Cystectomy Multiple",
   "departments": [
    "Obstetrics & Gynaecology"
   ],
@@ -15823,7 +15823,7 @@
  },
  {
   "code": "OBOS00098",
-  "name": "Laproscopic Diagnostic",
+  "name": "Laparoscopic Diagnostic",
   "departments": [
    "Obstetrics & Gynaecology"
   ],
@@ -15831,7 +15831,7 @@
  },
  {
   "code": "OBOS00099",
-  "name": "Laproscopic Ectopic Pregancy High Risk",
+  "name": "Laparoscopic Ectopic Pregancy High Risk",
   "departments": [
    "Obstetrics & Gynaecology"
   ],
@@ -15839,7 +15839,7 @@
  },
  {
   "code": "OBOS00100",
-  "name": "Laproscopic Fimbriolysis",
+  "name": "Laparoscopic Fimbriolysis",
   "departments": [
    "Obstetrics & Gynaecology"
   ],
@@ -15847,7 +15847,7 @@
  },
  {
   "code": "OBOS00101",
-  "name": "Laproscopic For Ectopic Pregnancy",
+  "name": "Laparoscopic For Ectopic Pregnancy",
   "departments": [
    "Obstetrics & Gynaecology"
   ],
@@ -15855,7 +15855,7 @@
  },
  {
   "code": "OBOS00102",
-  "name": "Laproscopic For Endometriosis",
+  "name": "Laparoscopic For Endometriosis",
   "departments": [
    "Obstetrics & Gynaecology"
   ],
@@ -15863,7 +15863,7 @@
  },
  {
   "code": "OBOS00103",
-  "name": "Laproscopic Myomectomy - Multiple",
+  "name": "Laparoscopic Myomectomy - Multiple",
   "departments": [
    "Obstetrics & Gynaecology"
   ],
@@ -15871,7 +15871,7 @@
  },
  {
   "code": "OBOS00104",
-  "name": "Laproscopic Myomectomy - Single",
+  "name": "Laparoscopic Myomectomy - Single",
   "departments": [
    "Obstetrics & Gynaecology"
   ],
@@ -15879,7 +15879,7 @@
  },
  {
   "code": "OBOS00105",
-  "name": "Laproscopic Ovarectomy - Bilateral",
+  "name": "Laparoscopic Ovarectomy - Bilateral",
   "departments": [
    "Obstetrics & Gynaecology"
   ],
@@ -15887,7 +15887,7 @@
  },
  {
   "code": "OBOS00106",
-  "name": "Laproscopic Ovarian Cystectomy - Bilateral",
+  "name": "Laparoscopic Ovarian Cystectomy - Bilateral",
   "departments": [
    "Obstetrics & Gynaecology"
   ],
@@ -15895,23 +15895,15 @@
  },
  {
   "code": "OBOS00107",
-  "name": "Laproscopic Ovarian Cystectomy - Unilateral",
+  "name": "Laparoscopic Ovarian Cystectomy - Unilateral",
   "departments": [
    "Obstetrics & Gynaecology"
   ],
   "duration": 1.92
  },
  {
-  "code": "OBOS00108",
-  "name": "Laproscopic Ovarian/Drilling",
-  "departments": [
-   "Obstetrics & Gynaecology"
-  ],
-  "duration": null
- },
- {
   "code": "OBOS00109",
-  "name": "Laproscopic Ovariectomy Unilateral",
+  "name": "Laparoscopic Ovariectomy Unilateral",
   "departments": [
    "Obstetrics & Gynaecology"
   ],
@@ -15919,7 +15911,7 @@
  },
  {
   "code": "OBOS00110",
-  "name": "Laproscopic Removal of Lost IUCD",
+  "name": "Laparoscopic Removal of Lost IUCD",
   "departments": [
    "Obstetrics & Gynaecology"
   ],
@@ -15927,7 +15919,7 @@
  },
  {
   "code": "OBOS00111",
-  "name": "Laproscopic Salpinogo Oophorectomy Bilateral",
+  "name": "Laparoscopic Salpinogo Oophorectomy Bilateral",
   "departments": [
    "Obstetrics & Gynaecology"
   ],
@@ -15935,7 +15927,7 @@
  },
  {
   "code": "OBOS00112",
-  "name": "Laproscopic Salpinogo Oophorectomy\nUnilateral",
+  "name": "Laparoscopic Salpinogo Oophorectomy\nUnilateral",
   "departments": [
    "Obstetrics & Gynaecology"
   ],
@@ -15951,7 +15943,7 @@
  },
  {
   "code": "OBOS00114",
-  "name": "Laproscopic Vault Suspension",
+  "name": "Laparoscopic Vault Suspension",
   "departments": [
    "Obstetrics & Gynaecology"
   ],
@@ -16135,7 +16127,7 @@
  },
  {
   "code": "OBOS00144",
-  "name": "Perforation of Uterus After D/E\nLaproscopic & Closure",
+  "name": "Perforation of Uterus After D/E\nLaparoscopic & Closure",
   "departments": [
    "Obstetrics & Gynaecology"
   ],
@@ -16279,7 +16271,7 @@
  },
  {
   "code": "OBOS00162",
-  "name": "Total Laproscopic Hysterectomy - TLH",
+  "name": "Total Laparoscopic Hysterectomy - TLH",
   "departments": [
    "Obstetrics & Gynaecology"
   ],
@@ -16455,7 +16447,7 @@
  },
  {
   "code": "OBOS00184",
-  "name": "Laproscopic Salpingectomy - Unilateral",
+  "name": "Laparoscopic Salpingectomy - Unilateral",
   "departments": [
    "Obstetrics & Gynaecology"
   ],
@@ -16463,7 +16455,7 @@
  },
  {
   "code": "OBOS00185",
-  "name": "Laproscopic Salpingectomy - Bilateral",
+  "name": "Laparoscopic Salpingectomy - Bilateral",
   "departments": [
    "Obstetrics & Gynaecology"
   ],
@@ -22631,7 +22623,7 @@
  },
  {
   "code": "PAPS00246",
-  "name": "Nephrectomy - Laproscopic (Paed)",
+  "name": "Nephrectomy - Laparoscopic (Paed)",
   "departments": [
    "Paediatric"
   ],
@@ -26319,7 +26311,7 @@
  },
  {
   "code": "URUR00003",
-  "name": "Adrenalectomy - Laproscopic",
+  "name": "Adrenalectomy - Laparoscopic",
   "departments": [
    "Urology"
   ],
@@ -26359,7 +26351,7 @@
  },
  {
   "code": "URUR00008",
-  "name": "Bladder Diverticulectomy - Laproscopic",
+  "name": "Bladder Diverticulectomy - Laparoscopic",
   "departments": [
    "Urology"
   ],
@@ -26951,7 +26943,7 @@
  },
  {
   "code": "URUR00081",
-  "name": "Nephrectomy Simple - Laproscopic",
+  "name": "Nephrectomy Simple - Laparoscopic",
   "departments": [
    "Urology"
   ],
@@ -26975,7 +26967,7 @@
  },
  {
   "code": "URUR00084",
-  "name": "Nephrostomy - Laproscopic",
+  "name": "Nephrostomy - Laparoscopic",
   "departments": [
    "Urology"
   ],
@@ -27079,7 +27071,7 @@
  },
  {
   "code": "URUR00097",
-  "name": "Orchidopexy Bilateral - Laproscopic",
+  "name": "Orchidopexy Bilateral - Laparoscopic",
   "departments": [
    "Urology"
   ],
@@ -27095,7 +27087,7 @@
  },
  {
   "code": "URUR00099",
-  "name": "Orchidopexy Unilateral - Laproscopic",
+  "name": "Orchidopexy Unilateral - Laparoscopic",
   "departments": [
    "Urology"
   ],
@@ -27119,7 +27111,7 @@
  },
  {
   "code": "URUR00102",
-  "name": "Partial Nephrectomy - Laproscopic",
+  "name": "Partial Nephrectomy - Laparoscopic",
   "departments": [
    "Urology"
   ],
@@ -27127,7 +27119,7 @@
  },
  {
   "code": "URUR00103",
-  "name": "PCNL/Open/Laproscopic Pyelolithotomy U/L - >1 Tract",
+  "name": "PCNL/Open/Laparoscopic Pyelolithotomy U/L - >1 Tract",
   "departments": [
    "Urology"
   ],
@@ -27135,7 +27127,7 @@
  },
  {
   "code": "URUR00104",
-  "name": "PCNL - Laproscopic Pyelolithotomy U/L Single Tract",
+  "name": "PCNL - Laparoscopic Pyelolithotomy U/L Single Tract",
   "departments": [
    "Urology"
   ],
@@ -27271,7 +27263,7 @@
  },
  {
   "code": "URUR00121",
-  "name": "Radical Nephrectomy Nephroureterectomy - Laproscopic",
+  "name": "Radical Nephrectomy Nephroureterectomy - Laparoscopic",
   "departments": [
    "Urology"
   ],
@@ -27287,7 +27279,7 @@
  },
  {
   "code": "URUR00123",
-  "name": "Radical Nephrectomy - Laproscopic",
+  "name": "Radical Nephrectomy - Laparoscopic",
   "departments": [
    "Urology"
   ],
@@ -27519,7 +27511,7 @@
  },
  {
   "code": "URUR00152",
-  "name": "Ureteroureterostomy - Laproscopic",
+  "name": "Ureteroureterostomy - Laparoscopic",
   "departments": [
    "Urology"
   ],
@@ -27655,7 +27647,7 @@
  },
  {
   "code": "URUR00169",
-  "name": "Varicocelectomy Bilateral - Laproscopic",
+  "name": "Varicocelectomy Bilateral - Laparoscopic",
   "departments": [
    "Urology"
   ],
@@ -27671,7 +27663,7 @@
  },
  {
   "code": "URUR00171",
-  "name": "Varicocelectomy Unilateral - Laproscopic",
+  "name": "Varicocelectomy Unilateral - Laparoscopic",
   "departments": [
    "Urology"
   ],
