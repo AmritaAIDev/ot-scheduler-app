@@ -4,6 +4,7 @@ __pycache__/
 
 # Django specific
 media/
+db.sqlite3
 
 
 
