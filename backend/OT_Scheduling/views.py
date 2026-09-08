@@ -2611,8 +2611,30 @@ def clean_text(text):
     tokens = [w for w in text.split() if w not in STOP_WORDS]
     return " ".join(tokens)
 
+SPLIT_DELIM_PATTERN = re.compile(r"\+|&|,|\band\b", flags=re.I)
+
+# Above this many delimiter occurrences in one surgery name, skip the partition search
+# below and fall back to the naive "split at every delimiter" behavior - real names never
+# come close to this, it's just a safety valve against 2**N blowing up.
+MAX_SPLIT_SEARCH_DELIMITERS = 8
+
 def split_procedure(text):
-    return [p.strip() for p in re.split(r"\+|&|,|\band\b", text, flags=re.I) if p.strip()]
+    """Naive split: cut at every '+'/'&'/','/'and'. Kept as the fallback when no smarter
+    partition (see SurgeryMatcher._best_split) produces any exact match."""
+    return [p.strip() for p in SPLIT_DELIM_PATTERN.split(text) if p.strip()]
+
+def _partition_by_mask(text, delims, mask):
+    """delims: '+'/'&'/','/'and' occurrences (re.Match objects, in order) found in text.
+    mask: one bool per delimiter - True cuts the string there, False leaves that delimiter
+    embedded in whichever segment it falls in (i.e. don't split on it)."""
+    parts = []
+    last = 0
+    for delim, cut in zip(delims, mask):
+        if cut:
+            parts.append(text[last:delim.start()])
+            last = delim.end()
+    parts.append(text[last:])
+    return [p.strip() for p in parts if p.strip()]
 
 def token_overlap(a, b):
     return len(set(a.split()) & set(b.split()))
@@ -2728,14 +2750,54 @@ class SurgeryMatcher:
         """Force a reload from the DB - call after re-seeding/editing Procedures."""
         cls._instance = None
 
+    def _best_split(self, surgery_name):
+        """Decides where (if anywhere) to cut surgery_name on '+'/'&'/','/'and'.
+
+        Some DB procedure names legitimately contain one of those delimiters as part of
+        their own name (e.g. "D & C", "Debridement - Head & Neck") - naively splitting on
+        every occurrence shreds those into meaningless fragments that then fail to match.
+        Instead, try every way of choosing which delimiter occurrences to actually cut at
+        (leaving the rest embedded in their segment), and use whichever choice yields the
+        most exact matches against Procedures - tie-broken toward fewer fragments, so we
+        don't split more than necessary. Falls back to the old "cut at everything" behavior
+        if no choice produces any exact match at all (e.g. two distinct procedures joined
+        by '+' that both need fuzzy matching).
+        """
+        delims = list(SPLIT_DELIM_PATTERN.finditer(surgery_name))
+
+        if not delims:
+            return [surgery_name.strip()] if surgery_name.strip() else []
+
+        if len(delims) > MAX_SPLIT_SEARCH_DELIMITERS:
+            return split_procedure(surgery_name)
+
+        best_parts = None
+        best_score = (-1, float("-inf"))  # (exact_match_count, -num_parts)
+        for bits in range(2 ** len(delims)):
+            mask = [(bits >> i) & 1 == 1 for i in range(len(delims))]
+            parts = _partition_by_mask(surgery_name, delims, mask)
+            if not parts:
+                continue
+            exact_count = sum(
+                1 for p in parts if self.exact_match_index.get(clean_text(p))
+            )
+            score = (exact_count, -len(parts))
+            if score > best_score:
+                best_score, best_parts = score, parts
+
+        if best_score[0] > 0:
+            return best_parts
+        return split_procedure(surgery_name)
+
     def match(self, surgery_name):
-        """Returns a list of (procedure_id, name, code) triples, one per '+'/'&'/','-separated
-        sub-procedure in surgery_name. An unmatched sub-procedure comes back as (None, None, None)."""
+        """Returns a list of (procedure_id, name, code) triples, one per sub-procedure in
+        surgery_name as chosen by _best_split(). An unmatched sub-procedure comes back as
+        (None, None, None)."""
         if not surgery_name or not self.std_ids:
             return [(None, None, None)]
 
         all_matches = []
-        for sub in split_procedure(surgery_name):
+        for sub in self._best_split(surgery_name):
             cleaned_input = clean_text(sub)
             if not cleaned_input:
                 continue
