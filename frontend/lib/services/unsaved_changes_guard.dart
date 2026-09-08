@@ -1,4 +1,5 @@
 import 'dart:html' as html;
+import 'dart:js_util' as js_util;
 
 /// Warns the user with the browser's native "leave site?" confirmation if
 /// they try to close the tab or reload while this screen has data that
@@ -9,13 +10,23 @@ import 'dart:html' as html;
 /// makes that an explicit choice instead of silent, invisible data loss.
 /// Wire it up with `enable()` in `initState()` and `disable()` in
 /// `dispose()` for any screen holding unconfirmed/unsaved user input.
+///
+/// Deliberately avoids casting the native event to `html.BeforeUnloadEvent`:
+/// if dart:html's runtime type-check for that wrapper doesn't match the
+/// browser's native 'beforeunload' event, the cast throws *inside* the JS
+/// listener. The browser swallows that (just logs it to the console) and
+/// unloads the page anyway — `returnValue` never gets set, so the dialog
+/// silently never appears. Using dart:js_util to poke the property directly
+/// sidesteps that. `preventDefault()` is also required by current
+/// Chrome/Firefox alongside `returnValue` for the prompt to show at all.
 class UnsavedChangesGuard {
-  html.EventListener? _listener;
+  void Function(html.Event)? _listener;
 
   void enable() {
     if (_listener != null) return;
-    _listener = (event) {
-      (event as html.BeforeUnloadEvent).returnValue = '';
+    _listener = (html.Event event) {
+      event.preventDefault();
+      js_util.setProperty(event, 'returnValue', '');
     };
     html.window.addEventListener('beforeunload', _listener);
   }
