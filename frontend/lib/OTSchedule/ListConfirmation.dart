@@ -104,7 +104,17 @@ class _ListConfirmationState extends State<ListConfirmation> {
     return tableRows.every((row) =>
     row.surgery.isNotEmpty &&
         row.duration.isNotEmpty &&
-        row.surgeryCode.isNotEmpty
+        row.surgeryCode.isNotEmpty &&
+        // Patient Name and MRD aren't editable in this grid (they're plain
+        // Text cells, not dropdowns/fields), so a row missing either of
+        // these can only ever be resolved by deleting it — but until this
+        // check existed, a row like that (Surgery/Code/Duration present,
+        // identity fields blank because the source spreadsheet had an
+        // incomplete row) was silently treated as "complete" and would
+        // have gone straight into the generated schedule with no patient
+        // attached to it.
+        row.patientName.isNotEmpty &&
+        row.mrdNumber.isNotEmpty
     );
   }
 
@@ -856,7 +866,8 @@ class _ListConfirmationState extends State<ListConfirmation> {
                       ],
                       rows: displayedRows.map((row) {
                         bool isMissingData = row.surgery.isEmpty ||
-                            row.duration.isEmpty || row.surgeryCode.isEmpty;
+                            row.duration.isEmpty || row.surgeryCode.isEmpty ||
+                            row.patientName.isEmpty || row.mrdNumber.isEmpty;
                         return DataRow(
                           selected: row.selected,
                           onSelectChanged: (isSelected) {
